@@ -4,7 +4,6 @@ import { prisma } from '@/lib/prisma';
 import { put } from '@vercel/blob';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
-import { compressImage } from '@/lib/image-upload';
 import { recognizeFoodWithRetry, validateRecognitionResult } from '@/lib/ai/food-recognition';
 import { createSuccessResponse, createErrorResponse } from '@/lib/api-response';
 
@@ -51,14 +50,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 壓縮圖片
+    // 直接使用上傳的檔案（前端已壓縮）
     const buffer = Buffer.from(await file.arrayBuffer());
-    const compressedBuffer = await compressImage(buffer, {
-      maxWidth: 1920,
-      maxHeight: 1920,
-      quality: 85,
-      format: 'webp',
-    });
 
     let imageUrl: string;
 
@@ -66,9 +59,9 @@ export async function POST(req: NextRequest) {
     if (hasVercelBlob) {
       // 使用 Vercel Blob (生產環境)
       const fileName = `food-recognition/${session.user.id}/${Date.now()}.webp`;
-      const blob = await put(fileName, compressedBuffer, {
+      const blob = await put(fileName, buffer, {
         access: 'public',
-        contentType: 'image/webp',
+        contentType: file.type,
       });
       imageUrl = blob.url;
     } else {
@@ -79,11 +72,12 @@ export async function POST(req: NextRequest) {
       // 確保目錄存在
       await mkdir(userDir, { recursive: true });
       
-      const fileName = `${Date.now()}.webp`;
+      const ext = file.type.split('/')[1] || 'jpg';
+      const fileName = `${Date.now()}.${ext}`;
       const filePath = join(userDir, fileName);
       
       // 儲存檔案
-      await writeFile(filePath, compressedBuffer);
+      await writeFile(filePath, buffer);
       
       // 生成公開 URL
       imageUrl = `/uploads/food-recognition/${session.user.id}/${fileName}`;

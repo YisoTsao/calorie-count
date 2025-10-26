@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { ArrowLeft, Save, RefreshCw } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { FoodItemCard } from '@/components/scan/food-item-card';
@@ -38,16 +38,25 @@ interface Recognition {
 export default function ScanResultPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   const router = useRouter();
   const [recognition, setRecognition] = useState<Recognition | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [paramId, setParamId] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // 解析 params
+  useEffect(() => {
+    params.then(({ id }) => setParamId(id));
+  }, [params]);
 
   const fetchRecognition = async () => {
+    if (!paramId) return;
+    
     try {
-      const response = await fetch(`/api/recognition/${params.id}`);
+      const response = await fetch(`/api/recognition/${paramId}`);
       
       if (!response.ok) {
         throw new Error('查詢失敗');
@@ -69,12 +78,14 @@ export default function ScanResultPage({
   };
 
   useEffect(() => {
-    fetchRecognition();
+    if (paramId) {
+      fetchRecognition();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params.id]);
+  }, [paramId]);
 
   const handleDelete = async (foodId: string) => {
-    if (!recognition) return;
+    if (!recognition || !paramId) return;
 
     const updatedFoods = recognition.foods.filter((f) => f.id !== foodId);
     
@@ -84,7 +95,7 @@ export default function ScanResultPage({
     }
 
     try {
-      const response = await fetch(`/api/recognition/${params.id}`, {
+      const response = await fetch(`/api/recognition/${paramId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ foods: updatedFoods }),
@@ -102,8 +113,53 @@ export default function ScanResultPage({
   };
 
   const handleSave = async () => {
-    // TODO: Phase 4 - 儲存到飲食記錄
-    alert('儲存功能將在 Phase 4 實作');
+    if (!recognition || !paramId) return;
+
+    setIsSaving(true);
+
+    // 推測餐別（根據當前時間）
+    const hour = new Date().getHours();
+    let mealType: 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK' = 'SNACK';
+    if (hour >= 5 && hour < 11) mealType = 'BREAKFAST';
+    else if (hour >= 11 && hour < 14) mealType = 'LUNCH';
+    else if (hour >= 17 && hour < 21) mealType = 'DINNER';
+
+    try {
+      const response = await fetch('/api/meals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mealType,
+          foods: recognition.foods.map((food) => ({
+            name: food.name,
+            nameEn: food.nameEn || undefined,
+            portion: food.portion,
+            portionSize: food.portionSize,
+            portionUnit: food.portionUnit,
+            calories: food.calories,
+            protein: food.protein,
+            carbs: food.carbs,
+            fat: food.fat,
+            fiber: food.fiber || undefined,
+            sugar: food.sugar || undefined,
+            sodium: food.sodium || undefined,
+            servings: 1,
+          })),
+          sourceRecognitionId: paramId,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('儲存失敗');
+      }
+
+      // 儲存成功，導向飲食記錄頁面
+      router.push('/meals');
+    } catch (err) {
+      console.error('Save error:', err);
+      alert('儲存失敗，請稍後再試');
+      setIsSaving(false);
+    }
   };
 
   if (isLoading || recognition?.status === 'PROCESSING') {
@@ -175,9 +231,9 @@ export default function ScanResultPage({
           返回
         </Button>
 
-        <Button onClick={handleSave}>
-          <Save className="h-4 w-4 mr-2" />
-          儲存記錄
+        <Button onClick={handleSave} disabled={isSaving}>
+          <Plus className="h-4 w-4 mr-2" />
+          {isSaving ? '儲存中...' : '加入今日飲食'}
         </Button>
       </div>
 

@@ -6,7 +6,7 @@ import { updateFoodsSchema } from '@/lib/validations/food';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -17,8 +17,10 @@ export async function GET(
       );
     }
 
+    const { id } = await params;
+
     const recognition = await prisma.foodRecognition.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         foods: {
           orderBy: { createdAt: 'asc' },
@@ -53,7 +55,7 @@ export async function GET(
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -64,8 +66,10 @@ export async function PATCH(
       );
     }
 
+    const { id } = await params;
+
     const recognition = await prisma.foodRecognition.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!recognition || recognition.userId !== session.user.id) {
@@ -91,7 +95,7 @@ export async function PATCH(
 
     // 更新辨識狀態為已編輯
     await prisma.foodRecognition.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         status: 'EDITED',
         foods: {
@@ -105,7 +109,7 @@ export async function PATCH(
     });
 
     const updated = await prisma.foodRecognition.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: { foods: true },
     });
 
@@ -121,7 +125,7 @@ export async function PATCH(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -132,8 +136,10 @@ export async function DELETE(
       );
     }
 
+    const { id } = await params;
+
     const recognition = await prisma.foodRecognition.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!recognition || recognition.userId !== session.user.id) {
@@ -144,7 +150,7 @@ export async function DELETE(
     }
 
     await prisma.foodRecognition.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json(createSuccessResponse({ message: '刪除成功' }));

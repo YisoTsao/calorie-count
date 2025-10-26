@@ -27,6 +27,7 @@ model User {
   goals         UserGoals?
   preferences   UserPreferences?
   recognitions  FoodRecognition[]  // AI 食物辨識記錄
+  meals         Meal[]             // 飲食記錄
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -247,4 +248,71 @@ model FoodItem {
 
   @@index([recognitionId])
   @@map("food_items")
+}
+
+// ==================== Meal Records (Phase 4) ====================
+
+enum MealType {
+  BREAKFAST  // 早餐
+  LUNCH      // 午餐
+  DINNER     // 晚餐
+  SNACK      // 點心
+  OTHER      // 其他
+}
+
+model Meal {
+  id          String    @id @default(cuid())
+  userId      String
+  mealType    MealType
+  mealDate    DateTime  @default(now())  // 這餐的日期時間
+  notes       String?   // 使用者備註
+  
+  // 關聯的食物項目
+  foods       MealFood[]
+  
+  // 來源辨識記錄 (可選，如果是手動新增則為空)
+  sourceRecognitionId String?
+  
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([mealDate])
+  @@index([userId, mealDate])
+  @@map("meals")
+}
+
+// 每餐中的食物項目 (從 FoodRecognition 複製過來，允許使用者編輯)
+model MealFood {
+  id            String @id @default(cuid())
+  mealId        String
+  
+  // 食物資訊 (複製自 FoodItem，但可以獨立編輯)
+  name          String
+  nameEn        String?
+  portion       String
+  portionSize   Float
+  portionUnit   String
+  
+  // 營養資訊
+  calories      Float
+  protein       Float
+  carbs         Float
+  fat           Float
+  fiber         Float?
+  sugar         Float?
+  sodium        Float?
+  
+  // 份數 (使用者可以調整，例如: 吃了 1.5 份)
+  servings      Float    @default(1.0)
+  
+  meal          Meal @relation(fields: [mealId], references: [id], onDelete: Cascade)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([mealId])
+  @@map("meal_foods")
 }

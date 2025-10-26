@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CameraCapture } from '@/components/scan/camera-capture';
 import { ImageUpload } from '@/components/scan/image-upload';
+import { compressImageFromSrc } from '@/lib/client-image-compress';
 
 export default function ScanPage() {
   const router = useRouter();
@@ -31,13 +32,17 @@ export default function ScanPage() {
     try {
       setIsUploading(true);
 
-      // 將 base64 轉換為 blob
-      const response = await fetch(imageSrc);
-      const blob = await response.blob();
+      // 壓縮圖片
+      const compressedBlob = await compressImageFromSrc(imageSrc, {
+        maxWidth: 1920,
+        maxHeight: 1920,
+        quality: 0.85,
+        format: 'image/webp',
+      });
 
       // 建立 FormData
       const formData = new FormData();
-      formData.append('image', blob, 'food.jpg');
+      formData.append('image', compressedBlob, 'food.webp');
 
       // 上傳圖片
       const uploadResponse = await fetch('/api/recognition/upload', {
