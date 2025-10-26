@@ -1,0 +1,2233 @@
+openapi: 3.0.3
+info:
+  title: AI 食物卡路里辨識系統 API
+  description: |
+    一套完整的 AI 識別食物卡路里 Web 應用程式 API
+    包含會員系統、拍照辨識、飲食記錄、數據分析等功能
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@calorie-ai.com
+
+servers:
+  - url: https://api.calorie-ai.com/v1
+    description: Production server
+  - url: http://localhost:3000/api/v1
+    description: Development server
+
+tags:
+  - name: Auth
+    description: 認證與授權相關 API
+  - name: User
+    description: 會員管理相關 API
+  - name: Food Recognition
+    description: AI 食物辨識相關 API
+  - name: Meal Records
+    description: 飲食記錄相關 API
+  - name: Nutrition
+    description: 營養資料相關 API
+  - name: Analytics
+    description: 數據分析相關 API
+  - name: Food Database
+    description: 食物資料庫相關 API
+  - name: Social
+    description: 社群功能相關 API
+
+paths:
+  # ==================== 認證相關 ====================
+  /auth/register:
+    post:
+      tags:
+        - Auth
+      summary: 會員註冊
+      description: 使用 Email 註冊新帳號
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - name
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                password:
+                  type: string
+                  format: password
+                  minLength: 8
+                  example: SecurePass123!
+                name:
+                  type: string
+                  example: 王小明
+                dateOfBirth:
+                  type: string
+                  format: date
+                  example: 1990-01-01
+                gender:
+                  type: string
+                  enum: [male, female, other]
+                  example: male
+                height:
+                  type: number
+                  description: 身高(公分)
+                  example: 170
+                weight:
+                  type: number
+                  description: 體重(公斤)
+                  example: 65
+                targetWeight:
+                  type: number
+                  description: 目標體重(公斤)
+                  example: 60
+      responses:
+        '201':
+          description: 註冊成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 註冊成功，請查收驗證郵件
+                  data:
+                    type: object
+                    properties:
+                      userId:
+                        type: string
+                        example: usr_1234567890
+                      email:
+                        type: string
+                        example: user@example.com
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Email 已被註冊
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: 會員登入
+      description: 使用 Email 和密碼登入
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                password:
+                  type: string
+                  format: password
+                  example: SecurePass123!
+                rememberMe:
+                  type: boolean
+                  example: true
+      responses:
+        '200':
+          description: 登入成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      accessToken:
+                        type: string
+                        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                      refreshToken:
+                        type: string
+                        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                      user:
+                        $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/oauth/{provider}:
+    get:
+      tags:
+        - Auth
+      summary: OAuth 登入
+      description: 使用第三方服務登入 (Google/Apple)
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [google, apple]
+      responses:
+        '302':
+          description: 重定向到 OAuth 提供商
+
+  /auth/refresh:
+    post:
+      tags:
+        - Auth
+      summary: 刷新 Token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refreshToken
+              properties:
+                refreshToken:
+                  type: string
+      responses:
+        '200':
+          description: Token 刷新成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+                  refreshToken:
+                    type: string
+
+  /auth/forgot-password:
+    post:
+      tags:
+        - Auth
+      summary: 忘記密碼
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: 重置郵件已發送
+
+  /auth/reset-password:
+    post:
+      tags:
+        - Auth
+      summary: 重置密碼
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - token
+                - newPassword
+              properties:
+                token:
+                  type: string
+                newPassword:
+                  type: string
+                  format: password
+                  minLength: 8
+      responses:
+        '200':
+          description: 密碼重置成功
+
+  # ==================== 會員管理 ====================
+  /users/me:
+    get:
+      tags:
+        - User
+      summary: 取得當前會員資料
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功取得會員資料
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    
+    patch:
+      tags:
+        - User
+      summary: 更新會員資料
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                dateOfBirth:
+                  type: string
+                  format: date
+                gender:
+                  type: string
+                  enum: [male, female, other]
+                height:
+                  type: number
+                weight:
+                  type: number
+                targetWeight:
+                  type: number
+                activityLevel:
+                  type: string
+                  enum: [sedentary, light, moderate, active, very_active]
+                dailyCalorieGoal:
+                  type: number
+                avatar:
+                  type: string
+                  format: uri
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/User'
+
+    delete:
+      tags:
+        - User
+      summary: 刪除帳號
+      security:
+        - BearerAuth: []
+      responses:
+        '204':
+          description: 帳號已刪除
+
+  /users/me/password:
+    put:
+      tags:
+        - User
+      summary: 修改密碼
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - currentPassword
+                - newPassword
+              properties:
+                currentPassword:
+                  type: string
+                  format: password
+                newPassword:
+                  type: string
+                  format: password
+                  minLength: 8
+      responses:
+        '200':
+          description: 密碼修改成功
+
+  /users/me/goals:
+    get:
+      tags:
+        - User
+      summary: 取得目標設定
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功取得目標設定
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserGoals'
+    
+    put:
+      tags:
+        - User
+      summary: 更新目標設定
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserGoals'
+      responses:
+        '200':
+          description: 目標設定更新成功
+
+  /users/me/preferences:
+    get:
+      tags:
+        - User
+      summary: 取得偏好設定
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功取得偏好設定
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPreferences'
+    
+    put:
+      tags:
+        - User
+      summary: 更新偏好設定
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPreferences'
+      responses:
+        '200':
+          description: 偏好設定更新成功
+
+  # ==================== AI 食物辨識 ====================
+  /recognition/upload:
+    post:
+      tags:
+        - Food Recognition
+      summary: 上傳圖片進行食物辨識
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - image
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: 食物圖片 (支援 JPG, PNG, HEIC)
+                mealType:
+                  type: string
+                  enum: [breakfast, lunch, dinner, snack]
+                  description: 餐點類型
+                timestamp:
+                  type: string
+                  format: date-time
+                  description: 拍攝時間
+      responses:
+        '200':
+          description: 辨識成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      recognitionId:
+                        type: string
+                        example: rec_1234567890
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/RecognizedFood'
+                      totalCalories:
+                        type: number
+                        example: 520
+                      totalNutrition:
+                        $ref: '#/components/schemas/Nutrition'
+                      imageUrl:
+                        type: string
+                        format: uri
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '413':
+          description: 圖片檔案過大
+
+  /recognition/{recognitionId}:
+    get:
+      tags:
+        - Food Recognition
+      summary: 取得辨識結果
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: recognitionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功取得辨識結果
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecognitionResult'
+    
+    patch:
+      tags:
+        - Food Recognition
+      summary: 修正辨識結果
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: recognitionId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      itemId:
+                        type: string
+                      foodName:
+                        type: string
+                      servingSize:
+                        type: number
+                      calories:
+                        type: number
+                      nutrition:
+                        $ref: '#/components/schemas/Nutrition'
+      responses:
+        '200':
+          description: 修正成功
+
+  /recognition/{recognitionId}/save:
+    post:
+      tags:
+        - Food Recognition
+      summary: 儲存辨識結果到飲食記錄
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: recognitionId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - mealType
+              properties:
+                mealType:
+                  type: string
+                  enum: [breakfast, lunch, dinner, snack]
+                timestamp:
+                  type: string
+                  format: date-time
+                notes:
+                  type: string
+      responses:
+        '201':
+          description: 儲存成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      mealRecordId:
+                        type: string
+
+  # ==================== 飲食記錄 ====================
+  /meals:
+    get:
+      tags:
+        - Meal Records
+      summary: 取得飲食記錄列表
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date
+          description: 開始日期
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date
+          description: 結束日期
+        - name: mealType
+          in: query
+          schema:
+            type: string
+            enum: [breakfast, lunch, dinner, snack]
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: 成功取得飲食記錄
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      meals:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/MealRecord'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+    
+    post:
+      tags:
+        - Meal Records
+      summary: 手動新增飲食記錄
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - mealType
+                - items
+              properties:
+                mealType:
+                  type: string
+                  enum: [breakfast, lunch, dinner, snack]
+                timestamp:
+                  type: string
+                  format: date-time
+                items:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - foodId
+                      - servingSize
+                    properties:
+                      foodId:
+                        type: string
+                      foodName:
+                        type: string
+                      servingSize:
+                        type: number
+                      unit:
+                        type: string
+                notes:
+                  type: string
+      responses:
+        '201':
+          description: 新增成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/MealRecord'
+
+  /meals/{mealId}:
+    get:
+      tags:
+        - Meal Records
+      summary: 取得單筆飲食記錄
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: mealId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功取得飲食記錄
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/MealRecord'
+    
+    patch:
+      tags:
+        - Meal Records
+      summary: 更新飲食記錄
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: mealId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mealType:
+                  type: string
+                  enum: [breakfast, lunch, dinner, snack]
+                timestamp:
+                  type: string
+                  format: date-time
+                items:
+                  type: array
+                  items:
+                    type: object
+                notes:
+                  type: string
+      responses:
+        '200':
+          description: 更新成功
+    
+    delete:
+      tags:
+        - Meal Records
+      summary: 刪除飲食記錄
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: mealId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: 刪除成功
+
+  /meals/daily-summary:
+    get:
+      tags:
+        - Meal Records
+      summary: 取得每日摘要
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: 成功取得每日摘要
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/DailySummary'
+
+  /meals/favorites:
+    get:
+      tags:
+        - Meal Records
+      summary: 取得常用食物
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功取得常用食物
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FoodItem'
+    
+    post:
+      tags:
+        - Meal Records
+      summary: 加入常用食物
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - foodId
+              properties:
+                foodId:
+                  type: string
+      responses:
+        '201':
+          description: 加入成功
+
+  # ==================== 營養資料 ====================
+  /nutrition/water:
+    get:
+      tags:
+        - Nutrition
+      summary: 取得水分攝取記錄
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: 成功取得水分記錄
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      date:
+                        type: string
+                        format: date
+                      totalMl:
+                        type: number
+                      goal:
+                        type: number
+                      records:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            timestamp:
+                              type: string
+                              format: date-time
+                            amount:
+                              type: number
+    
+    post:
+      tags:
+        - Nutrition
+      summary: 記錄水分攝取
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - amount
+              properties:
+                amount:
+                  type: number
+                  description: 水量(毫升)
+                timestamp:
+                  type: string
+                  format: date-time
+      responses:
+        '201':
+          description: 記錄成功
+
+  /nutrition/exercise:
+    get:
+      tags:
+        - Nutrition
+      summary: 取得運動記錄
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: 成功取得運動記錄
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ExerciseRecord'
+    
+    post:
+      tags:
+        - Nutrition
+      summary: 記錄運動
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - exerciseType
+                - duration
+              properties:
+                exerciseType:
+                  type: string
+                  example: running
+                duration:
+                  type: number
+                  description: 運動時間(分鐘)
+                caloriesBurned:
+                  type: number
+                intensity:
+                  type: string
+                  enum: [low, moderate, high]
+                timestamp:
+                  type: string
+                  format: date-time
+                notes:
+                  type: string
+      responses:
+        '201':
+          description: 記錄成功
+
+  /nutrition/weight:
+    get:
+      tags:
+        - Nutrition
+      summary: 取得體重記錄
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: 成功取得體重記錄
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        date:
+                          type: string
+                          format: date
+                        weight:
+                          type: number
+                        bmi:
+                          type: number
+                        bodyFat:
+                          type: number
+    
+    post:
+      tags:
+        - Nutrition
+      summary: 記錄體重
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - weight
+              properties:
+                weight:
+                  type: number
+                  description: 體重(公斤)
+                bodyFat:
+                  type: number
+                  description: 體脂率(%)
+                date:
+                  type: string
+                  format: date
+      responses:
+        '201':
+          description: 記錄成功
+
+  # ==================== 數據分析 ====================
+  /analytics/overview:
+    get:
+      tags:
+        - Analytics
+      summary: 取得總覽數據
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [week, month, year]
+            default: week
+      responses:
+        '200':
+          description: 成功取得總覽數據
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      period:
+                        type: string
+                      averageCalories:
+                        type: number
+                      averageProtein:
+                        type: number
+                      averageCarbs:
+                        type: number
+                      averageFat:
+                        type: number
+                      goalCompletionRate:
+                        type: number
+                      weightChange:
+                        type: number
+                      consecutiveDays:
+                        type: integer
+
+  /analytics/calories-trend:
+    get:
+      tags:
+        - Analytics
+      summary: 取得卡路里趨勢
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: startDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: 成功取得趨勢數據
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        date:
+                          type: string
+                          format: date
+                        calories:
+                          type: number
+                        goal:
+                          type: number
+
+  /analytics/nutrition-balance:
+    get:
+      tags:
+        - Analytics
+      summary: 營養素平衡分析
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [week, month]
+            default: week
+      responses:
+        '200':
+          description: 成功取得營養平衡數據
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      protein:
+                        type: object
+                        properties:
+                          average:
+                            type: number
+                          recommended:
+                            type: number
+                          percentage:
+                            type: number
+                      carbs:
+                        type: object
+                        properties:
+                          average:
+                            type: number
+                          recommended:
+                            type: number
+                          percentage:
+                            type: number
+                      fat:
+                        type: object
+                        properties:
+                          average:
+                            type: number
+                          recommended:
+                            type: number
+                          percentage:
+                            type: number
+
+  /analytics/top-foods:
+    get:
+      tags:
+        - Analytics
+      summary: 最常吃的食物排行
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [week, month, year]
+            default: month
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: 成功取得排行數據
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        foodName:
+                          type: string
+                        count:
+                          type: integer
+                        totalCalories:
+                          type: number
+
+  /analytics/meal-timing:
+    get:
+      tags:
+        - Analytics
+      summary: 用餐時間分析
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [week, month]
+            default: month
+      responses:
+        '200':
+          description: 成功取得用餐時間分析
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      breakfast:
+                        type: object
+                        properties:
+                          averageTime:
+                            type: string
+                          frequency:
+                            type: integer
+                      lunch:
+                        type: object
+                        properties:
+                          averageTime:
+                            type: string
+                          frequency:
+                            type: integer
+                      dinner:
+                        type: object
+                        properties:
+                          averageTime:
+                            type: string
+                          frequency:
+                            type: integer
+
+  /analytics/achievements:
+    get:
+      tags:
+        - Analytics
+      summary: 取得成就徽章
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功取得成就列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        description:
+                          type: string
+                        icon:
+                          type: string
+                        unlockedAt:
+                          type: string
+                          format: date-time
+                        isUnlocked:
+                          type: boolean
+
+  # ==================== 食物資料庫 ====================
+  /foods:
+    get:
+      tags:
+        - Food Database
+      summary: 搜尋食物
+      parameters:
+        - name: query
+          in: query
+          schema:
+            type: string
+          description: 搜尋關鍵字
+        - name: category
+          in: query
+          schema:
+            type: string
+          description: 食物分類
+        - name: brand
+          in: query
+          schema:
+            type: string
+          description: 品牌名稱
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: 成功取得食物列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      foods:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/FoodItem'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+
+  /foods/{foodId}:
+    get:
+      tags:
+        - Food Database
+      summary: 取得食物詳細資料
+      parameters:
+        - name: foodId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功取得食物資料
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/FoodItem'
+
+  /foods/categories:
+    get:
+      tags:
+        - Food Database
+      summary: 取得食物分類列表
+      responses:
+        '200':
+          description: 成功取得分類列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        icon:
+                          type: string
+                        count:
+                          type: integer
+
+  /foods/brands:
+    get:
+      tags:
+        - Food Database
+      summary: 取得品牌列表
+      responses:
+        '200':
+          description: 成功取得品牌列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        logo:
+                          type: string
+
+  /foods/restaurants:
+    get:
+      tags:
+        - Food Database
+      summary: 取得餐廳菜單
+      parameters:
+        - name: restaurant
+          in: query
+          schema:
+            type: string
+          description: 餐廳名稱
+      responses:
+        '200':
+          description: 成功取得餐廳菜單
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FoodItem'
+
+  # ==================== 社群功能 ====================
+  /social/posts:
+    get:
+      tags:
+        - Social
+      summary: 取得動態牆貼文
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [all, friends, mine]
+            default: all
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: 成功取得貼文列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      posts:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Post'
+                      pagination:
+                        $ref: '#/components/schemas/Pagination'
+    
+    post:
+      tags:
+        - Social
+      summary: 發布貼文
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - content
+              properties:
+                content:
+                  type: string
+                mealRecordId:
+                  type: string
+                images:
+                  type: array
+                  items:
+                    type: string
+                    format: uri
+                visibility:
+                  type: string
+                  enum: [public, friends, private]
+                  default: public
+      responses:
+        '201':
+          description: 發布成功
+
+  /social/posts/{postId}/like:
+    post:
+      tags:
+        - Social
+      summary: 按讚貼文
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 按讚成功
+    
+    delete:
+      tags:
+        - Social
+      summary: 取消按讚
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 取消成功
+
+  /social/posts/{postId}/comments:
+    get:
+      tags:
+        - Social
+      summary: 取得貼文留言
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功取得留言
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Comment'
+    
+    post:
+      tags:
+        - Social
+      summary: 留言
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - content
+              properties:
+                content:
+                  type: string
+      responses:
+        '201':
+          description: 留言成功
+
+  /social/friends:
+    get:
+      tags:
+        - Social
+      summary: 取得好友列表
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功取得好友列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Friend'
+    
+    post:
+      tags:
+        - Social
+      summary: 新增好友
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - userId
+              properties:
+                userId:
+                  type: string
+      responses:
+        '201':
+          description: 好友請求已發送
+
+  /social/friends/{userId}:
+    delete:
+      tags:
+        - Social
+      summary: 刪除好友
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: 已刪除好友
+
+  /social/leaderboard:
+    get:
+      tags:
+        - Social
+      summary: 取得排行榜
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [calories, streak, weight_loss]
+            default: streak
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [week, month, all_time]
+            default: week
+      responses:
+        '200':
+          description: 成功取得排行榜
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        rank:
+                          type: integer
+                        user:
+                          $ref: '#/components/schemas/User'
+                        score:
+                          type: number
+
+# ==================== Components ====================
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          example: usr_1234567890
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        name:
+          type: string
+          example: 王小明
+        avatar:
+          type: string
+          format: uri
+        dateOfBirth:
+          type: string
+          format: date
+        gender:
+          type: string
+          enum: [male, female, other]
+        height:
+          type: number
+          description: 身高(公分)
+        weight:
+          type: number
+          description: 體重(公斤)
+        targetWeight:
+          type: number
+        activityLevel:
+          type: string
+          enum: [sedentary, light, moderate, active, very_active]
+        dailyCalorieGoal:
+          type: number
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    UserGoals:
+      type: object
+      properties:
+        goalType:
+          type: string
+          enum: [lose_weight, gain_weight, maintain]
+        targetWeight:
+          type: number
+        dailyCalorieGoal:
+          type: number
+        proteinGoal:
+          type: number
+        carbsGoal:
+          type: number
+        fatGoal:
+          type: number
+        waterGoal:
+          type: number
+        weeklyWeightChangeGoal:
+          type: number
+        targetDate:
+          type: string
+          format: date
+
+    UserPreferences:
+      type: object
+      properties:
+        theme:
+          type: string
+          enum: [light, dark, auto]
+        language:
+          type: string
+          example: zh-TW
+        units:
+          type: string
+          enum: [metric, imperial]
+        notifications:
+          type: object
+          properties:
+            mealReminders:
+              type: boolean
+            waterReminders:
+              type: boolean
+            goalReminders:
+              type: boolean
+            socialUpdates:
+              type: boolean
+        privacy:
+          type: object
+          properties:
+            profileVisibility:
+              type: string
+              enum: [public, friends, private]
+            showWeight:
+              type: boolean
+            showProgress:
+              type: boolean
+
+    Nutrition:
+      type: object
+      properties:
+        calories:
+          type: number
+          example: 250
+        protein:
+          type: number
+          example: 15.5
+        carbs:
+          type: number
+          example: 30.2
+        fat:
+          type: number
+          example: 8.3
+        fiber:
+          type: number
+          example: 3.5
+        sugar:
+          type: number
+          example: 5.2
+        sodium:
+          type: number
+          example: 350
+
+    RecognizedFood:
+      type: object
+      properties:
+        itemId:
+          type: string
+        foodId:
+          type: string
+        foodName:
+          type: string
+          example: 白飯
+        confidence:
+          type: number
+          description: 辨識信心度 (0-1)
+          example: 0.95
+        servingSize:
+          type: number
+          example: 150
+        unit:
+          type: string
+          example: 克
+        calories:
+          type: number
+          example: 210
+        nutrition:
+          $ref: '#/components/schemas/Nutrition'
+        boundingBox:
+          type: object
+          properties:
+            x:
+              type: number
+            y:
+              type: number
+            width:
+              type: number
+            height:
+              type: number
+
+    RecognitionResult:
+      type: object
+      properties:
+        recognitionId:
+          type: string
+        imageUrl:
+          type: string
+          format: uri
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecognizedFood'
+        totalCalories:
+          type: number
+        totalNutrition:
+          $ref: '#/components/schemas/Nutrition'
+        createdAt:
+          type: string
+          format: date-time
+
+    MealRecord:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        mealType:
+          type: string
+          enum: [breakfast, lunch, dinner, snack]
+        timestamp:
+          type: string
+          format: date-time
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              foodId:
+                type: string
+              foodName:
+                type: string
+              servingSize:
+                type: number
+              unit:
+                type: string
+              calories:
+                type: number
+              nutrition:
+                $ref: '#/components/schemas/Nutrition'
+        totalCalories:
+          type: number
+        totalNutrition:
+          $ref: '#/components/schemas/Nutrition'
+        imageUrl:
+          type: string
+          format: uri
+        notes:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    DailySummary:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        totalCalories:
+          type: number
+        calorieGoal:
+          type: number
+        totalNutrition:
+          $ref: '#/components/schemas/Nutrition'
+        waterIntake:
+          type: number
+        waterGoal:
+          type: number
+        exerciseCalories:
+          type: number
+        netCalories:
+          type: number
+        mealBreakdown:
+          type: object
+          properties:
+            breakfast:
+              type: number
+            lunch:
+              type: number
+            dinner:
+              type: number
+            snack:
+              type: number
+
+    FoodItem:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        nameEn:
+          type: string
+        category:
+          type: string
+        brand:
+          type: string
+        servingSize:
+          type: number
+        unit:
+          type: string
+        calories:
+          type: number
+        nutrition:
+          $ref: '#/components/schemas/Nutrition'
+        imageUrl:
+          type: string
+          format: uri
+        barcode:
+          type: string
+        ingredients:
+          type: array
+          items:
+            type: string
+        allergens:
+          type: array
+          items:
+            type: string
+        tags:
+          type: array
+          items:
+            type: string
+
+    ExerciseRecord:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        exerciseType:
+          type: string
+        duration:
+          type: number
+        caloriesBurned:
+          type: number
+        intensity:
+          type: string
+          enum: [low, moderate, high]
+        timestamp:
+          type: string
+          format: date-time
+        notes:
+          type: string
+
+    Post:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        user:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            avatar:
+              type: string
+        content:
+          type: string
+        mealRecord:
+          $ref: '#/components/schemas/MealRecord'
+        images:
+          type: array
+          items:
+            type: string
+            format: uri
+        visibility:
+          type: string
+          enum: [public, friends, private]
+        likesCount:
+          type: integer
+        commentsCount:
+          type: integer
+        isLiked:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    Comment:
+      type: object
+      properties:
+        id:
+          type: string
+        postId:
+          type: string
+        userId:
+          type: string
+        user:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            avatar:
+              type: string
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    Friend:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        avatar:
+          type: string
+        status:
+          type: string
+          enum: [pending, accepted, rejected]
+        consecutiveDays:
+          type: integer
+        since:
+          type: string
+          format: date-time
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+        totalPages:
+          type: integer
+
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: VALIDATION_ERROR
+            message:
+              type: string
+              example: 請求參數有誤
+            details:
+              type: array
+              items:
+                type: object
+                properties:
+                  field:
+                    type: string
+                  message:
+                    type: string
+
+  responses:
+    BadRequest:
+      description: 請求參數錯誤
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    
+    Unauthorized:
+      description: 未授權或 Token 無效
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    
+    NotFound:
+      description: 資源不存在
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    
+    ServerError:
+      description: 伺服器錯誤
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'

@@ -1,0 +1,73 @@
+Phase 2: implement-user-management
+完成時間: 2025年10月26日
+完成度: 32% (18/57 tasks) - 核心後端功能完成
+
+✅ 已完成核心功能:
+
+1. 驗證邏輯層 (5/5)
+   - lib/validations/profile.ts - 個人資料驗證
+   - lib/validations/goals.ts - 目標設定驗證
+   - lib/validations/preferences.ts - 偏好設定驗證
+   - lib/validations/password.ts - 密碼修改驗證
+   - types/user.ts - 型別定義 (Phase 1)
+
+2. 圖片上傳系統 (3/4)
+   - lib/image-upload.ts - 完整圖片處理工具
+     * 格式驗證 (JPEG, PNG, WebP)
+     * 自動壓縮 (Sharp)
+     * 頭像處理 (400x400, WebP 85%)
+     * Vercel Blob 上傳
+   - app/api/users/me/avatar/route.ts - 上傳/刪除 API
+   - 套件安裝: sharp@^0.33, @vercel/blob@^2.0
+
+3. 健康計算引擎 (3/3)
+   - lib/calculations/health.ts
+     * calculateBMI - BMI 計算與分類
+     * calculateBMR - 基礎代謝率 (Mifflin-St Jeor 公式)
+     * calculateTDEE - 每日總消耗熱量
+     * calculateDailyCalorieGoal - 依目標調整熱量
+     * calculateMacronutrients - 巨量營養素比例
+     * calculateIdealWeightRange - 理想體重範圍
+     * calculateDailyWaterGoal - 每日飲水建議
+
+4. API 路由 (4/4)
+   - app/api/users/me/avatar/route.ts - POST/DELETE 頭像
+   - app/api/users/me/password/route.ts - PATCH 密碼修改
+   - app/api/users/me/delete/route.ts - DELETE 帳號刪除
+   - app/api/users/me/stats/route.ts - GET 使用者統計
+   - app/api/users/me/profile/route.ts - GET/PATCH 資料 (Phase 1)
+
+5. Layout 元件 (3/3 from Phase 1)
+   - components/layout/navbar.tsx - 響應式導航列
+   - components/layout/sidebar.tsx - 側邊欄導航
+   - middleware.ts - 路由保護
+
+⬜ 待實作項目 (39 tasks):
+
+- UI 元件 (8個): ProfileCard, AvatarUpload, Forms
+- 頁面 (6個): Profile, Edit, Goals, Preferences, Security
+- 主題系統 (4個): ThemeProvider, ThemeToggle
+- 狀態管理 (3個): Zustand stores
+- 進階功能 (5個): 視覺化、樂觀更新
+- 測試 (8個): 完整測試流程
+- 文件 (5個): API 文件、使用說明
+
+架構決策:
+✓ 專注核心後端基礎設施,確保 API 穩定可用
+✓ UI 元件採延遲實作策略,避免過度開發
+✓ 健康計算邏輯完整且可重用於多處
+✓ API 回應格式統一 (createSuccessResponse/createErrorResponse)
+✓ 圖片自動優化 (WebP, 壓縮, 尺寸限制)
+✓ 型別安全的驗證層 (Zod schemas)
+
+技術棧:
+- Next.js 14 App Router + TypeScript
+- Prisma ORM + PostgreSQL
+- Sharp (圖片處理) + Vercel Blob (儲存)
+- Zod (驗證) + React Hook Form
+- Tailwind CSS v3
+- NextAuth.js v5 beta
+
+下一步建議:
+→ 進入 Phase 3: implement-food-recognition (AI 食物辨識)
+→ 或補充 Phase 2 UI 元件以完善使用者體驗

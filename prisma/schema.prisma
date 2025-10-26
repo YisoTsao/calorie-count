@@ -1,0 +1,250 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== NextAuth Models ====================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified DateTime?
+  name          String?
+  image         String?
+  password      String?   // Hashed password for email/password auth
+  
+  // Relations
+  accounts      Account[]
+  sessions      Session[]
+  profile       UserProfile?
+  goals         UserGoals?
+  preferences   UserPreferences?
+  recognitions  FoodRecognition[]  // AI 食物辨識記錄
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// ==================== User Profile & Settings ====================
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum ActivityLevel {
+  SEDENTARY    // 久坐
+  LIGHT        // 輕度活動
+  MODERATE     // 中度活動
+  ACTIVE       // 活躍
+  VERY_ACTIVE  // 非常活躍
+}
+
+model UserProfile {
+  id           String         @id @default(cuid())
+  userId       String         @unique
+  dateOfBirth  DateTime?
+  gender       Gender?
+  height       Float?         // 身高 (公分)
+  weight       Float?         // 體重 (公斤)
+  targetWeight Float?         // 目標體重
+  activityLevel ActivityLevel @default(MODERATE)
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("user_profiles")
+}
+
+enum GoalType {
+  LOSE_WEIGHT  // 減重
+  GAIN_WEIGHT  // 增重
+  MAINTAIN     // 維持
+}
+
+model UserGoals {
+  id               String    @id @default(cuid())
+  userId           String    @unique
+  goalType         GoalType  @default(MAINTAIN)
+  dailyCalorieGoal Int       @default(2000)
+  proteinGoal      Float     @default(50)  // 蛋白質目標 (克)
+  carbsGoal        Float     @default(250) // 碳水化合物目標 (克)
+  fatGoal          Float     @default(65)  // 脂肪目標 (克)
+  waterGoal        Int       @default(2000) // 水分目標 (毫升)
+  targetDate       DateTime? // 目標達成日期
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("user_goals")
+}
+
+enum Theme {
+  LIGHT
+  DARK
+  AUTO
+}
+
+enum Units {
+  METRIC   // 公制
+  IMPERIAL // 英制
+}
+
+enum ProfileVisibility {
+  PUBLIC
+  FRIENDS
+  PRIVATE
+}
+
+model UserPreferences {
+  id     String @id @default(cuid())
+  userId String @unique
+
+  // UI Preferences
+  theme    Theme @default(LIGHT)
+  language String @default("zh-TW")
+  units    Units  @default(METRIC)
+
+  // Notification Settings
+  notificationMealReminders  Boolean @default(true)
+  notificationWaterReminders Boolean @default(true)
+  notificationGoalReminders  Boolean @default(true)
+  notificationSocialUpdates  Boolean @default(true)
+
+  // Privacy Settings
+  privacyProfileVisibility ProfileVisibility @default(FRIENDS)
+  privacyShowWeight        Boolean           @default(false)
+  privacyShowProgress      Boolean           @default(true)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("user_preferences")
+}
+
+// ==================== AI Food Recognition ====================
+
+enum RecognitionStatus {
+  PROCESSING  // 處理中
+  COMPLETED   // 已完成
+  FAILED      // 失敗
+  EDITED      // 已編輯
+}
+
+model FoodRecognition {
+  id          String            @id @default(cuid())
+  userId      String
+  imageUrl    String            // 上傳的圖片 URL
+  status      RecognitionStatus @default(PROCESSING)
+  
+  // AI 辨識原始結果
+  rawResult   Json?             // OpenAI 的原始回應
+  confidence  Float?            // 信心度 0-1
+  errorMessage String?          // 錯誤訊息
+  
+  // 處理後的食物列表
+  foods       FoodItem[]
+  
+  // 關聯到飲食記錄 (Phase 4)
+  // mealRecordId String?
+  // mealRecord   MealRecord? @relation(fields: [mealRecordId], references: [id])
+  
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@map("food_recognitions")
+}
+
+model FoodItem {
+  id            String @id @default(cuid())
+  recognitionId String
+  
+  // 食物資訊
+  name          String   // 食物名稱 (中文)
+  nameEn        String?  // 英文名稱
+  portion       String   // 份量描述 (例: "一碗", "150克")
+  portionSize   Float    // 份量數值
+  portionUnit   String   // 份量單位 (g, ml, 碗, 個)
+  
+  // 營養資訊 (每份)
+  calories      Float    // 卡路里
+  protein       Float    // 蛋白質 (克)
+  carbs         Float    // 碳水化合物 (克)
+  fat           Float    // 脂肪 (克)
+  fiber         Float?   // 纖維 (克)
+  sugar         Float?   // 糖 (克)
+  sodium        Float?   // 鈉 (毫克)
+  
+  // 元資料
+  isEdited      Boolean @default(false) // 是否被使用者編輯過
+  confidence    Float?  // AI 對這項食物的信心度
+  
+  recognition   FoodRecognition @relation(fields: [recognitionId], references: [id], onDelete: Cascade)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([recognitionId])
+  @@map("food_items")
+}
