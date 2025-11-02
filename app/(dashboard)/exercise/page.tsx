@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Activity, Plus, Trash2, Filter } from 'lucide-react';
+import { Activity, Plus, Trash2, Filter, Edit } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 interface Exercise {
@@ -28,8 +28,13 @@ export default function ExercisePage() {
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
   const [selectedType, setSelectedType] = useState<string>('all');
   const [selectedPeriod, setSelectedPeriod] = useState<'week' | 'month'>('week');
+  const [dateRange, setDateRange] = useState<'30d' | '3m' | '6m' | '1y' | '2y' | 'all' | 'custom'>('30d');
+  const [customStartDate, setCustomStartDate] = useState('');
+  const [customEndDate, setCustomEndDate] = useState('');
   const [formData, setFormData] = useState({
     type: '跑步',
     duration: '',
@@ -38,15 +43,53 @@ export default function ExercisePage() {
 
   useEffect(() => {
     loadExercises();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dateRange, customStartDate, customEndDate]);
 
   const loadExercises = async () => {
     try {
-      const res = await fetch('/api/exercise');
+      // 根據選擇的日期範圍構建 API 查詢參數
+      let url = '/api/exercise?limit=1000';
+      
+      if (dateRange === 'custom' && customStartDate && customEndDate) {
+        url += `&startDate=${customStartDate}&endDate=${customEndDate}`;
+      } else if (dateRange !== 'all') {
+        const endDate = new Date();
+        const startDate = new Date();
+        
+        switch (dateRange) {
+          case '30d':
+            startDate.setDate(startDate.getDate() - 30);
+            break;
+          case '3m':
+            startDate.setMonth(startDate.getMonth() - 3);
+            break;
+          case '6m':
+            startDate.setMonth(startDate.getMonth() - 6);
+            break;
+          case '1y':
+            startDate.setFullYear(startDate.getFullYear() - 1);
+            break;
+          case '2y':
+            startDate.setFullYear(startDate.getFullYear() - 2);
+            break;
+        }
+        
+        url += `&startDate=${startDate.toISOString().split('T')[0]}&endDate=${endDate.toISOString().split('T')[0]}`;
+      }
+      
+      const res = await fetch(url);
       const data = await res.json();
-      setExercises(data.exercises || []);
+      
+      if (data.success && data.data && Array.isArray(data.data.exercises)) {
+        setExercises(data.data.exercises);
+      } else {
+        console.error('資料格式錯誤:', data);
+        setExercises([]);
+      }
     } catch (error) {
       console.error('載入運動記錄失敗:', error);
+      setExercises([]);
     } finally {
       setLoading(false);
     }
@@ -94,6 +137,52 @@ export default function ExercisePage() {
       }
     } catch (error) {
       console.error('刪除失敗:', error);
+    }
+  };
+
+  const handleEdit = (exercise: Exercise) => {
+    setEditingExercise(exercise);
+    setFormData({
+      type: exercise.type,
+      duration: exercise.duration.toString(),
+      notes: exercise.notes || ''
+    });
+    setShowEditModal(true);
+  };
+
+  const handleUpdateExercise = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!editingExercise) return;
+    
+    const exerciseType = EXERCISE_TYPES.find(t => t.value === formData.type);
+    const duration = parseInt(formData.duration);
+    const calories = duration * (exerciseType?.caloriesPerMin || 5);
+
+    try {
+      const res = await fetch(`/api/exercise?id=${editingExercise.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: formData.type,
+          duration,
+          calories,
+          notes: formData.notes || undefined
+        })
+      });
+
+      if (res.ok) {
+        setShowEditModal(false);
+        setEditingExercise(null);
+        setFormData({ type: '跑步', duration: '', notes: '' });
+        loadExercises();
+      } else {
+        const error = await res.json();
+        alert(error.error || '更新失敗');
+      }
+    } catch (error) {
+      console.error('更新運動失敗:', error);
+      alert('更新失敗');
     }
   };
 
@@ -283,6 +372,118 @@ export default function ExercisePage() {
         </div>
       </div>
 
+
+      {/* 日期篩選 */}
+      <div className="bg-white rounded-xl shadow-sm p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">📅 查看期間</h3>
+        
+        <div className="flex flex-wrap gap-2 mb-4">
+          <button
+            onClick={() => setDateRange('30d')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              dateRange === '30d'
+                ? 'bg-amber-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            最近 30 天
+          </button>
+          <button
+            onClick={() => setDateRange('3m')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              dateRange === '3m'
+                ? 'bg-amber-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            最近 3 個月
+          </button>
+          <button
+            onClick={() => setDateRange('6m')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              dateRange === '6m'
+                ? 'bg-amber-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            最近 6 個月
+          </button>
+          <button
+            onClick={() => setDateRange('1y')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              dateRange === '1y'
+                ? 'bg-amber-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            最近 1 年
+          </button>
+          <button
+            onClick={() => setDateRange('2y')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              dateRange === '2y'
+                ? 'bg-amber-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            最近 2 年
+          </button>
+          <button
+            onClick={() => setDateRange('all')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              dateRange === 'all'
+                ? 'bg-amber-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            全部記錄
+          </button>
+          <button
+            onClick={() => setDateRange('custom')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              dateRange === 'custom'
+                ? 'bg-amber-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            自訂區間
+          </button>
+        </div>
+
+        {/* 自訂日期範圍 */}
+        {dateRange === 'custom' && (
+          <div className="flex flex-wrap gap-3 items-center p-4 bg-amber-50 rounded-lg">
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-gray-700">開始日期:</label>
+              <input
+                type="date"
+                value={customStartDate}
+                onChange={(e) => setCustomStartDate(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-gray-700">結束日期:</label>
+              <input
+                type="date"
+                value={customEndDate}
+                onChange={(e) => setCustomEndDate(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+              />
+            </div>
+            {customStartDate && customEndDate && (
+              <span className="text-sm text-gray-600">
+                共 {Math.ceil((new Date(customEndDate).getTime() - new Date(customStartDate).getTime()) / (1000 * 60 * 60 * 24))} 天
+              </span>
+            )}
+          </div>
+        )}
+        
+        <p className="text-sm text-gray-500 mt-3">
+          顯示 {filteredExercises.length} 筆記錄
+        </p>
+      </div>
+
       {/* Records List */}
       <div className="bg-white rounded-xl shadow-sm p-6">
         <h2 className="text-xl font-bold text-gray-900 mb-4">
@@ -327,8 +528,16 @@ export default function ExercisePage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <button
+                    onClick={() => handleEdit(exercise)}
+                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    title="編輯"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </button>
+                  <button
                     onClick={() => handleDelete(exercise.id)}
                     className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    title="刪除"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -419,6 +628,83 @@ export default function ExercisePage() {
                   className="flex-1 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
                 >
                   新增
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 編輯運動記錄模態框 */}
+      {showEditModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">
+              編輯運動記錄
+            </h3>
+            <form onSubmit={handleUpdateExercise} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  運動類型
+                </label>
+                <select
+                  value={formData.type}
+                  onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                >
+                  {EXERCISE_TYPES.map((type) => (
+                    <option key={type.value} value={type.value}>
+                      {type.icon} {type.value}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  運動時長 (分鐘) *
+                </label>
+                <input
+                  type="number"
+                  value={formData.duration}
+                  onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  required
+                  min="1"
+                />
+                {formData.duration && (
+                  <p className="text-sm text-gray-500 mt-1">
+                    預估消耗: {parseInt(formData.duration) * (EXERCISE_TYPES.find(t => t.value === formData.type)?.caloriesPerMin || 5)} kcal
+                  </p>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  備註 選填
+                </label>
+                <textarea
+                  value={formData.notes}
+                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  rows={3}
+                />
+              </div>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setEditingExercise(null);
+                    setFormData({ type: '跑步', duration: '', notes: '' });
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  取消
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
+                >
+                  更新
                 </button>
               </div>
             </form>
