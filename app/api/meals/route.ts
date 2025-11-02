@@ -99,17 +99,17 @@ export async function GET(req: NextRequest) {
     });
 
     // 計算總營養素
+    // 注意: 資料庫中的營養值已經是 baseValue * servings 的結果,不需要再乘
     const totals = meals.reduce(
       (acc, meal) => {
         meal.foods.forEach((food) => {
-          const servings = food.servings || 1;
-          acc.calories += food.calories * servings;
-          acc.protein += food.protein * servings;
-          acc.carbs += food.carbs * servings;
-          acc.fat += food.fat * servings;
-          if (food.fiber) acc.fiber += food.fiber * servings;
-          if (food.sugar) acc.sugar += food.sugar * servings;
-          if (food.sodium) acc.sodium += food.sodium * servings;
+          acc.calories += food.calories;
+          acc.protein += food.protein;
+          acc.carbs += food.carbs;
+          acc.fat += food.fat;
+          if (food.fiber) acc.fiber += food.fiber;
+          if (food.sugar) acc.sugar += food.sugar;
+          if (food.sodium) acc.sodium += food.sodium;
         });
         return acc;
       },

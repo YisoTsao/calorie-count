@@ -55,8 +55,10 @@ export async function POST(request: NextRequest) {
     }
 
     const { type, duration, calories, date, notes } = validation.data;
-    const recordDate = date ? new Date(date) : new Date();
-    recordDate.setHours(0, 0, 0, 0);
+    const recordDate = date ? new Date(date + 'T00:00:00.000Z') : new Date();
+    if (!date) {
+      recordDate.setHours(0, 0, 0, 0);
+    }
 
     // Get user's weight for calorie calculation
     const userProfile = await prisma.userProfile.findUnique({
@@ -92,7 +94,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// GET /api/exercise?date=YYYY-MM-DD - Get exercises for a date
+// GET /api/exercise?date=YYYY-MM-DD or ?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD&limit=N - Get exercises
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();
@@ -102,18 +104,49 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const dateParam = searchParams.get('date');
+    const startDateParam = searchParams.get('startDate');
+    const endDateParam = searchParams.get('endDate');
+    const limitParam = searchParams.get('limit');
     
-    const queryDate = dateParam ? new Date(dateParam) : new Date();
-    queryDate.setHours(0, 0, 0, 0);
+    const whereClause: {
+      userId: string;
+      date?: {
+        gte?: Date;
+        lt?: Date;
+      };
+    } = {
+      userId: session.user.id,
+    };
+
+    // Single date query
+    if (dateParam) {
+      const queryDate = new Date(dateParam + 'T00:00:00.000Z');
+      const nextDate = new Date(dateParam + 'T00:00:00.000Z');
+      nextDate.setDate(nextDate.getDate() + 1);
+      
+      whereClause.date = {
+        gte: queryDate,
+        lt: nextDate,
+      };
+    }
+    // Date range query
+    else if (startDateParam && endDateParam) {
+      const startDate = new Date(startDateParam + 'T00:00:00.000Z');
+      const endDate = new Date(endDateParam + 'T00:00:00.000Z');
+      endDate.setDate(endDate.getDate() + 1); // Include end date
+      
+      whereClause.date = {
+        gte: startDate,
+        lt: endDate,
+      };
+    }
 
     const exercises = await prisma.exercise.findMany({
-      where: {
-        userId: session.user.id,
-        date: queryDate,
-      },
+      where: whereClause,
       orderBy: {
-        time: 'desc',
+        date: 'desc',
       },
+      take: limitParam ? parseInt(limitParam) : undefined,
     });
 
     // Calculate totals
@@ -127,8 +160,12 @@ export async function GET(request: NextRequest) {
         totals: {
           duration: totalDuration,
           calories: totalCalories,
+          count: exercises.length,
         },
-        date: queryDate.toISOString().split('T')[0],
+        dateRange: {
+          start: startDateParam || dateParam,
+          end: endDateParam || dateParam,
+        },
       },
     });
   } catch (error) {
@@ -186,6 +223,95 @@ export async function DELETE(request: NextRequest) {
     console.error('Delete exercise error:', error);
     return NextResponse.json(
       { error: '刪除失敗' },
+      { status: 500 }
+    );
+  }
+}
+
+// PUT /api/exercise?id=xxx - Update an exercise record
+export async function PUT(request: NextRequest) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: '未授權' }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json(
+        { error: '缺少 id 參數' },
+        { status: 400 }
+      );
+    }
+
+    const updateExerciseSchema = z.object({
+      type: z.string().min(1).max(50).optional(),
+      duration: z.number().min(1).max(600).optional(),
+      calories: z.number().min(0).optional(),
+      notes: z.string().max(500).optional(),
+    });
+
+    const body = await request.json();
+    const validation = updateExerciseSchema.safeParse(body);
+
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: '資料格式錯誤', issues: validation.error.issues },
+        { status: 400 }
+      );
+    }
+
+    // Find and verify ownership
+    const exercise = await prisma.exercise.findFirst({
+      where: {
+        id,
+        userId: session.user.id,
+      },
+    });
+
+    if (!exercise) {
+      return NextResponse.json(
+        { error: '找不到此記錄或無權限修改' },
+        { status: 404 }
+      );
+    }
+
+    const { type, duration, calories, notes } = validation.data;
+    
+    // Recalculate calories if type or duration changed
+    let calculatedCalories = calories;
+    if ((type || duration) && !calories) {
+      const userProfile = await prisma.userProfile.findUnique({
+        where: { userId: session.user.id },
+        select: { weight: true },
+      });
+      const weight = userProfile?.weight || 70;
+      const finalType = type || exercise.type;
+      const finalDuration = duration || exercise.duration;
+      calculatedCalories = calculateCalories(finalType, finalDuration, weight);
+    }
+
+    // Update exercise
+    const updatedExercise = await prisma.exercise.update({
+      where: { id },
+      data: {
+        ...(type && { type }),
+        ...(duration && { duration }),
+        ...(calculatedCalories && { calories: calculatedCalories }),
+        ...(notes !== undefined && { notes }),
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      data: { exercise: updatedExercise },
+    });
+  } catch (error) {
+    console.error('Update exercise error:', error);
+    return NextResponse.json(
+      { error: '更新失敗' },
       { status: 500 }
     );
   }

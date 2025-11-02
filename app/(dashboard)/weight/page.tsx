@@ -30,15 +30,51 @@ export default function WeightPage() {
     note: '',
     date: new Date().toISOString().split('T')[0],
   });
+  
+  // 日期篩選相關狀態
+  const [dateRange, setDateRange] = useState<'30d' | '3m' | '6m' | '1y' | '2y' | 'all' | 'custom'>('30d');
+  const [customStartDate, setCustomStartDate] = useState('');
+  const [customEndDate, setCustomEndDate] = useState('');
 
   useEffect(() => {
     loadRecords();
     loadGoals();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dateRange, customStartDate, customEndDate]);
 
   const loadRecords = async () => {
     try {
-      const res = await fetch('/api/weight');
+      // 根據選擇的日期範圍構建 API 查詢參數
+      let url = '/api/weight?limit=1000'; // 增加 limit 以獲取更多歷史資料
+      
+      if (dateRange === 'custom' && customStartDate && customEndDate) {
+        url += `&startDate=${customStartDate}&endDate=${customEndDate}`;
+      } else if (dateRange !== 'all') {
+        const endDate = new Date();
+        const startDate = new Date();
+        
+        switch (dateRange) {
+          case '30d':
+            startDate.setDate(startDate.getDate() - 30);
+            break;
+          case '3m':
+            startDate.setMonth(startDate.getMonth() - 3);
+            break;
+          case '6m':
+            startDate.setMonth(startDate.getMonth() - 6);
+            break;
+          case '1y':
+            startDate.setFullYear(startDate.getFullYear() - 1);
+            break;
+          case '2y':
+            startDate.setFullYear(startDate.getFullYear() - 2);
+            break;
+        }
+        
+        url += `&startDate=${startDate.toISOString().split('T')[0]}&endDate=${endDate.toISOString().split('T')[0]}`;
+      }
+      
+      const res = await fetch(url);
       
       if (!res.ok) {
         throw new Error('載入失敗');
@@ -47,8 +83,13 @@ export default function WeightPage() {
       const data = await res.json();
       console.log('載入的體重資料:', data);
       
-      // 確保 records 是陣列
-      setRecords(Array.isArray(data.records) ? data.records : []);
+      // API 回傳結構是 { success: true, data: { records: [...], stats: {...} } }
+      if (data.success && data.data && Array.isArray(data.data.records)) {
+        setRecords(data.data.records);
+      } else {
+        console.error('資料格式錯誤:', data);
+        setRecords([]);
+      }
     } catch (error) {
       console.error('載入體重記錄失敗:', error);
       setRecords([]); // 錯誤時設為空陣列
@@ -120,15 +161,21 @@ export default function WeightPage() {
     
     if (!editingRecord) return;
     
+    // 前端驗證
+    if (!formData.weight || parseFloat(formData.weight) <= 0) {
+      alert('請輸入有效的體重');
+      return;
+    }
+    
     try {
       const res = await fetch('/api/weight', {
-        method: 'POST',
+        method: 'PUT', // 使用 PUT 方法編輯
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           weight: parseFloat(formData.weight),
           bodyFat: formData.bodyFat ? parseFloat(formData.bodyFat) : undefined,
           notes: formData.note || undefined,
-          date: formData.date,
+          date: formData.date, // 用於識別要更新的記錄
         })
       });
 
@@ -137,6 +184,7 @@ export default function WeightPage() {
         throw new Error(error.error || '更新失敗');
       }
 
+      setShowAddModal(false);
       setEditingRecord(null);
       setFormData({ 
         weight: '', 
@@ -167,7 +215,15 @@ export default function WeightPage() {
     try {
       console.log('準備刪除記錄:', id);
       
-      const res = await fetch(`/api/weight?id=${id}`, {
+      // 找到該記錄的日期
+      const record = records.find(r => r.id === id);
+      if (!record) {
+        throw new Error('找不到記錄');
+      }
+      
+      const dateString = new Date(record.date).toISOString().split('T')[0];
+      
+      const res = await fetch(`/api/weight?date=${dateString}`, {
         method: 'DELETE'
       });
 
@@ -209,11 +265,29 @@ export default function WeightPage() {
   const bmiCategory = getBMICategory(currentBMI);
   const trend = getTrend();
 
-  // 圖表數據 (最近 30 筆)
-  const chartData = records.slice(0, 30).reverse().map(r => ({
+  // 圖表數據 - 根據篩選結果顯示
+  const chartData = records.slice().reverse().map(r => ({
     date: new Date(r.date).toLocaleDateString('zh-TW', { month: '2-digit', day: '2-digit' }),
     weight: r.weight
   }));
+  
+  // 取得圖表標題
+  const getChartTitle = () => {
+    switch (dateRange) {
+      case '30d': return '體重趨勢 (最近 30 天)';
+      case '3m': return '體重趨勢 (最近 3 個月)';
+      case '6m': return '體重趨勢 (最近 6 個月)';
+      case '1y': return '體重趨勢 (最近 1 年)';
+      case '2y': return '體重趨勢 (最近 2 年)';
+      case 'all': return '體重趨勢 (全部記錄)';
+      case 'custom': 
+        if (customStartDate && customEndDate) {
+          return `體重趨勢 (${customStartDate} ~ ${customEndDate})`;
+        }
+        return '體重趨勢 (自訂區間)';
+      default: return '體重趨勢';
+    }
+  };
 
   if (loading) {
     return (
@@ -288,11 +362,122 @@ export default function WeightPage() {
         </div>
       </div>
 
+      {/* Date Range Filter */}
+      <div className="bg-white rounded-xl shadow-sm p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">📅 查看期間</h3>
+        
+        <div className="flex flex-wrap gap-2 mb-4">
+          <button
+            onClick={() => setDateRange('30d')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              dateRange === '30d'
+                ? 'bg-purple-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            最近 30 天
+          </button>
+          <button
+            onClick={() => setDateRange('3m')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              dateRange === '3m'
+                ? 'bg-purple-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            最近 3 個月
+          </button>
+          <button
+            onClick={() => setDateRange('6m')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              dateRange === '6m'
+                ? 'bg-purple-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            最近 6 個月
+          </button>
+          <button
+            onClick={() => setDateRange('1y')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              dateRange === '1y'
+                ? 'bg-purple-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            最近 1 年
+          </button>
+          <button
+            onClick={() => setDateRange('2y')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              dateRange === '2y'
+                ? 'bg-purple-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            最近 2 年
+          </button>
+          <button
+            onClick={() => setDateRange('all')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              dateRange === 'all'
+                ? 'bg-purple-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            全部記錄
+          </button>
+          <button
+            onClick={() => setDateRange('custom')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              dateRange === 'custom'
+                ? 'bg-purple-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            自訂區間
+          </button>
+        </div>
+
+        {/* Custom Date Range Inputs */}
+        {dateRange === 'custom' && (
+          <div className="flex flex-wrap gap-3 items-center p-4 bg-purple-50 rounded-lg">
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-gray-700">開始日期:</label>
+              <input
+                type="date"
+                value={customStartDate}
+                onChange={(e) => setCustomStartDate(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-gray-700">結束日期:</label>
+              <input
+                type="date"
+                value={customEndDate}
+                onChange={(e) => setCustomEndDate(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+            </div>
+            {customStartDate && customEndDate && (
+              <span className="text-sm text-gray-600">
+                共 {Math.ceil((new Date(customEndDate).getTime() - new Date(customStartDate).getTime()) / (1000 * 60 * 60 * 24))} 天
+              </span>
+            )}
+          </div>
+        )}
+        
+        <p className="text-sm text-gray-500 mt-3">
+          顯示 {records.length} 筆記錄
+        </p>
+      </div>
+
       {/* Chart */}
       {chartData.length > 0 && (
         <div className="bg-white rounded-xl shadow-sm p-6">
           <h2 className="text-xl font-bold text-gray-900 mb-4">
-            📈 體重趨勢 (最近 30 天)
+            📈 {getChartTitle()}
           </h2>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={chartData}>

@@ -36,8 +36,12 @@ export async function POST(request: NextRequest) {
     }
 
     const { weight, bodyFat, date, notes } = validation.data;
-    const recordDate = date ? new Date(date) : new Date();
-    recordDate.setHours(0, 0, 0, 0);
+    // 使用 UTC 時間避免時區問題
+    const recordDate = date ? new Date(date + 'T00:00:00.000Z') : (() => {
+      const now = new Date();
+      now.setUTCHours(0, 0, 0, 0);
+      return now;
+    })();
 
     // Get user's height for BMI calculation
     const userProfile = await prisma.userProfile.findUnique({
@@ -93,6 +97,94 @@ export async function POST(request: NextRequest) {
   }
 }
 
+// PUT /api/weight - Update weight record (for editing)
+export async function PUT(request: NextRequest) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: '未授權' }, { status: 401 });
+    }
+
+    const updateWeightSchema = z.object({
+      weight: z.number().min(20).max(300),
+      bodyFat: z.number().min(0).max(100).optional(),
+      date: z.string(), // 必填,用於識別要更新的記錄
+      notes: z.string().max(500).optional(),
+    });
+
+    const body = await request.json();
+    const validation = updateWeightSchema.safeParse(body);
+
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: '資料格式錯誤', issues: validation.error.issues },
+        { status: 400 }
+      );
+    }
+
+    const { weight, bodyFat, date, notes } = validation.data;
+    const recordDate = new Date(date + 'T00:00:00.000Z');
+
+    // Check if record exists and belongs to user
+    const existingRecord = await prisma.weightRecord.findFirst({
+      where: {
+        date: recordDate,
+        userId: session.user.id,
+      },
+    });
+
+    if (!existingRecord) {
+      return NextResponse.json(
+        { error: '找不到此記錄' },
+        { status: 404 }
+      );
+    }
+
+    // Get user's height for BMI calculation
+    const userProfile = await prisma.userProfile.findUnique({
+      where: { userId: session.user.id },
+      select: { height: true },
+    });
+
+    const height = userProfile?.height || 170;
+    const bmi = calculateBMI(weight, height);
+
+    // Update the record
+    const weightRecord = await prisma.weightRecord.update({
+      where: {
+        date: recordDate,
+      },
+      data: {
+        weight,
+        bmi,
+        bodyFat,
+        notes,
+      },
+    });
+
+    // Update user profile
+    try {
+      await prisma.userProfile.update({
+        where: { userId: session.user.id },
+        data: { weight },
+      });
+    } catch {
+      console.log('Profile not found, skipping weight update');
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: { weightRecord },
+    });
+  } catch (error) {
+    console.error('Update weight record error:', error);
+    return NextResponse.json(
+      { error: '更新失敗' },
+      { status: 500 }
+    );
+  }
+}
+
 // GET /api/weight?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD - Get weight history
 export async function GET(request: NextRequest) {
   try {
@@ -121,10 +213,10 @@ export async function GET(request: NextRequest) {
     if (startDateParam || endDateParam) {
       where.date = {};
       if (startDateParam) {
-        where.date.gte = new Date(startDateParam);
+        where.date.gte = new Date(startDateParam + 'T00:00:00.000Z');
       }
       if (endDateParam) {
-        where.date.lte = new Date(endDateParam);
+        where.date.lte = new Date(endDateParam + 'T23:59:59.999Z');
       }
     }
 
@@ -187,8 +279,8 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const recordDate = new Date(dateParam);
-    recordDate.setHours(0, 0, 0, 0);
+    // 使用 UTC 時間避免時區問題
+    const recordDate = new Date(dateParam + 'T00:00:00.000Z');
 
     // Find and verify ownership
     const record = await prisma.weightRecord.findFirst({
