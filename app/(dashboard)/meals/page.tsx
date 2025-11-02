@@ -1,11 +1,27 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Plus, Utensils, Target } from 'lucide-react';
+import { Plus, Utensils, Target, Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
 import { Progress } from '@/components/ui/progress';
+import { FoodSearchDialog } from '@/components/meals/FoodSearchDialog';
+import { EditMealFoodDialog } from '@/components/meals/EditMealFoodDialog';
+import { PhotoUploadDialog } from '@/components/meals/PhotoUploadDialog';
+import { RecognitionResultDialog } from '@/components/meals/RecognitionResultDialog';
+
+interface RecognizedFood {
+  id: string;
+  name: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  portion: number;
+  portionSize: number;
+  portionUnit: string;
+}
 
 interface MealFood {
   id: string;
@@ -16,6 +32,8 @@ interface MealFood {
   fat: number;
   servings: number;
   portion: string;
+  portionSize: number;
+  portionUnit: string;
 }
 
 interface Meal {
@@ -61,6 +79,16 @@ export default function MealsPage() {
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split('T')[0]
   );
+  const [isSearchDialogOpen, setIsSearchDialogOpen] = useState(false);
+  const [selectedMealType, setSelectedMealType] = useState<Meal['mealType']>('BREAKFAST');
+  const [isAddingFood, setIsAddingFood] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingMealFood, setEditingMealFood] = useState<MealFood | null>(null);
+  const [editingMealId, setEditingMealId] = useState<string>('');
+  const [lastAddedFoodId, setLastAddedFoodId] = useState<string | null>(null);
+  const [isPhotoUploadOpen, setIsPhotoUploadOpen] = useState(false);
+  const [isRecognitionResultOpen, setIsRecognitionResultOpen] = useState(false);
+  const [currentRecognitionId, setCurrentRecognitionId] = useState<string | null>(null);
 
   const fetchMeals = async () => {
     try {
@@ -100,15 +128,217 @@ export default function MealsPage() {
     return meals.reduce(
       (acc, meal) => {
         meal.foods.forEach((food) => {
-          acc.calories += food.calories * food.servings;
-          acc.protein += food.protein * food.servings;
-          acc.carbs += food.carbs * food.servings;
-          acc.fat += food.fat * food.servings;
+          acc.calories += food.calories;
+          acc.protein += food.protein;
+          acc.carbs += food.carbs;
+          acc.fat += food.fat;
         });
         return acc;
       },
       { calories: 0, protein: 0, carbs: 0, fat: 0 }
     );
+  };
+
+  const handleOpenSearch = (mealType: Meal['mealType']) => {
+    setSelectedMealType(mealType);
+    setIsSearchDialogOpen(true);
+  };
+
+  const handleAddFood = async (food: { id: string }, servings: number) => {
+    setIsAddingFood(true);
+    try {
+      // First, get or create meal for the selected type and date
+      let targetMeal = meals.find(
+        (m) => m.mealType === selectedMealType && m.mealDate.startsWith(selectedDate)
+      );
+
+      if (!targetMeal) {
+        // Create new meal
+        const createMealRes = await fetch('/api/meals', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            mealType: selectedMealType,
+            mealDate: new Date(selectedDate).toISOString(),
+            foods: [],
+          }),
+        });
+
+        if (!createMealRes.ok) {
+          const errorData = await createMealRes.json();
+          throw new Error(errorData.error?.message || '建立餐次失敗');
+        }
+
+        const createMealData = await createMealRes.json();
+        targetMeal = createMealData.data.meal;
+      }
+
+      if (!targetMeal) {
+        throw new Error('無法建立或找到餐次');
+      }
+
+      // Add food to meal
+      const addFoodRes = await fetch(`/api/meals/${targetMeal.id}/foods`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          foodId: food.id,
+          servings,
+        }),
+      });
+
+      if (!addFoodRes.ok) {
+        const errorData = await addFoodRes.json();
+        throw new Error(errorData.error?.message || '新增食物失敗');
+      }
+
+      const addFoodData = await addFoodRes.json();
+      const newMealFood = addFoodData.data?.mealFood;
+
+      // 儲存最後新增的食物 ID 和餐次 ID
+      if (newMealFood) {
+        setLastAddedFoodId(newMealFood.id);
+        setEditingMealId(targetMeal.id);
+      }
+
+      // Refresh meals data (不關閉 modal,讓使用者可以繼續新增)
+      await fetchMeals();
+    } catch (error) {
+      console.error('Add food error:', error);
+      const errorMessage = error instanceof Error ? error.message : '新增食物失敗,請稍後再試';
+      alert(errorMessage);
+    } finally {
+      setIsAddingFood(false);
+    }
+  };
+
+  // 新增完成後自動開啟編輯對話框
+  const handleAddFoodAndEdit = async (food: { id: string }, servings: number) => {
+    await handleAddFood(food, servings);
+    // 關閉搜尋對話框
+    setIsSearchDialogOpen(false);
+    
+    // 等待資料更新後開啟編輯對話框
+    setTimeout(() => {
+      if (lastAddedFoodId) {
+        // 找到剛剛新增的食物
+        const meal = meals.find(m => m.id === editingMealId);
+        if (meal) {
+          const mealFood = meal.foods.find(f => f.id === lastAddedFoodId);
+          if (mealFood) {
+            setEditingMealFood(mealFood);
+            setIsEditDialogOpen(true);
+          }
+        }
+      }
+    }, 500);
+  };
+
+  const handleEditFood = (mealId: string, mealFood: MealFood) => {
+    setEditingMealId(mealId);
+    setEditingMealFood(mealFood);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleDeleteFood = async (mealId: string, mealFoodId: string) => {
+    if (!confirm('確定要刪除這個食物嗎?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `/api/meals/${mealId}/foods?mealFoodId=${mealFoodId}`,
+        {
+          method: 'DELETE',
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('刪除失敗');
+      }
+
+      await fetchMeals();
+    } catch (error) {
+      console.error('Delete error:', error);
+      alert('刪除失敗,請稍後再試');
+    }
+  };
+
+  // 打開照片上傳對話框
+  const handleOpenPhotoUpload = (mealType: Meal['mealType']) => {
+    setSelectedMealType(mealType);
+    setIsPhotoUploadOpen(true);
+  };
+
+  // 照片上傳並辨識完成後
+  const handleImageAnalyzed = (recognitionId: string) => {
+    setCurrentRecognitionId(recognitionId);
+    setIsPhotoUploadOpen(false);
+    setIsRecognitionResultOpen(true);
+  };
+
+  // 將辨識結果新增到餐點
+  const handleAddRecognizedFoods = async (foods: RecognizedFood[]) => {
+    // 確保有選擇的餐點類型
+    let targetMealId = '';
+    const mealsOfType = getMealsByType(selectedMealType);
+    
+    if (mealsOfType.length > 0) {
+      targetMealId = mealsOfType[0].id;
+    } else {
+      // 創建新餐點
+      try {
+        const response = await fetch('/api/meals', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            mealType: selectedMealType,
+            mealDate: selectedDate,
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          targetMealId = data.data.meal.id;
+        }
+      } catch (error) {
+        console.error('Create meal error:', error);
+        alert('建立餐點失敗');
+        return;
+      }
+    }
+
+    // 將辨識的食物批量新增到餐點
+    try {
+      for (const food of foods) {
+        const response = await fetch(`/api/meals/${targetMealId}/foods`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            foodName: food.name,
+            calories: food.calories,
+            protein: food.protein,
+            carbs: food.carbs,
+            fat: food.fat,
+            servings: 1, // 辨識結果的營養值已經是完整份量,所以 servings 設為 1
+            portion: `${food.portionSize} ${food.portionUnit}`,
+            portionSize: food.portionSize,
+            portionUnit: food.portionUnit,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error('Failed to add food:', food.name, errorData);
+        }
+      }
+
+      await fetchMeals();
+      setIsRecognitionResultOpen(false);
+    } catch (error) {
+      console.error('Add foods error:', error);
+      alert('新增食物失敗');
+    }
   };
 
   if (isLoading) {
@@ -185,6 +415,7 @@ export default function MealsPage() {
               </div>
               {goals && (
                 <Progress
+                  key={`calories-${totals.calories}`}
                   value={(totals.calories / goals.dailyCalorieGoal) * 100}
                   className="h-2"
                 />
@@ -204,6 +435,7 @@ export default function MealsPage() {
               </div>
               {goals && (
                 <Progress
+                  key={`protein-${totals.protein}`}
                   value={(totals.protein / goals.proteinGoal) * 100}
                   className="h-2"
                 />
@@ -223,6 +455,7 @@ export default function MealsPage() {
               </div>
               {goals && (
                 <Progress
+                  key={`carbs-${totals.carbs}`}
                   value={(totals.carbs / goals.carbsGoal) * 100}
                   className="h-2"
                 />
@@ -242,6 +475,7 @@ export default function MealsPage() {
               </div>
               {goals && (
                 <Progress
+                  key={`fat-${totals.fat}`}
                   value={(totals.fat / goals.fatGoal) * 100}
                   className="h-2"
                 />
@@ -284,8 +518,28 @@ export default function MealsPage() {
                   <Utensils className="h-5 w-5" />
                   <CardTitle>{MEAL_TYPE_LABELS[mealType]}</CardTitle>
                 </div>
-                <div className="text-sm text-muted-foreground">
-                  {Math.round(typeTotals.calories)} kcal
+                <div className="flex items-center gap-3">
+                  <div className="text-sm text-muted-foreground">
+                    {Math.round(typeTotals.calories)} kcal
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleOpenPhotoUpload(mealType)}
+                    disabled={isAddingFood}
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    拍照
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleOpenSearch(mealType)}
+                    disabled={isAddingFood}
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    手動新增
+                  </Button>
                 </div>
               </div>
             </CardHeader>
@@ -301,24 +555,45 @@ export default function MealsPage() {
                       {meal.foods.map((food) => (
                         <div
                           key={food.id}
-                          className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
+                          className="flex items-center justify-between p-3 bg-muted/50 rounded-lg hover:bg-muted/70 transition-colors group"
                         >
-                          <div>
+                          <div className="flex-1">
                             <p className="font-medium">{food.name}</p>
                             <p className="text-sm text-muted-foreground">
                               {food.portion}
                               {food.servings !== 1 && ` × ${food.servings}`}
                             </p>
                           </div>
-                          <div className="text-right">
-                            <p className="font-semibold">
-                              {Math.round(food.calories * food.servings)} kcal
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              P: {Math.round(food.protein * food.servings)}g | C:{' '}
-                              {Math.round(food.carbs * food.servings)}g | F:{' '}
-                              {Math.round(food.fat * food.servings)}g
-                            </p>
+                          <div className="flex items-center gap-3">
+                            <div className="text-right">
+                              <p className="font-semibold">
+                                {Math.round(food.calories)} kcal
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                P: {Math.round(food.protein)}g | C:{' '}
+                                {Math.round(food.carbs)}g | F:{' '}
+                                {Math.round(food.fat)}g
+                              </p>
+                            </div>
+                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleEditFood(meal.id, food)}
+                                title="編輯"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteFood(meal.id, food.id)}
+                                title="刪除"
+                                className="text-destructive hover:text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -330,6 +605,39 @@ export default function MealsPage() {
           </Card>
         );
       })}
+
+      {/* Food Search Dialog */}
+      <FoodSearchDialog
+        open={isSearchDialogOpen}
+        onOpenChange={setIsSearchDialogOpen}
+        onSelectFood={handleAddFood}
+        onSelectFoodAndEdit={handleAddFoodAndEdit}
+      />
+
+      {/* Edit Meal Food Dialog */}
+      <EditMealFoodDialog
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        mealFood={editingMealFood}
+        mealId={editingMealId}
+        onUpdate={fetchMeals}
+      />
+
+      {/* Photo Upload Dialog */}
+      <PhotoUploadDialog
+        open={isPhotoUploadOpen}
+        onOpenChange={setIsPhotoUploadOpen}
+        onImageAnalyzed={handleImageAnalyzed}
+        mealType={selectedMealType}
+      />
+
+      {/* Recognition Result Dialog */}
+      <RecognitionResultDialog
+        open={isRecognitionResultOpen}
+        onOpenChange={setIsRecognitionResultOpen}
+        recognitionId={currentRecognitionId}
+        onAddToMeal={handleAddRecognizedFoods}
+      />
     </div>
   );
 }

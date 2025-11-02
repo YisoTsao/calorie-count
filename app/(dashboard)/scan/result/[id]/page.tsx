@@ -119,45 +119,54 @@ export default function ScanResultPage({
 
     // 推測餐別（根據當前時間）
     const hour = new Date().getHours();
-    let mealType: 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK' = 'SNACK';
+    let mealType: 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK' | 'OTHER' = 'SNACK';
     if (hour >= 5 && hour < 11) mealType = 'BREAKFAST';
     else if (hour >= 11 && hour < 14) mealType = 'LUNCH';
     else if (hour >= 17 && hour < 21) mealType = 'DINNER';
+
+    const requestBody = {
+      mealType,
+      mealDate: new Date().toISOString(),
+      foods: recognition.foods.map((food) => ({
+        name: food.name,
+        nameEn: food.nameEn || undefined,
+        portion: food.portion,
+        portionSize: food.portionSize,
+        portionUnit: food.portionUnit,
+        calories: food.calories,
+        protein: food.protein,
+        carbs: food.carbs,
+        fat: food.fat,
+        fiber: food.fiber || undefined,
+        sugar: food.sugar || undefined,
+        sodium: food.sodium || undefined,
+        servings: 1,
+      })),
+      sourceRecognitionId: paramId,
+    };
+
+    console.log('儲存飲食記錄:', requestBody);
 
     try {
       const response = await fetch('/api/meals', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          mealType,
-          foods: recognition.foods.map((food) => ({
-            name: food.name,
-            nameEn: food.nameEn || undefined,
-            portion: food.portion,
-            portionSize: food.portionSize,
-            portionUnit: food.portionUnit,
-            calories: food.calories,
-            protein: food.protein,
-            carbs: food.carbs,
-            fat: food.fat,
-            fiber: food.fiber || undefined,
-            sugar: food.sugar || undefined,
-            sodium: food.sodium || undefined,
-            servings: 1,
-          })),
-          sourceRecognitionId: paramId,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
-        throw new Error('儲存失敗');
+        const errorData = await response.json();
+        console.error('API 錯誤:', errorData);
+        throw new Error(errorData.error?.message || '儲存失敗');
       }
 
       // 儲存成功，導向飲食記錄頁面
       router.push('/meals');
     } catch (err) {
       console.error('Save error:', err);
-      alert('儲存失敗，請稍後再試');
+      const errorMessage = err instanceof Error ? err.message : '儲存失敗，請稍後再試';
+      alert(errorMessage);
+    } finally {
       setIsSaving(false);
     }
   };

@@ -2,7 +2,8 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "darwin-arm64"]
 }
 
 datasource db {
@@ -18,17 +19,24 @@ model User {
   emailVerified DateTime?
   name          String?
   image         String?
-  password      String?   // Hashed password for email/password auth
-  
+  password      String? // Hashed password for email/password auth
+
   // Relations
   accounts      Account[]
   sessions      Session[]
   profile       UserProfile?
   goals         UserGoals?
   preferences   UserPreferences?
-  recognitions  FoodRecognition[]  // AI 食物辨識記錄
-  meals         Meal[]             // 飲食記錄
-  
+  recognitions  FoodRecognition[] // AI 食物辨識記錄
+  meals         Meal[] // 飲食記錄
+  customFoods   Food[] // 自訂食物
+  favoriteFoods UserFavoriteFood[] // 常用食物
+  waterIntakes  WaterIntake[] // 水分攝取記錄
+  exercises     Exercise[] // 運動記錄
+  weightRecords WeightRecord[] // 體重記錄
+  achievements  Achievement[] // 成就記錄
+  dailyStats    DailyStats[] // 每日統計
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -85,23 +93,23 @@ enum Gender {
 }
 
 enum ActivityLevel {
-  SEDENTARY    // 久坐
-  LIGHT        // 輕度活動
-  MODERATE     // 中度活動
-  ACTIVE       // 活躍
-  VERY_ACTIVE  // 非常活躍
+  SEDENTARY // 久坐
+  LIGHT // 輕度活動
+  MODERATE // 中度活動
+  ACTIVE // 活躍
+  VERY_ACTIVE // 非常活躍
 }
 
 model UserProfile {
-  id           String         @id @default(cuid())
-  userId       String         @unique
-  dateOfBirth  DateTime?
-  gender       Gender?
-  height       Float?         // 身高 (公分)
-  weight       Float?         // 體重 (公斤)
-  targetWeight Float?         // 目標體重
+  id            String        @id @default(cuid())
+  userId        String        @unique
+  dateOfBirth   DateTime?
+  gender        Gender?
+  height        Float? // 身高 (公分)
+  weight        Float? // 體重 (公斤)
+  targetWeight  Float? // 目標體重
   activityLevel ActivityLevel @default(MODERATE)
-  
+
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
@@ -111,9 +119,9 @@ model UserProfile {
 }
 
 enum GoalType {
-  LOSE_WEIGHT  // 減重
-  GAIN_WEIGHT  // 增重
-  MAINTAIN     // 維持
+  LOSE_WEIGHT // 減重
+  GAIN_WEIGHT // 增重
+  MAINTAIN // 維持
 }
 
 model UserGoals {
@@ -121,12 +129,12 @@ model UserGoals {
   userId           String    @unique
   goalType         GoalType  @default(MAINTAIN)
   dailyCalorieGoal Int       @default(2000)
-  proteinGoal      Float     @default(50)  // 蛋白質目標 (克)
+  proteinGoal      Float     @default(50) // 蛋白質目標 (克)
   carbsGoal        Float     @default(250) // 碳水化合物目標 (克)
-  fatGoal          Float     @default(65)  // 脂肪目標 (克)
+  fatGoal          Float     @default(65) // 脂肪目標 (克)
   waterGoal        Int       @default(2000) // 水分目標 (毫升)
   targetDate       DateTime? // 目標達成日期
-  
+
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
@@ -142,7 +150,7 @@ enum Theme {
 }
 
 enum Units {
-  METRIC   // 公制
+  METRIC // 公制
   IMPERIAL // 英制
 }
 
@@ -157,7 +165,7 @@ model UserPreferences {
   userId String @unique
 
   // UI Preferences
-  theme    Theme @default(LIGHT)
+  theme    Theme  @default(LIGHT)
   language String @default("zh-TW")
   units    Units  @default(METRIC)
 
@@ -183,34 +191,34 @@ model UserPreferences {
 // ==================== AI Food Recognition ====================
 
 enum RecognitionStatus {
-  PROCESSING  // 處理中
-  COMPLETED   // 已完成
-  FAILED      // 失敗
-  EDITED      // 已編輯
+  PROCESSING // 處理中
+  COMPLETED // 已完成
+  FAILED // 失敗
+  EDITED // 已編輯
 }
 
 model FoodRecognition {
-  id          String            @id @default(cuid())
-  userId      String
-  imageUrl    String            // 上傳的圖片 URL
-  status      RecognitionStatus @default(PROCESSING)
-  
+  id       String            @id @default(cuid())
+  userId   String
+  imageUrl String // 上傳的圖片 URL
+  status   RecognitionStatus @default(PROCESSING)
+
   // AI 辨識原始結果
-  rawResult   Json?             // OpenAI 的原始回應
-  confidence  Float?            // 信心度 0-1
-  errorMessage String?          // 錯誤訊息
-  
+  rawResult    Json? // OpenAI 的原始回應
+  confidence   Float? // 信心度 0-1
+  errorMessage String? // 錯誤訊息
+
   // 處理後的食物列表
-  foods       FoodItem[]
-  
+  foods FoodItem[]
+
   // 關聯到飲食記錄 (Phase 4)
   // mealRecordId String?
   // mealRecord   MealRecord? @relation(fields: [mealRecordId], references: [id])
-  
-  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
   @@index([status])
@@ -220,31 +228,31 @@ model FoodRecognition {
 model FoodItem {
   id            String @id @default(cuid())
   recognitionId String
-  
+
   // 食物資訊
-  name          String   // 食物名稱 (中文)
-  nameEn        String?  // 英文名稱
-  portion       String   // 份量描述 (例: "一碗", "150克")
-  portionSize   Float    // 份量數值
-  portionUnit   String   // 份量單位 (g, ml, 碗, 個)
-  
+  name        String // 食物名稱 (中文)
+  nameEn      String? // 英文名稱
+  portion     String // 份量描述 (例: "一碗", "150克")
+  portionSize Float // 份量數值
+  portionUnit String // 份量單位 (g, ml, 碗, 個)
+
   // 營養資訊 (每份)
-  calories      Float    // 卡路里
-  protein       Float    // 蛋白質 (克)
-  carbs         Float    // 碳水化合物 (克)
-  fat           Float    // 脂肪 (克)
-  fiber         Float?   // 纖維 (克)
-  sugar         Float?   // 糖 (克)
-  sodium        Float?   // 鈉 (毫克)
-  
+  calories Float // 卡路里
+  protein  Float // 蛋白質 (克)
+  carbs    Float // 碳水化合物 (克)
+  fat      Float // 脂肪 (克)
+  fiber    Float? // 纖維 (克)
+  sugar    Float? // 糖 (克)
+  sodium   Float? // 鈉 (毫克)
+
   // 元資料
-  isEdited      Boolean @default(false) // 是否被使用者編輯過
-  confidence    Float?  // AI 對這項食物的信心度
-  
-  recognition   FoodRecognition @relation(fields: [recognitionId], references: [id], onDelete: Cascade)
-  
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  isEdited   Boolean @default(false) // 是否被使用者編輯過
+  confidence Float? // AI 對這項食物的信心度
+
+  recognition FoodRecognition @relation(fields: [recognitionId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([recognitionId])
   @@map("food_items")
@@ -253,30 +261,30 @@ model FoodItem {
 // ==================== Meal Records (Phase 4) ====================
 
 enum MealType {
-  BREAKFAST  // 早餐
-  LUNCH      // 午餐
-  DINNER     // 晚餐
-  SNACK      // 點心
-  OTHER      // 其他
+  BREAKFAST // 早餐
+  LUNCH // 午餐
+  DINNER // 晚餐
+  SNACK // 點心
+  OTHER // 其他
 }
 
 model Meal {
-  id          String    @id @default(cuid())
-  userId      String
-  mealType    MealType
-  mealDate    DateTime  @default(now())  // 這餐的日期時間
-  notes       String?   // 使用者備註
-  
+  id       String   @id @default(cuid())
+  userId   String
+  mealType MealType
+  mealDate DateTime @default(now()) // 這餐的日期時間
+  notes    String? // 使用者備註
+
   // 關聯的食物項目
-  foods       MealFood[]
-  
+  foods MealFood[]
+
   // 來源辨識記錄 (可選，如果是手動新增則為空)
   sourceRecognitionId String?
-  
-  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
   @@index([mealDate])
@@ -286,33 +294,277 @@ model Meal {
 
 // 每餐中的食物項目 (從 FoodRecognition 複製過來，允許使用者編輯)
 model MealFood {
-  id            String @id @default(cuid())
-  mealId        String
-  
+  id     String @id @default(cuid())
+  mealId String
+
   // 食物資訊 (複製自 FoodItem，但可以獨立編輯)
-  name          String
-  nameEn        String?
-  portion       String
-  portionSize   Float
-  portionUnit   String
-  
+  name        String
+  nameEn      String?
+  portion     String
+  portionSize Float
+  portionUnit String
+
   // 營養資訊
-  calories      Float
-  protein       Float
-  carbs         Float
-  fat           Float
-  fiber         Float?
-  sugar         Float?
-  sodium        Float?
-  
+  calories Float
+  protein  Float
+  carbs    Float
+  fat      Float
+  fiber    Float?
+  sugar    Float?
+  sodium   Float?
+
   // 份數 (使用者可以調整，例如: 吃了 1.5 份)
-  servings      Float    @default(1.0)
-  
-  meal          Meal @relation(fields: [mealId], references: [id], onDelete: Cascade)
-  
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  servings Float @default(1.0)
+
+  meal Meal @relation(fields: [mealId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([mealId])
   @@map("meal_foods")
+}
+
+// ==================== Food Database (Phase 8) ====================
+
+enum FoodSource {
+  SYSTEM // 系統內建
+  USER // 使用者自訂
+  API // 第三方 API
+}
+
+model Food {
+  id          String  @id @default(cuid())
+  name        String // 食物名稱
+  nameEn      String? // 英文名稱
+  description String? // 描述
+
+  // 營養素 (per 100g)
+  calories Float // 卡路里 (kcal)
+  protein  Float // 蛋白質 (g)
+  carbs    Float // 碳水化合物 (g)
+  fat      Float // 脂肪 (g)
+  fiber    Float? // 膳食纖維 (g)
+  sugar    Float? // 糖 (g)
+  sodium   Float? // 鈉 (mg)
+
+  // 份量資訊
+  servingSize Float? // 標準份量 (g)
+  servingUnit String? // 單位 (如: 個, 碗, 杯)
+
+  // 分類與品牌
+  categoryId String?
+  category   FoodCategory? @relation(fields: [categoryId], references: [id])
+  brandId    String?
+  brand      Brand?        @relation(fields: [brandId], references: [id])
+
+  // 來源與狀態
+  source     FoodSource @default(SYSTEM)
+  isVerified Boolean    @default(false) // 是否經過驗證
+  userId     String? // 如果是使用者自訂
+  user       User?      @relation(fields: [userId], references: [id])
+
+  // 使用統計
+  searchCount Int @default(0) // 搜尋次數
+  useCount    Int @default(0) // 使用次數
+
+  // 關聯
+  favorites UserFavoriteFood[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([name])
+  @@index([categoryId])
+  @@index([brandId])
+  @@index([source])
+  @@index([userId])
+  @@map("foods")
+}
+
+model FoodCategory {
+  id          String  @id @default(cuid())
+  name        String // 分類名稱
+  nameEn      String? // 英文名稱
+  icon        String? // 圖示 emoji
+  description String?
+
+  // 階層結構
+  parentId String?
+  parent   FoodCategory?  @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  children FoodCategory[] @relation("CategoryHierarchy")
+
+  // 排序
+  order Int @default(0)
+
+  // 關聯
+  foods Food[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([parentId])
+  @@map("food_categories")
+}
+
+model Brand {
+  id      String  @id @default(cuid())
+  name    String  @unique
+  nameEn  String?
+  country String? // 國家
+  logo    String? // Logo URL
+  website String?
+
+  foods Food[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("brands")
+}
+
+model UserFavoriteFood {
+  id     String @id @default(cuid())
+  userId String
+  foodId String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  food Food @relation(fields: [foodId], references: [id], onDelete: Cascade)
+
+  // 使用統計
+  useCount Int      @default(0)
+  lastUsed DateTime @default(now())
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, foodId])
+  @@index([userId])
+  @@index([foodId])
+  @@map("user_favorite_foods")
+}
+
+// ==================== 營養追蹤 Models ====================
+
+model WaterIntake {
+  id     String   @id @default(cuid())
+  userId String
+  date   DateTime @db.Date // 記錄日期
+  amount Int // 毫升 (ml)
+  time   DateTime @default(now()) // 記錄時間
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, date])
+  @@map("water_intakes")
+}
+
+model Exercise {
+  id       String   @id @default(cuid())
+  userId   String
+  date     DateTime @db.Date // 運動日期
+  type     String // 運動類型: 跑步、游泳、重訓等
+  duration Int // 運動時長 (分鐘)
+  calories Float // 消耗卡路里
+  notes    String? // 備註
+  time     DateTime @default(now()) // 記錄時間
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, date])
+  @@map("exercises")
+}
+
+model WeightRecord {
+  id     String   @id @default(cuid())
+  userId String
+  date   DateTime @unique @db.Date // 記錄日期 (每天只能一筆)
+  weight Float // 體重 (公斤)
+  bmi    Float? // BMI (可選,自動計算)
+  bodyFat Float? // 體脂率 (可選)
+  notes  String? // 備註
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, date])
+  @@map("weight_records")
+}
+
+// ==================== Analytics & Achievements ====================
+
+enum AchievementType {
+  STREAK_7 // 連續記錄 7 天
+  STREAK_30 // 連續記錄 30 天
+  STREAK_100 // 連續記錄 100 天
+  WEIGHT_GOAL // 達成體重目標
+  CALORIE_GOAL_WEEK // 一週達成卡路里目標
+  CALORIE_GOAL_MONTH // 一個月達成卡路里目標
+  WATER_CHAMPION // 連續一週達成飲水目標
+  EXERCISE_WARRIOR // 連續一週運動
+  FIRST_MEAL // 記錄第一餐
+  FIRST_WEEK // 完成第一週
+}
+
+model Achievement {
+  id          String          @id @default(cuid())
+  userId      String
+  type        AchievementType
+  title       String // 成就標題
+  description String // 成就描述
+  icon        String // 圖示 emoji
+  earnedAt    DateTime @default(now()) // 獲得時間
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type]) // 每個使用者每種成就只能獲得一次
+  @@index([userId])
+  @@map("achievements")
+}
+
+model DailyStats {
+  id                String   @id @default(cuid())
+  userId            String
+  date              DateTime @unique @db.Date // 統計日期
+  
+  // 飲食統計
+  totalCalories     Float    @default(0)
+  totalProtein      Float    @default(0)
+  totalCarbs        Float    @default(0)
+  totalFat          Float    @default(0)
+  mealCount         Int      @default(0)
+  
+  // 水分統計
+  totalWater        Int      @default(0) // 毫升
+  waterCount        Int      @default(0) // 記錄次數
+  
+  // 運動統計
+  totalExercise     Int      @default(0) // 運動時長 (分鐘)
+  totalExerciseCalories Float @default(0) // 消耗卡路里
+  exerciseCount     Int      @default(0)
+  
+  // 體重
+  weight            Float? // 當日體重
+  bmi               Float? // 當日 BMI
+  
+  // 目標達成
+  calorieGoalMet    Boolean  @default(false)
+  proteinGoalMet    Boolean  @default(false)
+  waterGoalMet      Boolean  @default(false)
+  exerciseGoalMet   Boolean  @default(false)
+  allGoalsMet       Boolean  @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, date])
+  @@map("daily_stats")
 }

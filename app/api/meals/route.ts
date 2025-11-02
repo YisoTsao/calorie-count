@@ -30,8 +30,15 @@ export async function GET(req: NextRequest) {
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
 
+    // 建立驗證物件(只包含有值的參數)
+    const paramsToValidate: Record<string, string> = {};
+    if (date) paramsToValidate.date = date;
+    if (mealType) paramsToValidate.mealType = mealType;
+    if (startDate) paramsToValidate.startDate = startDate;
+    if (endDate) paramsToValidate.endDate = endDate;
+
     // 驗證參數
-    const validation = getMealsSchema.safeParse({ date, mealType, startDate, endDate });
+    const validation = getMealsSchema.safeParse(paramsToValidate);
     if (!validation.success) {
       return NextResponse.json(
         createErrorResponse('VALIDATION_ERROR', validation.error.issues[0].message),
@@ -147,7 +154,7 @@ const createMealSchema = z.object({
       sodium: z.number().min(0).optional(),
       servings: z.number().positive().optional().default(1),
     })
-  ).min(1, '至少要有一項食物'),
+  ).optional().default([]), // 改為 optional,允許空陣列
   sourceRecognitionId: z.string().optional(), // 來源辨識記錄 ID
 });
 

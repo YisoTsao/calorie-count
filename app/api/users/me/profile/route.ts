@@ -6,12 +6,15 @@ import { z } from 'zod';
 
 // 個人資料更新 schema
 const updateProfileSchema = z.object({
-  dateOfBirth: z.string().datetime().optional(),
+  name: z.string().min(2).max(50).optional(),
+  dateOfBirth: z.string().optional(),
+  birthDate: z.string().optional(), // 表單欄位名稱
   gender: z.enum(['MALE', 'FEMALE', 'OTHER']).optional(),
   height: z.number().positive().optional(),
   weight: z.number().positive().optional(),
   targetWeight: z.number().positive().optional(),
   activityLevel: z.enum(['SEDENTARY', 'LIGHT', 'MODERATE', 'ACTIVE', 'VERY_ACTIVE']).optional(),
+  bio: z.string().max(500).optional(),
 });
 
 // 目標更新 schema
@@ -96,6 +99,64 @@ export async function PATCH(req: NextRequest) {
     }
 
     const body = await req.json();
+
+    // 檢查是否為簡單表單提交（直接包含欄位）
+    const isSimpleForm = 'name' in body || 'height' in body || 'weight' in body || 'birthDate' in body;
+
+    if (isSimpleForm) {
+      // 處理簡單表單提交
+      const result = updateProfileSchema.safeParse(body);
+      if (!result.success) {
+        return NextResponse.json(
+          createErrorResponse('VALIDATION_ERROR', '個人資料格式不正確', result.error.issues),
+          { status: 400 }
+        );
+      }
+
+      const { name, birthDate, dateOfBirth, ...profileData } = body;
+
+      // 更新 User 表的 name
+      if (name !== undefined) {
+        await prisma.user.update({
+          where: { id: session.user.id },
+          data: { name },
+        });
+      }
+
+      // 更新 UserProfile 表
+      const finalBirthDate = birthDate || dateOfBirth;
+      await prisma.userProfile.upsert({
+        where: { userId: session.user.id },
+        create: {
+          userId: session.user.id,
+          ...profileData,
+          ...(finalBirthDate && { dateOfBirth: new Date(finalBirthDate) }),
+        },
+        update: {
+          ...profileData,
+          ...(finalBirthDate && { dateOfBirth: new Date(finalBirthDate) }),
+        },
+      });
+
+      // 取得更新後的資料
+      const updatedUser = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        include: {
+          profile: true,
+          goals: true,
+          preferences: true,
+        },
+      });
+
+      return NextResponse.json(
+        createSuccessResponse({
+          user: updatedUser,
+          message: '個人資料更新成功',
+        })
+      );
+    }
+
+    // 處理原有的巢狀格式
     const { profile, goals, preferences } = body;
 
     // 驗證輸入

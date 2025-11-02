@@ -1,12 +1,9 @@
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { redirect } from 'next/navigation';
-import { ProfileCard } from '@/components/profile/profile-card';
-import { StatsCard } from '@/components/profile/stats-card';
-import { AvatarUpload } from '@/components/profile/avatar-upload';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Edit, Settings } from 'lucide-react';
+import { Edit } from 'lucide-react';
 import Link from 'next/link';
 
 export default async function ProfilePage() {
@@ -31,13 +28,21 @@ export default async function ProfilePage() {
 
   return (
     <div className="space-y-8">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">
-          個人資料
-        </h1>
-        <p className="text-muted-foreground">
-          管理您的個人資訊和偏好設定
-        </p>
+      <div className="flex items-center justify-between">
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold tracking-tight">
+            個人資料
+          </h1>
+          <p className="text-muted-foreground">
+            管理您的個人資訊和偏好設定
+          </p>
+        </div>
+        <Link href="/profile/edit">
+          <Button>
+            <Edit className="mr-2 h-4 w-4" />
+            編輯資料
+          </Button>
+        </Link>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
