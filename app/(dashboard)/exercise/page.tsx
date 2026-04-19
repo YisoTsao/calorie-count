@@ -22,14 +22,18 @@ interface Exercise {
 }
 
 const EXERCISE_TYPES = [
-  { value: "跑步", icon: "🏃", caloriesPerMin: 7 },
-  { value: "騎車", icon: "🚴", caloriesPerMin: 6 },
+  { value: "慢跑", icon: "🏃", caloriesPerMin: 7 },
+  { value: "快跑", icon: "🏃‍♂️", caloriesPerMin: 11 },
+  { value: "騎自行車", icon: "🚴", caloriesPerMin: 6 },
   { value: "游泳", icon: "🏊", caloriesPerMin: 8 },
-  { value: "重訓", icon: "🏋️", caloriesPerMin: 5 },
-  { value: "瑜珈", icon: "🧘", caloriesPerMin: 3 },
-  { value: "健走", icon: "🚶", caloriesPerMin: 4 },
+  { value: "重量訓練", icon: "🏋️", caloriesPerMin: 6 },
+  { value: "瑜伽", icon: "🧘", caloriesPerMin: 3 },
+  { value: "步行", icon: "🚶", caloriesPerMin: 4 },
   { value: "籃球", icon: "🏀", caloriesPerMin: 7 },
-  { value: "羽球", icon: "🏸", caloriesPerMin: 6 },
+  { value: "羽毛球", icon: "🏸", caloriesPerMin: 6 },
+  { value: "跳繩", icon: "⭕", caloriesPerMin: 12 },
+  { value: "有氧運動", icon: "💃", caloriesPerMin: 7 },
+  { value: "其他", icon: "⚡", caloriesPerMin: 5 },
 ];
 
 export default function ExercisePage() {
@@ -48,7 +52,7 @@ export default function ExercisePage() {
   const [customStartDate, setCustomStartDate] = useState("");
   const [customEndDate, setCustomEndDate] = useState("");
   const [formData, setFormData] = useState({
-    type: "跑步",
+    type: "慢跑",
     duration: "",
     notes: "",
   });
@@ -138,7 +142,7 @@ export default function ExercisePage() {
 
       if (res.ok) {
         setShowAddModal(false);
-        setFormData({ type: "跑步", duration: "", notes: "" });
+        setFormData({ type: "慢跑", duration: "", notes: "" });
         loadExercises();
       }
     } catch (error) {
@@ -169,7 +173,7 @@ export default function ExercisePage() {
       if (res.ok) {
         setShowEditModal(false);
         setEditingExercise(null);
-        setFormData({ type: "跑步", duration: "", notes: "" });
+        setFormData({ type: "慢跑", duration: "", notes: "" });
         loadExercises();
       }
     } catch (error) {
@@ -353,7 +357,7 @@ export default function ExercisePage() {
         <div className="bg-white rounded-xl shadow-sm p-6">
           <span className="text-sm text-gray-600">本週消耗熱量</span>
           <div className="text-3xl font-bold text-gray-900 mt-2">
-            {weekCalories} <span className="text-lg text-gray-500">kcal</span>
+            {Math.round(weekCalories)} <span className="text-lg text-gray-500">kcal</span>
           </div>
         </div>
       </div>
@@ -587,7 +591,7 @@ export default function ExercisePage() {
                         {exercise.duration} 分鐘
                       </span>
                       <span className="text-sm text-orange-600 font-medium">
-                        {exercise.calories} kcal
+                        {Math.round(exercise.calories)} kcal
                       </span>
                     </div>
                     {exercise.notes && (
@@ -785,7 +789,7 @@ export default function ExercisePage() {
                   onClick={() => {
                     setShowEditModal(false);
                     setEditingExercise(null);
-                    setFormData({ type: "跑步", duration: "", notes: "" });
+                    setFormData({ type: "慢跑", duration: "", notes: "" });
                   }}
                   className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                 >

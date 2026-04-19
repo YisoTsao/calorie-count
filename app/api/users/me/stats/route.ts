@@ -10,7 +10,22 @@ import {
   calculateDailyCalorieGoal,
   calculateMacronutrients,
   calculateIdealWeightRange,
+  type ActivityLevel as HealthActivityLevel,
 } from '@/lib/calculations/health';
+
+// 將 Prisma ActivityLevel 轉換為 lib/calculations/health 的 ActivityLevel
+const prismaToHealthActivityLevel = (
+  level: 'SEDENTARY' | 'LIGHT' | 'MODERATE' | 'ACTIVE' | 'VERY_ACTIVE'
+): HealthActivityLevel => {
+  const map: Record<string, HealthActivityLevel> = {
+    SEDENTARY: 'SEDENTARY',
+    LIGHT: 'LIGHTLY_ACTIVE',
+    MODERATE: 'MODERATELY_ACTIVE',
+    ACTIVE: 'VERY_ACTIVE',
+    VERY_ACTIVE: 'EXTREMELY_ACTIVE',
+  };
+  return map[level] ?? 'MODERATELY_ACTIVE';
+};
 
 export async function GET(req: NextRequest) {
   try {
@@ -58,10 +73,11 @@ export async function GET(req: NextRequest) {
       stats.idealWeightRange = idealWeight;
 
       // 如果有足夠資料,計算代謝率
-      if (profile.birthDate && profile.gender && profile.activityLevel) {
-        const age = new Date().getFullYear() - new Date(profile.birthDate).getFullYear();
+      if (profile.dateOfBirth && profile.gender && profile.activityLevel) {
+        const age = new Date().getFullYear() - new Date(profile.dateOfBirth).getFullYear();
         const bmr = calculateBMR(profile.weight, profile.height, age, profile.gender);
-        const tdee = calculateTDEE(bmr, profile.activityLevel);
+        const healthActivityLevel = prismaToHealthActivityLevel(profile.activityLevel);
+        const tdee = calculateTDEE(bmr, healthActivityLevel);
 
         stats.bmr = bmr;
         stats.tdee = tdee;
@@ -71,7 +87,7 @@ export async function GET(req: NextRequest) {
           const dailyCalories = calculateDailyCalorieGoal(
             tdee,
             goals.goalType,
-            goals.weeklyWeightChange || 0
+            0
           );
 
           const macros = calculateMacronutrients(

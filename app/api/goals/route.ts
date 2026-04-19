@@ -65,6 +65,7 @@ const updateGoalsSchema = z.object({
   carbsGoal: z.number().min(0).max(1000).optional(),
   fatGoal: z.number().min(0).max(300).optional(),
   waterGoal: z.number().int().min(0).max(10000).optional(),
+  exerciseGoal: z.number().int().min(0).max(600).optional(),
   targetDate: z.string().optional().nullable(),
 });
 
@@ -90,7 +91,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { goalType, dailyCalorieGoal, proteinGoal, carbsGoal, fatGoal, waterGoal, targetDate } =
+    const { goalType, dailyCalorieGoal, proteinGoal, carbsGoal, fatGoal, waterGoal, exerciseGoal, targetDate } =
       validation.data;
 
     // 檢查是否已有目標
@@ -111,6 +112,7 @@ export async function POST(req: NextRequest) {
           ...(carbsGoal !== undefined && { carbsGoal }),
           ...(fatGoal !== undefined && { fatGoal }),
           ...(waterGoal !== undefined && { waterGoal }),
+          ...(exerciseGoal !== undefined && { exerciseGoal }),
           ...(targetDate !== undefined && {
             targetDate: targetDate ? new Date(targetDate) : null,
           }),
@@ -127,6 +129,7 @@ export async function POST(req: NextRequest) {
           carbsGoal: carbsGoal || 250,
           fatGoal: fatGoal || 65,
           waterGoal: waterGoal || 2000,
+          exerciseGoal: exerciseGoal || 30,
           ...(targetDate && { targetDate: new Date(targetDate) }),
         },
       });
