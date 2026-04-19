@@ -43,8 +43,8 @@ export default function WeightTracker() {
       if (!response.ok) throw new Error('載入失敗');
       
       const data = await response.json();
-      setRecords(data.records || []);
-      setStats(data.stats || null);
+      setRecords(data.data?.records || []);
+      setStats(data.data?.stats || null);
     } catch (error) {
       console.error('載入體重記錄失敗:', error);
     } finally {

@@ -59,22 +59,16 @@ export default function DashboardPage() {
           fetch('/api/goals'),
         ]);
 
-        // 處理今日飲食
+        // 處理今日飲食 - 使用 API 預計算的 totals
         if (mealsResponse.ok) {
           const mealsData = await mealsResponse.json();
-          const meals: Meal[] = mealsData.data || [];
-
-          const totals = meals.reduce(
-            (acc: NutritionTotals, meal: Meal) => ({
-              calories: acc.calories + (meal.calories || 0),
-              protein: acc.protein + (meal.protein || 0),
-              carbs: acc.carbs + (meal.carbs || 0),
-              fat: acc.fat + (meal.fat || 0),
-            }),
-            { calories: 0, protein: 0, carbs: 0, fat: 0 }
-          );
-
-          setTodayTotals(totals);
+          const totals = mealsData.data?.totals || { calories: 0, protein: 0, carbs: 0, fat: 0 };
+          setTodayTotals({
+            calories: totals.calories || 0,
+            protein: totals.protein || 0,
+            carbs: totals.carbs || 0,
+            fat: totals.fat || 0,
+          });
         }
 
         // 處理目標
@@ -103,8 +97,7 @@ export default function DashboardPage() {
 
           if (response.ok) {
             const data = await response.json();
-            const meals: Meal[] = data.data || [];
-            const calories = meals.reduce((sum: number, meal: Meal) => sum + (meal.calories || 0), 0);
+            const calories = data.data?.totals?.calories || 0;
             weeklyCalories.push({ date: dateStr, calories });
           } else {
             weeklyCalories.push({ date: dateStr, calories: 0 });

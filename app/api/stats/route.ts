@@ -74,8 +74,9 @@ export async function POST(request: NextRequest) {
     const totalExerciseCalories = exercises.reduce((sum, ex) => sum + ex.calories, 0);
 
     // 4. 查詢當日體重
-    const weightRecord = await prisma.weightRecord.findUnique({
+    const weightRecord = await prisma.weightRecord.findFirst({
       where: {
+        userId,
         date: statsDate
       }
     });
@@ -95,7 +96,10 @@ export async function POST(request: NextRequest) {
     // 7. Upsert 每日統計
     const stats = await prisma.dailyStats.upsert({
       where: {
-        date: statsDate
+        userId_date: {
+          userId,
+          date: statsDate,
+        }
       },
       create: {
         userId,

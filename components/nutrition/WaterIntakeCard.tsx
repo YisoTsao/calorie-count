@@ -38,8 +38,8 @@ export default function WaterIntakeCard({
       if (!response.ok) throw new Error('載入失敗');
       
       const data = await response.json();
-      setRecords(data.records || []);
-      setTotalAmount(data.total || 0);
+      setRecords(data.data?.intakes || []);
+      setTotalAmount(data.data?.total || 0);
     } catch (error) {
       console.error('載入飲水記錄失敗:', error);
     } finally {
@@ -65,9 +65,11 @@ export default function WaterIntakeCard({
       if (!response.ok) throw new Error('新增失敗');
 
       const newRecord = await response.json();
-      setRecords(prev => [newRecord, ...prev]);
+      const intake = newRecord.data?.waterIntake || newRecord;
+      setRecords(prev => [intake, ...prev]);
       setTotalAmount(prev => prev + amount);
       setCustomAmount('');
+      await loadTodayRecords();
     } catch (error) {
       console.error('新增飲水記錄失敗:', error);
       alert('新增失敗,請稍後再試');
