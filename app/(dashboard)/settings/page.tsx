@@ -41,17 +41,41 @@ export default function SettingsPage() {
   const loadData = async () => {
     try {
       // 載入個人資料
-      const profileRes = await fetch('/api/profile');
+      const profileRes = await fetch('/api/users/me/profile');
       if (profileRes.ok) {
-        const profileData = await profileRes.json();
-        setProfile(profileData);
+        const json = await profileRes.json();
+        const userData = json.data || json;
+        setProfile({
+          name: userData.name,
+          height: userData.profile?.height,
+          age: userData.profile?.dateOfBirth
+            ? new Date().getFullYear() - new Date(userData.profile.dateOfBirth).getFullYear()
+            : undefined,
+          gender: userData.profile?.gender?.toLowerCase() as 'male' | 'female' | undefined,
+        });
+        if (userData.goals) {
+          setGoals({
+            dailyCalorieGoal: userData.goals.dailyCalorieGoal,
+            proteinGoal: userData.goals.proteinGoal,
+            waterGoal: userData.goals.waterGoal,
+            exerciseGoal: undefined,
+          targetWeight: userData.profile?.targetWeight,
+          });
+        }
       }
 
-      // 載入目標
+      // 若 goals 尚未從 profile 取得，再從 /api/goals 取
       const goalsRes = await fetch('/api/goals');
       if (goalsRes.ok) {
-        const goalsData = await goalsRes.json();
-        setGoals(goalsData);
+        const json = await goalsRes.json();
+        const goalsData = json.data?.goals || json;
+        setGoals((prev) => ({
+          ...prev,
+          dailyCalorieGoal: goalsData.dailyCalorieGoal ?? prev.dailyCalorieGoal,
+          proteinGoal: goalsData.proteinGoal ?? prev.proteinGoal,
+          waterGoal: goalsData.waterGoal ?? prev.waterGoal,
+          exerciseGoal: goalsData.exerciseGoal ?? prev.exerciseGoal,
+        }));
       }
     } catch (error) {
       console.error('載入資料失敗:', error);
@@ -63,14 +87,21 @@ export default function SettingsPage() {
   const handleSaveProfile = async () => {
     setSaving(true);
     try {
-      const res = await fetch('/api/profile', {
-        method: 'PUT',
+      const res = await fetch('/api/users/me/profile', {
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(profile)
+        body: JSON.stringify({
+          name: profile.name,
+          height: profile.height,
+          gender: profile.gender ? profile.gender.toUpperCase() : undefined,
+          targetWeight: goals.targetWeight,
+        }),
       });
 
       if (res.ok) {
         alert('個人資料已儲存');
+      } else {
+        alert('儲存失敗');
       }
     } catch (error) {
       console.error('儲存失敗:', error);
@@ -84,13 +115,29 @@ export default function SettingsPage() {
     setSaving(true);
     try {
       const res = await fetch('/api/goals', {
-        method: 'PUT',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(goals)
+        body: JSON.stringify({
+          dailyCalorieGoal: goals.dailyCalorieGoal,
+          proteinGoal: goals.proteinGoal,
+          waterGoal: goals.waterGoal,
+          exerciseGoal: goals.exerciseGoal,
+        }),
       });
+
+      // 同步儲存目標體重到個人資料
+      if (goals.targetWeight !== undefined) {
+        await fetch('/api/users/me/profile', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ targetWeight: goals.targetWeight }),
+        });
+      }
 
       if (res.ok) {
         alert('目標已儲存');
+      } else {
+        alert('儲存失敗');
       }
     } catch (error) {
       console.error('儲存失敗:', error);

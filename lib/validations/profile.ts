@@ -5,7 +5,7 @@ export const profileUpdateSchema = z.object({
   bio: z.string().max(500, '個人簡介不能超過 500 個字元').optional(),
   height: z.number().min(50, '身高至少 50 公分').max(300, '身高最多 300 公分').optional(),
   weight: z.number().min(20, '體重至少 20 公斤').max(500, '體重最多 500 公斤').optional(),
-  birthDate: z.string().datetime().or(z.date()).optional(),
+  birthDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, '請輸入有效的日期格式 (YYYY-MM-DD)').or(z.date()).optional(),
   gender: z.enum(['MALE', 'FEMALE', 'OTHER']).optional(),
   activityLevel: z.enum(['SEDENTARY', 'LIGHT', 'MODERATE', 'ACTIVE', 'VERY_ACTIVE']).optional(),
 });
