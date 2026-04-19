@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ErrorMessage } from '@/components/ui/error-message';
 import { Icon } from '@iconify/react';
 
-export default function VerifyEmailPage() {
+function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const token = searchParams.get('token');
@@ -124,5 +124,13 @@ export default function VerifyEmailPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center">載入中...</div>}>
+      <VerifyEmailContent />
+    </Suspense>
   );
 }

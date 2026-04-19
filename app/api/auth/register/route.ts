@@ -77,14 +77,14 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof ValidationError) {
       return NextResponse.json(
-        createErrorResponse(error.message, 'VALIDATION_ERROR'),
+        createErrorResponse('VALIDATION_ERROR', error.message),
         { status: 400 }
       );
     }
 
     if (error instanceof ConflictError) {
       return NextResponse.json(
-        createErrorResponse(error.message, 'CONFLICT'),
+        createErrorResponse('CONFLICT', error.message),
         { status: 409 }
       );
     }
