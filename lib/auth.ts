@@ -8,17 +8,15 @@ import { prisma } from '@/lib/prisma';
 import { loginSchema } from '@/lib/validations/auth';
 
 export const authConfig: NextAuthConfig = {
-  adapter: PrismaAdapter(prisma),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  adapter: PrismaAdapter(prisma) as any,
   session: {
     strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30 天
   },
   pages: {
-    signIn: '/auth/login',
-    signOut: '/auth/logout',
-    error: '/auth/error',
-    verifyRequest: '/auth/verify',
-    newUser: '/onboarding',
+    signIn: '/login',
+    error: '/login',
   },
   providers: [
     GoogleProvider({
@@ -56,7 +54,7 @@ export const authConfig: NextAuthConfig = {
         // 查詢用戶
         const user = await prisma.user.findUnique({
           where: {
-            email: credentials.email,
+            email: credentials.email as string,
           },
         });
 
@@ -66,7 +64,7 @@ export const authConfig: NextAuthConfig = {
 
         // 驗證密碼
         const isPasswordValid = await compare(
-          credentials.password,
+          credentials.password as string,
           user.password
         );
 

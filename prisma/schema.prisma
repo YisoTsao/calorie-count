@@ -133,6 +133,7 @@ model UserGoals {
   carbsGoal        Float     @default(250) // 碳水化合物目標 (克)
   fatGoal          Float     @default(65) // 脂肪目標 (克)
   waterGoal        Int       @default(2000) // 水分目標 (毫升)
+  exerciseGoal     Int       @default(30) // 每日運動目標 (分鐘)
   targetDate       DateTime? // 目標達成日期
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -482,7 +483,7 @@ model Exercise {
 model WeightRecord {
   id     String   @id @default(cuid())
   userId String
-  date   DateTime @unique @db.Date // 記錄日期 (每天只能一筆)
+  date   DateTime @db.Date // 記錄日期 (每人每天只能一筆)
   weight Float // 體重 (公斤)
   bmi    Float? // BMI (可選,自動計算)
   bodyFat Float? // 體脂率 (可選)
@@ -493,6 +494,7 @@ model WeightRecord {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([userId, date])
   @@index([userId, date])
   @@map("weight_records")
 }
@@ -531,7 +533,7 @@ model Achievement {
 model DailyStats {
   id                String   @id @default(cuid())
   userId            String
-  date              DateTime @unique @db.Date // 統計日期
+  date              DateTime @db.Date // 統計日期
   
   // 飲食統計
   totalCalories     Float    @default(0)
@@ -565,6 +567,7 @@ model DailyStats {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([userId, date])
   @@index([userId, date])
   @@map("daily_stats")
 }

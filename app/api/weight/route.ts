@@ -52,10 +52,13 @@ export async function POST(request: NextRequest) {
     const height = userProfile?.height || 170; // Default 170cm
     const bmi = calculateBMI(weight, height);
 
-    // Upsert: update if record exists for this date
+    // Upsert: update if record exists for this user+date
     const weightRecord = await prisma.weightRecord.upsert({
       where: {
-        date: recordDate,
+        userId_date: {
+          userId: session.user.id,
+          date: recordDate,
+        },
       },
       create: {
         userId: session.user.id,
@@ -152,7 +155,10 @@ export async function PUT(request: NextRequest) {
     // Update the record
     const weightRecord = await prisma.weightRecord.update({
       where: {
-        date: recordDate,
+        userId_date: {
+          userId: session.user.id,
+          date: recordDate,
+        },
       },
       data: {
         weight,
@@ -299,7 +305,12 @@ export async function DELETE(request: NextRequest) {
 
     // Delete
     await prisma.weightRecord.delete({
-      where: { date: recordDate },
+      where: {
+        userId_date: {
+          userId: session.user.id,
+          date: recordDate,
+        },
+      },
     });
 
     return NextResponse.json({

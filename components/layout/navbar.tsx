@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
+import { signOut } from 'next-auth/react';
 import { Icon } from '@iconify/react';
 import { Button } from '@/components/ui/button';
 import {
@@ -26,6 +27,10 @@ interface NavbarProps {
 export function Navbar({ user }: NavbarProps) {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const handleSignOut = async () => {
+    await signOut({ callbackUrl: '/login' });
+  };
 
   const navItems = [
     { href: '/dashboard', label: '首頁', icon: 'lucide:home' },
@@ -117,13 +122,12 @@ export function Navbar({ user }: NavbarProps) {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <form action="/api/auth/signout" method="POST" className="w-full">
-                    <button type="submit" className="flex w-full items-center cursor-pointer">
-                      <Icon icon="lucide:log-out" className="mr-2 h-4 w-4" />
-                      登出
-                    </button>
-                  </form>
+                <DropdownMenuItem
+                  className="cursor-pointer text-red-600 focus:text-red-600"
+                  onClick={handleSignOut}
+                >
+                  <Icon icon="lucide:log-out" className="mr-2 h-4 w-4" />
+                  登出
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

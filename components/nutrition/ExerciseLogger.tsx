@@ -8,7 +8,9 @@ interface ExerciseRecord {
   type: string;
   duration: number; // minutes
   calories: number;
-  time: string;
+  time?: string;
+  date?: string;
+  createdAt?: string;
 }
 
 interface ExerciseLoggerProps {
@@ -56,8 +58,8 @@ export default function ExerciseLogger({
       if (!response.ok) throw new Error('載入失敗');
       
       const data = await response.json();
-      setRecords(data.records || []);
-      setTotalCalories(data.totalCalories || 0);
+      setRecords(data.data?.exercises || []);
+      setTotalCalories(data.data?.totals?.calories || 0);
     } catch (error) {
       console.error('載入運動記錄失敗:', error);
     } finally {
@@ -88,8 +90,9 @@ export default function ExerciseLogger({
       if (!response.ok) throw new Error('新增失敗');
 
       const newRecord = await response.json();
-      setRecords(prev => [newRecord, ...prev]);
-      setTotalCalories(prev => prev + newRecord.calories);
+      const exercise = newRecord.data?.exercise || newRecord;
+      setRecords(prev => [exercise, ...prev]);
+      setTotalCalories(prev => prev + (exercise.calories || 0));
       setDuration('');
     } catch (error) {
       console.error('新增運動記錄失敗:', error);
@@ -261,10 +264,13 @@ export default function ExerciseLogger({
                             {Math.round(record.calories)} 卡
                           </span>
                           <span>
-                            {new Date(record.time).toLocaleTimeString('zh-TW', {
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
+                            {record.time && !isNaN(new Date(record.time).getTime())
+                              ? new Date(record.time).toLocaleTimeString('zh-TW', {
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })
+                              : new Date(record.date || record.createdAt || '').toLocaleDateString('zh-TW')
+                            }
                           </span>
                         </div>
                       </div>

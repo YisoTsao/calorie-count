@@ -30,40 +30,48 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit;
 
     // 建立搜尋條件
-    const where: Prisma.FoodWhereInput = {};
+    const andConditions: Prisma.FoodWhereInput[] = [];
     
     // 關鍵字搜尋
     if (query) {
-      where.OR = [
-        { name: { contains: query, mode: 'insensitive' } },
-        { nameEn: { contains: query, mode: 'insensitive' } },
-      ];
+      andConditions.push({
+        OR: [
+          { name: { contains: query, mode: 'insensitive' } },
+          { nameEn: { contains: query, mode: 'insensitive' } },
+        ],
+      });
     }
 
     // 分類篩選
     if (categoryId) {
-      where.categoryId = categoryId;
+      andConditions.push({ categoryId });
     }
 
     // 來源篩選
     if (source && ['SYSTEM', 'USER', 'API'].includes(source)) {
       if (source === 'USER') {
         // 自訂食物: 只顯示使用者自己的食物
-        where.AND = [
-          { source: 'USER' },
-          { userId: session.user.id },
-        ];
+        andConditions.push({
+          AND: [
+            { source: 'USER' },
+            { userId: session.user.id },
+          ],
+        });
       } else {
         // 系統食物或 API 食物: 直接篩選來源
-        where.source = source as 'SYSTEM' | 'USER' | 'API';
+        andConditions.push({ source: source as 'SYSTEM' | 'USER' | 'API' });
       }
     } else {
       // 預設顯示系統食物和使用者自己的食物
-      where.OR = [
-        { source: 'SYSTEM' },
-        { source: 'USER', userId: session.user.id },
-      ];
+      andConditions.push({
+        OR: [
+          { source: 'SYSTEM' },
+          { source: 'USER', userId: session.user.id },
+        ],
+      });
     }
+
+    const where: Prisma.FoodWhereInput = andConditions.length > 0 ? { AND: andConditions } : {};
 
     // 執行搜尋
     const [foods, total] = await Promise.all([
