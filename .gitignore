@@ -44,3 +44,4 @@ next-env.d.ts
 /public/uploads/*
 !/public/uploads/food-recognition/.gitkeep
 .agents/skills
+/docs

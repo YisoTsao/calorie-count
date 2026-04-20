@@ -1,18 +1,26 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Search, Plus, Heart, Filter, Loader2, Pencil, Trash2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { useState, useEffect } from "react";
+import {
+  Search,
+  Plus,
+  Heart,
+  Filter,
+  Loader2,
+  Pencil,
+  Trash2,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -20,8 +28,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 interface Food {
   id: string;
@@ -34,7 +42,7 @@ interface Food {
   fiber?: number;
   servingSize: number;
   servingUnit: string;
-  source: 'SYSTEM' | 'USER' | 'API';
+  source: "SYSTEM" | "USER" | "API";
   category: {
     id: string;
     name: string;
@@ -69,17 +77,17 @@ interface Pagination {
 }
 
 const SOURCE_LABELS = {
-  SYSTEM: '系統',
-  USER: '自訂',
-  API: 'API',
+  SYSTEM: "系統",
+  USER: "自訂",
+  API: "API",
 };
 
 export default function FoodsPage() {
   const [foods, setFoods] = useState<Food[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [selectedSource, setSelectedSource] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedSource, setSelectedSource] = useState<string>("all");
   const [isLoading, setIsLoading] = useState(false);
   const [pagination, setPagination] = useState<Pagination>({
     page: 1,
@@ -92,16 +100,16 @@ export default function FoodsPage() {
   const [editingFood, setEditingFood] = useState<Food | null>(null);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [newFood, setNewFood] = useState({
-    name: '',
-    nameEn: '',
+    name: "",
+    nameEn: "",
     calories: 0,
     protein: 0,
     carbs: 0,
     fat: 0,
     fiber: 0,
     servingSize: 100,
-    servingUnit: 'g',
-    categoryId: '',
+    servingUnit: "g",
+    categoryId: "",
   });
 
   // Fetch categories on mount
@@ -120,13 +128,13 @@ export default function FoodsPage() {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('/api/foods/categories');
+      const response = await fetch("/api/foods/categories");
       if (response.ok) {
         const data = await response.json();
         setCategories(data.categories);
       }
     } catch (error) {
-      console.error('Failed to fetch categories:', error);
+      console.error("Failed to fetch categories:", error);
     }
   };
 
@@ -134,29 +142,32 @@ export default function FoodsPage() {
     setIsLoading(true);
     try {
       // 如果選擇「我的最愛」,使用不同的 API
-      if (selectedCategory === 'favorites') {
-        const response = await fetch('/api/foods/favorites');
+      if (selectedCategory === "favorites") {
+        const response = await fetch("/api/foods/favorites");
         if (response.ok) {
           const data = await response.json();
           let favoriteFoods = (data.favorites || []).map((food: Food) => ({
             ...food,
             isFavorite: true,
           }));
-          
+
           // 如果有選擇來源,進行篩選
-          if (selectedSource && selectedSource !== 'all') {
-            favoriteFoods = favoriteFoods.filter((food: Food) => food.source === selectedSource);
+          if (selectedSource && selectedSource !== "all") {
+            favoriteFoods = favoriteFoods.filter(
+              (food: Food) => food.source === selectedSource,
+            );
           }
-          
+
           // 如果有搜尋關鍵字,進行篩選
           if (searchQuery) {
             const query = searchQuery.toLowerCase();
-            favoriteFoods = favoriteFoods.filter((food: Food) => 
-              food.name.toLowerCase().includes(query) ||
-              (food.nameEn && food.nameEn.toLowerCase().includes(query))
+            favoriteFoods = favoriteFoods.filter(
+              (food: Food) =>
+                food.name.toLowerCase().includes(query) ||
+                (food.nameEn && food.nameEn.toLowerCase().includes(query)),
             );
           }
-          
+
           setFoods(favoriteFoods);
           setPagination({
             page: 1,
@@ -167,15 +178,15 @@ export default function FoodsPage() {
         }
       } else {
         const params = new URLSearchParams();
-        if (searchQuery) params.append('q', searchQuery);
-        if (selectedCategory && selectedCategory !== 'all') {
-          params.append('categoryId', selectedCategory);
+        if (searchQuery) params.append("q", searchQuery);
+        if (selectedCategory && selectedCategory !== "all") {
+          params.append("categoryId", selectedCategory);
         }
-        if (selectedSource && selectedSource !== 'all') {
-          params.append('source', selectedSource);
+        if (selectedSource && selectedSource !== "all") {
+          params.append("source", selectedSource);
         }
-        params.append('page', pagination.page.toString());
-        params.append('limit', pagination.limit.toString());
+        params.append("page", pagination.page.toString());
+        params.append("limit", pagination.limit.toString());
 
         const response = await fetch(`/api/foods/search?${params.toString()}`);
         if (response.ok) {
@@ -185,7 +196,7 @@ export default function FoodsPage() {
         }
       }
     } catch (error) {
-      console.error('Failed to fetch foods:', error);
+      console.error("Failed to fetch foods:", error);
     } finally {
       setIsLoading(false);
     }
@@ -195,96 +206,90 @@ export default function FoodsPage() {
     // 先驗證
     const errors = validateForm(newFood);
     setFormErrors(errors);
-    
+
     if (Object.keys(errors).length > 0) {
       return;
     }
 
     try {
-      const response = await fetch('/api/foods', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/foods", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newFood),
       });
 
       if (response.ok) {
-        alert('食物新增成功!');
+        alert("食物新增成功!");
         setIsCreateDialogOpen(false);
         setFormErrors({});
         fetchFoods();
         // Reset form
         setNewFood({
-          name: '',
-          nameEn: '',
+          name: "",
+          nameEn: "",
           calories: 0,
           protein: 0,
           carbs: 0,
           fat: 0,
           fiber: 0,
           servingSize: 100,
-          servingUnit: 'g',
-          categoryId: '',
+          servingUnit: "g",
+          categoryId: "",
         });
       } else {
         const error = await response.json();
-        alert(`新增失敗: ${error.error || '未知錯誤'}`);
+        alert(`新增失敗: ${error.error || "未知錯誤"}`);
       }
     } catch (error) {
-      console.error('Failed to create food:', error);
-      alert('新增失敗,請稍後再試');
+      console.error("Failed to create food:", error);
+      alert("新增失敗,請稍後再試");
     }
   };
 
   const handleToggleFavorite = async (foodId: string) => {
     try {
       // 取得當前狀態
-      const currentFood = foods.find(f => f.id === foodId);
+      const currentFood = foods.find((f) => f.id === foodId);
       const newIsFavorite = !currentFood?.isFavorite;
 
       // 先樂觀更新 UI
-      setFoods(prevFoods => 
-        prevFoods.map(food => 
-          food.id === foodId 
-            ? { ...food, isFavorite: newIsFavorite }
-            : food
-        )
+      setFoods((prevFoods) =>
+        prevFoods.map((food) =>
+          food.id === foodId ? { ...food, isFavorite: newIsFavorite } : food,
+        ),
       );
 
-      const response = await fetch('/api/foods/favorites', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+      const response = await fetch("/api/foods/favorites", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           foodId,
-          isFavorite: newIsFavorite 
+          isFavorite: newIsFavorite,
         }),
       });
 
       if (response.ok) {
         // 如果在我的最愛分類且取消收藏,重新載入以移除該項目
-        if (selectedCategory === 'favorites' && !newIsFavorite) {
+        if (selectedCategory === "favorites" && !newIsFavorite) {
           await fetchFoods();
         }
       } else {
         // 如果失敗,還原狀態
-        setFoods(prevFoods => 
-          prevFoods.map(food => 
-            food.id === foodId 
-              ? { ...food, isFavorite: !newIsFavorite }
-              : food
-          )
+        setFoods((prevFoods) =>
+          prevFoods.map((food) =>
+            food.id === foodId ? { ...food, isFavorite: !newIsFavorite } : food,
+          ),
         );
         const errorData = await response.json();
-        console.error('Toggle favorite failed:', errorData);
+        console.error("Toggle favorite failed:", errorData);
       }
     } catch (error) {
-      console.error('Failed to toggle favorite:', error);
+      console.error("Failed to toggle favorite:", error);
       // 如果失敗,還原狀態
-      setFoods(prevFoods => 
-        prevFoods.map(food => 
-          food.id === foodId 
-            ? { ...food, isFavorite: !food.isFavorite }
-            : food
-        )
+      setFoods((prevFoods) =>
+        prevFoods.map((food) =>
+          food.id === foodId ? { ...food, isFavorite: !food.isFavorite } : food,
+        ),
       );
     }
   };
@@ -292,32 +297,32 @@ export default function FoodsPage() {
   // 表單驗證函數
   const validateForm = (data: typeof newFood): Record<string, string> => {
     const errors: Record<string, string> = {};
-    
+
     if (!data.name.trim()) {
-      errors.name = '請輸入食物名稱';
+      errors.name = "請輸入食物名稱";
     }
     if (!data.categoryId) {
-      errors.categoryId = '請選擇食物分類';
+      errors.categoryId = "請選擇食物分類";
     }
     if (data.servingSize <= 0) {
-      errors.servingSize = '每份大小必須大於 0';
+      errors.servingSize = "每份大小必須大於 0";
     }
     if (!data.servingUnit.trim()) {
-      errors.servingUnit = '請輸入單位';
+      errors.servingUnit = "請輸入單位";
     }
     if (data.calories < 0) {
-      errors.calories = '熱量不能為負數';
+      errors.calories = "熱量不能為負數";
     }
     if (data.protein < 0) {
-      errors.protein = '蛋白質不能為負數';
+      errors.protein = "蛋白質不能為負數";
     }
     if (data.carbs < 0) {
-      errors.carbs = '碳水化合物不能為負數';
+      errors.carbs = "碳水化合物不能為負數";
     }
     if (data.fat < 0) {
-      errors.fat = '脂肪不能為負數';
+      errors.fat = "脂肪不能為負數";
     }
-    
+
     return errors;
   };
 
@@ -326,7 +331,7 @@ export default function FoodsPage() {
     setEditingFood(food);
     setNewFood({
       name: food.name,
-      nameEn: food.nameEn || '',
+      nameEn: food.nameEn || "",
       calories: food.calories,
       protein: food.protein,
       carbs: food.carbs,
@@ -343,47 +348,47 @@ export default function FoodsPage() {
   // 編輯食物
   const handleEditFood = async () => {
     if (!editingFood) return;
-    
+
     const errors = validateForm(newFood);
     setFormErrors(errors);
-    
+
     if (Object.keys(errors).length > 0) {
       return;
     }
 
     try {
       const response = await fetch(`/api/foods/${editingFood.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newFood),
       });
 
       if (response.ok) {
-        alert('食物已更新!');
+        alert("食物已更新!");
         setIsEditDialogOpen(false);
         setEditingFood(null);
         setFormErrors({});
         fetchFoods();
         // Reset form
         setNewFood({
-          name: '',
-          nameEn: '',
+          name: "",
+          nameEn: "",
           calories: 0,
           protein: 0,
           carbs: 0,
           fat: 0,
           fiber: 0,
           servingSize: 100,
-          servingUnit: 'g',
-          categoryId: '',
+          servingUnit: "g",
+          categoryId: "",
         });
       } else {
         const error = await response.json();
-        alert(`更新失敗: ${error.error || '未知錯誤'}`);
+        alert(`更新失敗: ${error.error || "未知錯誤"}`);
       }
     } catch (error) {
-      console.error('Failed to edit food:', error);
-      alert('更新失敗,請稍後再試');
+      console.error("Failed to edit food:", error);
+      alert("更新失敗,請稍後再試");
     }
   };
 
@@ -393,19 +398,19 @@ export default function FoodsPage() {
 
     try {
       const response = await fetch(`/api/foods/${foodId}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
 
       if (response.ok) {
-        alert('食物已刪除');
+        alert("食物已刪除");
         fetchFoods();
       } else {
         const error = await response.json();
-        alert(`刪除失敗: ${error.error || '未知錯誤'}`);
+        alert(`刪除失敗: ${error.error || "未知錯誤"}`);
       }
     } catch (error) {
-      console.error('Failed to delete food:', error);
-      alert('刪除失敗,請稍後再試');
+      console.error("Failed to delete food:", error);
+      alert("刪除失敗,請稍後再試");
     }
   };
 
@@ -415,9 +420,7 @@ export default function FoodsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">食物資料庫</h1>
-          <p className="text-muted-foreground mt-1">
-            瀏覽和管理食物營養資訊
-          </p>
+          <p className="text-muted-foreground mt-1">瀏覽和管理食物營養資訊</p>
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
@@ -443,11 +446,11 @@ export default function FoodsPage() {
                     onChange={(e) => {
                       setNewFood({ ...newFood, name: e.target.value });
                       if (formErrors.name) {
-                        setFormErrors({ ...formErrors, name: '' });
+                        setFormErrors({ ...formErrors, name: "" });
                       }
                     }}
                     placeholder="例: 雞胸肉"
-                    className={formErrors.name ? 'border-red-500' : ''}
+                    className={formErrors.name ? "border-red-500" : ""}
                   />
                   {formErrors.name && (
                     <p className="text-sm text-red-500">{formErrors.name}</p>
@@ -473,11 +476,13 @@ export default function FoodsPage() {
                   onValueChange={(value: string) => {
                     setNewFood({ ...newFood, categoryId: value });
                     if (formErrors.categoryId) {
-                      setFormErrors({ ...formErrors, categoryId: '' });
+                      setFormErrors({ ...formErrors, categoryId: "" });
                     }
                   }}
                 >
-                  <SelectTrigger className={formErrors.categoryId ? 'border-red-500' : ''}>
+                  <SelectTrigger
+                    className={formErrors.categoryId ? "border-red-500" : ""}
+                  >
                     <SelectValue placeholder="選擇分類" />
                   </SelectTrigger>
                   <SelectContent>
@@ -489,7 +494,9 @@ export default function FoodsPage() {
                   </SelectContent>
                 </Select>
                 {formErrors.categoryId && (
-                  <p className="text-sm text-red-500">{formErrors.categoryId}</p>
+                  <p className="text-sm text-red-500">
+                    {formErrors.categoryId}
+                  </p>
                 )}
               </div>
 
@@ -506,13 +513,15 @@ export default function FoodsPage() {
                         servingSize: parseFloat(e.target.value) || 0,
                       });
                       if (formErrors.servingSize) {
-                        setFormErrors({ ...formErrors, servingSize: '' });
+                        setFormErrors({ ...formErrors, servingSize: "" });
                       }
                     }}
-                    className={formErrors.servingSize ? 'border-red-500' : ''}
+                    className={formErrors.servingSize ? "border-red-500" : ""}
                   />
                   {formErrors.servingSize && (
-                    <p className="text-sm text-red-500">{formErrors.servingSize}</p>
+                    <p className="text-sm text-red-500">
+                      {formErrors.servingSize}
+                    </p>
                   )}
                 </div>
                 <div className="space-y-2">
@@ -523,14 +532,16 @@ export default function FoodsPage() {
                     onChange={(e) => {
                       setNewFood({ ...newFood, servingUnit: e.target.value });
                       if (formErrors.servingUnit) {
-                        setFormErrors({ ...formErrors, servingUnit: '' });
+                        setFormErrors({ ...formErrors, servingUnit: "" });
                       }
                     }}
                     placeholder="例: g, ml, 份"
-                    className={formErrors.servingUnit ? 'border-red-500' : ''}
+                    className={formErrors.servingUnit ? "border-red-500" : ""}
                   />
                   {formErrors.servingUnit && (
-                    <p className="text-sm text-red-500">{formErrors.servingUnit}</p>
+                    <p className="text-sm text-red-500">
+                      {formErrors.servingUnit}
+                    </p>
                   )}
                 </div>
               </div>
@@ -551,13 +562,15 @@ export default function FoodsPage() {
                           calories: parseFloat(e.target.value) || 0,
                         });
                         if (formErrors.calories) {
-                          setFormErrors({ ...formErrors, calories: '' });
+                          setFormErrors({ ...formErrors, calories: "" });
                         }
                       }}
-                      className={formErrors.calories ? 'border-red-500' : ''}
+                      className={formErrors.calories ? "border-red-500" : ""}
                     />
                     {formErrors.calories && (
-                      <p className="text-sm text-red-500">{formErrors.calories}</p>
+                      <p className="text-sm text-red-500">
+                        {formErrors.calories}
+                      </p>
                     )}
                   </div>
                   <div className="space-y-2">
@@ -573,13 +586,15 @@ export default function FoodsPage() {
                           protein: parseFloat(e.target.value) || 0,
                         });
                         if (formErrors.protein) {
-                          setFormErrors({ ...formErrors, protein: '' });
+                          setFormErrors({ ...formErrors, protein: "" });
                         }
                       }}
-                      className={formErrors.protein ? 'border-red-500' : ''}
+                      className={formErrors.protein ? "border-red-500" : ""}
                     />
                     {formErrors.protein && (
-                      <p className="text-sm text-red-500">{formErrors.protein}</p>
+                      <p className="text-sm text-red-500">
+                        {formErrors.protein}
+                      </p>
                     )}
                   </div>
                   <div className="space-y-2">
@@ -595,10 +610,10 @@ export default function FoodsPage() {
                           carbs: parseFloat(e.target.value) || 0,
                         });
                         if (formErrors.carbs) {
-                          setFormErrors({ ...formErrors, carbs: '' });
+                          setFormErrors({ ...formErrors, carbs: "" });
                         }
                       }}
-                      className={formErrors.carbs ? 'border-red-500' : ''}
+                      className={formErrors.carbs ? "border-red-500" : ""}
                     />
                     {formErrors.carbs && (
                       <p className="text-sm text-red-500">{formErrors.carbs}</p>
@@ -617,10 +632,10 @@ export default function FoodsPage() {
                           fat: parseFloat(e.target.value) || 0,
                         });
                         if (formErrors.fat) {
-                          setFormErrors({ ...formErrors, fat: '' });
+                          setFormErrors({ ...formErrors, fat: "" });
                         }
                       }}
-                      className={formErrors.fat ? 'border-red-500' : ''}
+                      className={formErrors.fat ? "border-red-500" : ""}
                     />
                     {formErrors.fat && (
                       <p className="text-sm text-red-500">{formErrors.fat}</p>
@@ -668,9 +683,7 @@ export default function FoodsPage() {
           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>編輯食物</DialogTitle>
-              <DialogDescription>
-                修改您自訂食物的資料
-              </DialogDescription>
+              <DialogDescription>修改您自訂食物的資料</DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="grid grid-cols-2 gap-4">
@@ -682,11 +695,11 @@ export default function FoodsPage() {
                     onChange={(e) => {
                       setNewFood({ ...newFood, name: e.target.value });
                       if (formErrors.name) {
-                        setFormErrors({ ...formErrors, name: '' });
+                        setFormErrors({ ...formErrors, name: "" });
                       }
                     }}
                     placeholder="例: 雞胸肉"
-                    className={formErrors.name ? 'border-red-500' : ''}
+                    className={formErrors.name ? "border-red-500" : ""}
                   />
                   {formErrors.name && (
                     <p className="text-sm text-red-500">{formErrors.name}</p>
@@ -712,11 +725,13 @@ export default function FoodsPage() {
                   onValueChange={(value: string) => {
                     setNewFood({ ...newFood, categoryId: value });
                     if (formErrors.categoryId) {
-                      setFormErrors({ ...formErrors, categoryId: '' });
+                      setFormErrors({ ...formErrors, categoryId: "" });
                     }
                   }}
                 >
-                  <SelectTrigger className={formErrors.categoryId ? 'border-red-500' : ''}>
+                  <SelectTrigger
+                    className={formErrors.categoryId ? "border-red-500" : ""}
+                  >
                     <SelectValue placeholder="選擇分類" />
                   </SelectTrigger>
                   <SelectContent>
@@ -728,7 +743,9 @@ export default function FoodsPage() {
                   </SelectContent>
                 </Select>
                 {formErrors.categoryId && (
-                  <p className="text-sm text-red-500">{formErrors.categoryId}</p>
+                  <p className="text-sm text-red-500">
+                    {formErrors.categoryId}
+                  </p>
                 )}
               </div>
 
@@ -745,13 +762,15 @@ export default function FoodsPage() {
                         servingSize: parseFloat(e.target.value) || 0,
                       });
                       if (formErrors.servingSize) {
-                        setFormErrors({ ...formErrors, servingSize: '' });
+                        setFormErrors({ ...formErrors, servingSize: "" });
                       }
                     }}
-                    className={formErrors.servingSize ? 'border-red-500' : ''}
+                    className={formErrors.servingSize ? "border-red-500" : ""}
                   />
                   {formErrors.servingSize && (
-                    <p className="text-sm text-red-500">{formErrors.servingSize}</p>
+                    <p className="text-sm text-red-500">
+                      {formErrors.servingSize}
+                    </p>
                   )}
                 </div>
                 <div className="space-y-2">
@@ -762,14 +781,16 @@ export default function FoodsPage() {
                     onChange={(e) => {
                       setNewFood({ ...newFood, servingUnit: e.target.value });
                       if (formErrors.servingUnit) {
-                        setFormErrors({ ...formErrors, servingUnit: '' });
+                        setFormErrors({ ...formErrors, servingUnit: "" });
                       }
                     }}
                     placeholder="例: g, ml, 份"
-                    className={formErrors.servingUnit ? 'border-red-500' : ''}
+                    className={formErrors.servingUnit ? "border-red-500" : ""}
                   />
                   {formErrors.servingUnit && (
-                    <p className="text-sm text-red-500">{formErrors.servingUnit}</p>
+                    <p className="text-sm text-red-500">
+                      {formErrors.servingUnit}
+                    </p>
                   )}
                 </div>
               </div>
@@ -790,13 +811,15 @@ export default function FoodsPage() {
                           calories: parseFloat(e.target.value) || 0,
                         });
                         if (formErrors.calories) {
-                          setFormErrors({ ...formErrors, calories: '' });
+                          setFormErrors({ ...formErrors, calories: "" });
                         }
                       }}
-                      className={formErrors.calories ? 'border-red-500' : ''}
+                      className={formErrors.calories ? "border-red-500" : ""}
                     />
                     {formErrors.calories && (
-                      <p className="text-sm text-red-500">{formErrors.calories}</p>
+                      <p className="text-sm text-red-500">
+                        {formErrors.calories}
+                      </p>
                     )}
                   </div>
                   <div className="space-y-2">
@@ -812,13 +835,15 @@ export default function FoodsPage() {
                           protein: parseFloat(e.target.value) || 0,
                         });
                         if (formErrors.protein) {
-                          setFormErrors({ ...formErrors, protein: '' });
+                          setFormErrors({ ...formErrors, protein: "" });
                         }
                       }}
-                      className={formErrors.protein ? 'border-red-500' : ''}
+                      className={formErrors.protein ? "border-red-500" : ""}
                     />
                     {formErrors.protein && (
-                      <p className="text-sm text-red-500">{formErrors.protein}</p>
+                      <p className="text-sm text-red-500">
+                        {formErrors.protein}
+                      </p>
                     )}
                   </div>
                   <div className="space-y-2">
@@ -834,10 +859,10 @@ export default function FoodsPage() {
                           carbs: parseFloat(e.target.value) || 0,
                         });
                         if (formErrors.carbs) {
-                          setFormErrors({ ...formErrors, carbs: '' });
+                          setFormErrors({ ...formErrors, carbs: "" });
                         }
                       }}
-                      className={formErrors.carbs ? 'border-red-500' : ''}
+                      className={formErrors.carbs ? "border-red-500" : ""}
                     />
                     {formErrors.carbs && (
                       <p className="text-sm text-red-500">{formErrors.carbs}</p>
@@ -856,10 +881,10 @@ export default function FoodsPage() {
                           fat: parseFloat(e.target.value) || 0,
                         });
                         if (formErrors.fat) {
-                          setFormErrors({ ...formErrors, fat: '' });
+                          setFormErrors({ ...formErrors, fat: "" });
                         }
                       }}
-                      className={formErrors.fat ? 'border-red-500' : ''}
+                      className={formErrors.fat ? "border-red-500" : ""}
                     />
                     {formErrors.fat && (
                       <p className="text-sm text-red-500">{formErrors.fat}</p>
@@ -935,14 +960,25 @@ export default function FoodsPage() {
                     <SelectItem value="favorites">❤️ 我的最愛</SelectItem>
                     {categories.map((category) => (
                       <SelectItem key={category.id} value={category.id}>
-                        {category.icon} {category.name} ({category._count.foods})
+                        {category.icon} {category.name} ({category._count.foods}
+                        )
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="flex-1">
-                <Select value={selectedSource} onValueChange={setSelectedSource}>
+                <Select
+                  value={selectedSource}
+                  onValueChange={(value) => {
+                    setSelectedSource(value);
+                    setPagination({
+                      ...pagination,
+                      page: 1,
+                      limit: 20,
+                    });
+                  }}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="所有來源" />
                   </SelectTrigger>
@@ -1007,14 +1043,16 @@ export default function FoodsPage() {
                       variant="ghost"
                       size="icon"
                       onClick={() => handleToggleFavorite(food.id)}
-                      title={food.isFavorite ? '取消收藏' : '加入最愛'}
-                      className={food.isFavorite ? 'text-red-500' : ''}
+                      title={food.isFavorite ? "取消收藏" : "加入最愛"}
+                      className={food.isFavorite ? "text-red-500" : ""}
                     >
-                      <Heart className={`h-4 w-4 ${food.isFavorite ? 'fill-current' : ''}`} />
+                      <Heart
+                        className={`h-4 w-4 ${food.isFavorite ? "fill-current" : ""}`}
+                      />
                     </Button>
-                    
+
                     {/* 只對自訂食物顯示編輯/刪除按鈕 */}
-                    {food.source === 'USER' && (
+                    {food.source === "USER" && (
                       <>
                         <Button
                           variant="ghost"
@@ -1076,7 +1114,7 @@ export default function FoodsPage() {
                     {food.category.name}
                   </Badge>
                   <Badge
-                    variant={food.source === 'USER' ? 'default' : 'secondary'}
+                    variant={food.source === "USER" ? "default" : "secondary"}
                     className="text-xs"
                   >
                     {SOURCE_LABELS[food.source]}

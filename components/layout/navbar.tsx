@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
@@ -21,11 +20,12 @@ interface NavbarProps {
     email?: string | null;
     image?: string | null;
   };
+  isSidebarOpen?: boolean;
+  onToggleSidebar?: () => void;
 }
 
-export function Navbar({ user }: NavbarProps) {
+export function Navbar({ user, isSidebarOpen = false, onToggleSidebar }: NavbarProps) {
   const pathname = usePathname();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navItems = [
     { href: '/dashboard', label: '首頁', icon: 'lucide:home' },
@@ -128,43 +128,21 @@ export function Navbar({ user }: NavbarProps) {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Mobile Menu Toggle */}
+            {/* Mobile Menu Toggle – controls sidebar drawer */}
             <Button
               variant="ghost"
               size="icon"
-              className="md:hidden"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="lg:hidden"
+              onClick={onToggleSidebar}
+              aria-label={isSidebarOpen ? '關閉選單' : '開啟選單'}
             >
               <Icon
-                icon={isMobileMenuOpen ? 'lucide:x' : 'lucide:menu'}
+                icon={isSidebarOpen ? 'lucide:x' : 'lucide:menu'}
                 className="h-6 w-6"
               />
             </Button>
           </div>
         </div>
-
-        {/* Mobile Navigation */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden pb-4">
-            <div className="flex flex-col gap-2">
-              {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    pathname === item.href
-                      ? 'bg-primary text-white'
-                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
-                  }`}
-                >
-                  <Icon icon={item.icon} className="h-4 w-4" />
-                  {item.label}
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </nav>
   );

@@ -55,10 +55,11 @@ export async function POST(request: NextRequest) {
     }
 
     const { type, duration, calories, date, notes } = validation.data;
-    const recordDate = date ? new Date(date + 'T00:00:00.000Z') : new Date();
-    if (!date) {
-      recordDate.setHours(0, 0, 0, 0);
-    }
+    // Always use UTC midnight so the date stored matches what the GET query expects
+    const now = new Date();
+    const recordDate = date
+      ? new Date(date + 'T00:00:00.000Z')
+      : new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
 
     // Get user's weight for calorie calculation
     const userProfile = await prisma.userProfile.findUnique({

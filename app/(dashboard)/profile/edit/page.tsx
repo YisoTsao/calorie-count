@@ -21,6 +21,7 @@ export default async function EditProfilePage() {
     birthDate: user.profile?.dateOfBirth ? user.profile.dateOfBirth.toISOString().split('T')[0] : undefined,
     gender: user.profile?.gender || undefined,
     activityLevel: user.profile?.activityLevel || undefined,
+    bio: user.profile?.bio || undefined,
   };
 
   return (

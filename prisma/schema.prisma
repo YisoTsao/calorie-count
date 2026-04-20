@@ -109,6 +109,7 @@ model UserProfile {
   weight        Float? // 體重 (公斤)
   targetWeight  Float? // 目標體重
   activityLevel ActivityLevel @default(MODERATE)
+  bio           String?       @db.Text // 個人簡介
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

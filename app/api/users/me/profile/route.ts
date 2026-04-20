@@ -17,7 +17,7 @@ const updateProfileSchema = z.object({
   activityLevel: z
     .enum(["SEDENTARY", "LIGHT", "MODERATE", "ACTIVE", "VERY_ACTIVE"])
     .optional(),
-  bio: z.string().max(500).optional(),
+  // bio: z.string().max(500).optional(),
 });
 
 // 目標更新 schema
@@ -56,7 +56,7 @@ export async function GET() {
     if (!session?.user?.id) {
       return NextResponse.json(
         createErrorResponse("UNAUTHORIZED", "未授權，請先登入"),
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -72,7 +72,7 @@ export async function GET() {
     if (!user) {
       return NextResponse.json(
         createErrorResponse("NOT_FOUND", "找不到使用者資料"),
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -81,7 +81,7 @@ export async function GET() {
     console.error("取得個人資料錯誤:", error);
     return NextResponse.json(
       createErrorResponse("INTERNAL_ERROR", "取得個人資料失敗"),
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -97,7 +97,7 @@ export async function PATCH(req: NextRequest) {
     if (!session?.user?.id) {
       return NextResponse.json(
         createErrorResponse("UNAUTHORIZED", "未授權，請先登入"),
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -108,7 +108,12 @@ export async function PATCH(req: NextRequest) {
       "name" in body ||
       "height" in body ||
       "weight" in body ||
-      "birthDate" in body;
+      "birthDate" in body ||
+      "dateOfBirth" in body ||
+      "targetWeight" in body ||
+      "gender" in body ||
+      "activityLevel" in body;
+    // "bio" in body;
 
     if (isSimpleForm) {
       // 處理簡單表單提交
@@ -118,60 +123,59 @@ export async function PATCH(req: NextRequest) {
           createErrorResponse(
             "VALIDATION_ERROR",
             "個人資料格式不正確",
-            result.error.issues
+            result.error.issues,
           ),
-          { status: 400 }
+          { status: 400 },
         );
       }
 
-      const { name, birthDate, dateOfBirth, ...profileData } = body;
+      const validated = result.data;
+      const finalBirthDate = validated.birthDate || validated.dateOfBirth;
 
       // 更新 User 表的 name
-      if (name !== undefined) {
+      if (validated.name !== undefined) {
         await prisma.user.update({
           where: { id: session.user.id },
-          data: { name },
+          data: { name: validated.name },
         });
       }
 
-      // 更新 UserProfile 表
-      const finalBirthDate = birthDate || dateOfBirth;
+      // 明確建構 UserProfile 欄位（避免 Prisma 不認識的動態欄位）
+      const profileFields: {
+        gender?: "MALE" | "FEMALE" | "OTHER";
+        height?: number;
+        weight?: number;
+        targetWeight?: number;
+        activityLevel?:
+          | "SEDENTARY"
+          | "LIGHT"
+          | "MODERATE"
+          | "ACTIVE"
+          | "VERY_ACTIVE";
+        dateOfBirth?: Date;
+        bio?: string;
+      } = {};
 
-      // 只保留 UserProfile schema 支援的欄位，避免傳入不存在的欄位 (例如 bio)
-      const allowedProfileFields = [
-        "dateOfBirth",
-        "gender",
-        "height",
-        "weight",
-        "targetWeight",
-        "activityLevel",
-      ] as const;
+      if (validated.gender !== undefined)
+        profileFields.gender = validated.gender;
+      if (validated.height !== undefined)
+        profileFields.height = validated.height;
+      if (validated.weight !== undefined)
+        profileFields.weight = validated.weight;
+      if (validated.targetWeight !== undefined)
+        profileFields.targetWeight = validated.targetWeight;
+      if (validated.activityLevel !== undefined)
+        profileFields.activityLevel = validated.activityLevel;
+      // if (validated.bio !== undefined) profileFields.bio = validated.bio;
+      if (finalBirthDate) profileFields.dateOfBirth = new Date(finalBirthDate);
 
-      const dbProfileCreate: any = {
-        userId: session.user.id,
-      };
-      const dbProfileUpdate: any = {};
-
-      // map numeric fields and allowed keys
-      for (const key of allowedProfileFields) {
-        const k = key as string;
-        if (k === "dateOfBirth") continue; // 處理日期欄位在後
-        if (k in profileData) {
-          dbProfileCreate[k] = (profileData as any)[k];
-          dbProfileUpdate[k] = (profileData as any)[k];
-        }
+      if (Object.keys(profileFields).length > 0) {
+        await prisma.userProfile.upsert({
+          where: { userId: session.user.id },
+          create: { userId: session.user.id, ...profileFields },
+          update: profileFields,
+        });
       }
-
-      if (finalBirthDate) {
-        dbProfileCreate.dateOfBirth = new Date(finalBirthDate);
-        dbProfileUpdate.dateOfBirth = new Date(finalBirthDate);
-      }
-
-      await prisma.userProfile.upsert({
-        where: { userId: session.user.id },
-        create: dbProfileCreate,
-        update: dbProfileUpdate,
-      });
 
       // 取得更新後的資料
       const updatedUser = await prisma.user.findUnique({
@@ -187,7 +191,7 @@ export async function PATCH(req: NextRequest) {
         createSuccessResponse({
           user: updatedUser,
           message: "個人資料更新成功",
-        })
+        }),
       );
     }
 
@@ -202,9 +206,9 @@ export async function PATCH(req: NextRequest) {
           createErrorResponse(
             "VALIDATION_ERROR",
             "個人資料格式不正確",
-            result.error.issues
+            result.error.issues,
           ),
-          { status: 400 }
+          { status: 400 },
         );
       }
     }
@@ -216,9 +220,9 @@ export async function PATCH(req: NextRequest) {
           createErrorResponse(
             "VALIDATION_ERROR",
             "目標設定格式不正確",
-            result.error.issues
+            result.error.issues,
           ),
-          { status: 400 }
+          { status: 400 },
         );
       }
     }
@@ -230,9 +234,9 @@ export async function PATCH(req: NextRequest) {
           createErrorResponse(
             "VALIDATION_ERROR",
             "偏好設定格式不正確",
-            result.error.issues
+            result.error.issues,
           ),
-          { status: 400 }
+          { status: 400 },
         );
       }
     }
@@ -247,6 +251,7 @@ export async function PATCH(req: NextRequest) {
         "weight",
         "targetWeight",
         "activityLevel",
+        // "bio",
       ];
 
       const dbCreate: any = { userId: session.user.id };
@@ -313,13 +318,13 @@ export async function PATCH(req: NextRequest) {
       createSuccessResponse({
         user: updatedUser,
         message: "個人資料更新成功",
-      })
+      }),
     );
   } catch (error) {
     console.error("更新個人資料錯誤:", error);
     return NextResponse.json(
       createErrorResponse("INTERNAL_ERROR", "更新個人資料失敗"),
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

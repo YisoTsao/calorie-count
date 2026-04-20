@@ -467,16 +467,6 @@ export default function WeightPage() {
             最近 2 年
           </button>
           <button
-            onClick={() => setDateRange("all")}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              dateRange === "all"
-                ? "bg-purple-600 text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
-          >
-            全部記錄
-          </button>
-          <button
             onClick={() => setDateRange("custom")}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
               dateRange === "custom"
@@ -519,7 +509,7 @@ export default function WeightPage() {
                 {Math.ceil(
                   (new Date(customEndDate).getTime() -
                     new Date(customStartDate).getTime()) /
-                    (1000 * 60 * 60 * 24)
+                    (1000 * 60 * 60 * 24),
                 )}{" "}
                 天
               </span>

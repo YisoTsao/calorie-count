@@ -23,10 +23,10 @@ export async function GET() {
           theme: 'LIGHT',
           language: 'zh-TW',
           units: 'METRIC',
-          notifications: {
-            mealReminder: true,
-            achievementNotif: true
-          }
+          notificationMealReminders: true,
+          notificationWaterReminders: true,
+          notificationGoalReminders: true,
+          notificationSocialUpdates: true,
         }
       });
     }
@@ -53,10 +53,15 @@ export async function PUT(request: NextRequest) {
       theme: z.enum(['LIGHT', 'DARK', 'AUTO']).optional(),
       language: z.string().optional(),
       units: z.enum(['METRIC', 'IMPERIAL']).optional(),
+      // 支援舊版 notifications 物件，也支援直接傳新版欄位
       notifications: z.object({
         mealReminder: z.boolean().optional(),
-        achievementNotif: z.boolean().optional()
-      }).optional()
+        achievementNotif: z.boolean().optional(),
+      }).optional(),
+      notificationMealReminders: z.boolean().optional(),
+      notificationWaterReminders: z.boolean().optional(),
+      notificationGoalReminders: z.boolean().optional(),
+      notificationSocialUpdates: z.boolean().optional(),
     });
 
     const body = await request.json();
@@ -69,40 +74,42 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const { theme, language, units, notifications } = validation.data;
+    const { theme, language, units, notifications, ...rest } = validation.data;
 
-    // 檢查是否已有偏好設定
-    const existing = await prisma.userPreferences.findUnique({
-      where: { userId: session.user.id }
-    });
-
-    let preferences;
-    if (existing) {
-      // 更新
-      preferences = await prisma.userPreferences.update({
-        where: { userId: session.user.id },
-        data: {
-          ...(theme && { theme }),
-          ...(language && { language }),
-          ...(units && { units }),
-          ...(notifications && { notifications })
-        }
-      });
-    } else {
-      // 建立
-      preferences = await prisma.userPreferences.create({
-        data: {
-          userId: session.user.id,
-          theme: theme || 'LIGHT',
-          language: language || 'zh-TW',
-          units: units || 'METRIC',
-          notifications: notifications || {
-            mealReminder: true,
-            achievementNotif: true
-          }
-        }
-      });
+    // 把舊版 notifications 物件對應到新版欄位
+    const notifFields: Record<string, boolean> = {};
+    if (notifications?.mealReminder !== undefined) {
+      notifFields.notificationMealReminders = notifications.mealReminder;
     }
+    if (notifications?.achievementNotif !== undefined) {
+      notifFields.notificationGoalReminders = notifications.achievementNotif;
+    }
+
+    const updateData = {
+      ...(theme && { theme }),
+      ...(language && { language }),
+      ...(units && { units }),
+      ...(rest.notificationMealReminders !== undefined && { notificationMealReminders: rest.notificationMealReminders }),
+      ...(rest.notificationWaterReminders !== undefined && { notificationWaterReminders: rest.notificationWaterReminders }),
+      ...(rest.notificationGoalReminders !== undefined && { notificationGoalReminders: rest.notificationGoalReminders }),
+      ...(rest.notificationSocialUpdates !== undefined && { notificationSocialUpdates: rest.notificationSocialUpdates }),
+      ...notifFields,
+    };
+
+    const preferences = await prisma.userPreferences.upsert({
+      where: { userId: session.user.id },
+      create: {
+        userId: session.user.id,
+        theme: theme || 'LIGHT',
+        language: language || 'zh-TW',
+        units: units || 'METRIC',
+        notificationMealReminders: notifFields.notificationMealReminders ?? true,
+        notificationWaterReminders: notifFields.notificationWaterReminders ?? true,
+        notificationGoalReminders: notifFields.notificationGoalReminders ?? true,
+        notificationSocialUpdates: true,
+      },
+      update: updateData,
+    });
 
     return NextResponse.json({
       success: true,

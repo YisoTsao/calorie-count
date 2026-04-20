@@ -40,7 +40,7 @@ export default function ExercisePage() {
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
   const [selectedType, setSelectedType] = useState<string>("all");
   const [selectedPeriod, setSelectedPeriod] = useState<"week" | "month">(
-    "week"
+    "week",
   );
   const [dateRange, setDateRange] = useState<
     "30d" | "3m" | "6m" | "1y" | "2y" | "all" | "custom"
@@ -266,12 +266,13 @@ export default function ExercisePage() {
     else if (dateRange === "6m") days = 180;
     else if (dateRange === "1y") days = 365;
     else if (dateRange === "2y") days = 730;
-    else if (dateRange === "all") days = 365; // 全部記錄顯示最近一年
+    else if (dateRange === "all")
+      days = 365; // 全部記錄顯示最近一年
     else if (dateRange === "custom" && customStartDate && customEndDate) {
       const start = new Date(customStartDate);
       const end = new Date(customEndDate);
       days = Math.ceil(
-        (end.getTime() - start.getTime()) / (24 * 60 * 60 * 1000)
+        (end.getTime() - start.getTime()) / (24 * 60 * 60 * 1000),
       );
     }
 
@@ -288,7 +289,7 @@ export default function ExercisePage() {
 
       const totalDuration = dayExercises.reduce(
         (sum, ex) => sum + ex.duration,
-        0
+        0,
       );
 
       return {
@@ -353,7 +354,8 @@ export default function ExercisePage() {
         <div className="bg-white rounded-xl shadow-sm p-6">
           <span className="text-sm text-gray-600">本週消耗熱量</span>
           <div className="text-3xl font-bold text-gray-900 mt-2">
-            {weekCalories} <span className="text-lg text-gray-500">kcal</span>
+            {weekCalories ? Number(weekCalories.toFixed(0)) : 0}{" "}
+            <span className="text-lg text-gray-500">kcal</span>
           </div>
         </div>
       </div>
@@ -418,16 +420,6 @@ export default function ExercisePage() {
               最近 2 年
             </button>
             <button
-              onClick={() => setDateRange("all")}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                dateRange === "all"
-                  ? "bg-purple-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              全部記錄
-            </button>
-            <button
               onClick={() => setDateRange("custom")}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 dateRange === "custom"
@@ -471,7 +463,7 @@ export default function ExercisePage() {
                   {Math.ceil(
                     (new Date(customEndDate).getTime() -
                       new Date(customStartDate).getTime()) /
-                      (24 * 60 * 60 * 1000)
+                      (24 * 60 * 60 * 1000),
                   ) + 1}{" "}
                   天)
                 </span>
@@ -559,7 +551,7 @@ export default function ExercisePage() {
         <div className="space-y-3">
           {filteredExercises.map((exercise) => {
             const typeInfo = EXERCISE_TYPES.find(
-              (t) => t.value === exercise.type
+              (t) => t.value === exercise.type,
             );
             return (
               <div

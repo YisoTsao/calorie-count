@@ -148,7 +148,7 @@ export function ProfileEditForm({ defaultValues }: ProfileEditFormProps) {
             )}
           </div>
 
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <Label htmlFor="bio">個人簡介</Label>
             <textarea
               id="bio"
@@ -158,7 +158,7 @@ export function ProfileEditForm({ defaultValues }: ProfileEditFormProps) {
             {errors.bio && (
               <p className="text-sm text-destructive">{errors.bio.message}</p>
             )}
-          </div>
+          </div> */}
 
           <div className="flex gap-4">
             <Button type="submit" disabled={isLoading}>

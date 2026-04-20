@@ -141,3 +141,6 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
+// PUT is identical to POST (settings page uses PUT)
+export { POST as PUT };
