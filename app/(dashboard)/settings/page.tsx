@@ -41,17 +41,33 @@ export default function SettingsPage() {
   const loadData = async () => {
     try {
       // 載入個人資料
-      const profileRes = await fetch('/api/profile');
+      const profileRes = await fetch('/api/users/me/profile');
       if (profileRes.ok) {
         const profileData = await profileRes.json();
-        setProfile(profileData);
+        setProfile(profileData.data || {});
       }
 
       // 載入目標
       const goalsRes = await fetch('/api/goals');
       if (goalsRes.ok) {
         const goalsData = await goalsRes.json();
-        setGoals(goalsData);
+        setGoals(goalsData.data || {});
+      }
+
+      // 載入偏好設定
+      const prefsRes = await fetch('/api/preferences');
+      if (prefsRes.ok) {
+        const prefsData = await prefsRes.json();
+        if (prefsData.data) {
+          setPreferences({
+            theme: prefsData.data.theme || 'light',
+            language: prefsData.data.language || 'zh-TW',
+            notifications: {
+              mealReminder: prefsData.data.notifications?.mealReminder ?? true,
+              achievementNotif: prefsData.data.notifications?.achievementNotif ?? true
+            }
+          });
+        }
       }
     } catch (error) {
       console.error('載入資料失敗:', error);
@@ -63,7 +79,7 @@ export default function SettingsPage() {
   const handleSaveProfile = async () => {
     setSaving(true);
     try {
-      const res = await fetch('/api/profile', {
+      const res = await fetch('/api/users/me/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(profile)
@@ -71,6 +87,9 @@ export default function SettingsPage() {
 
       if (res.ok) {
         alert('個人資料已儲存');
+      } else {
+        const error = await res.json();
+        alert(`儲存失敗: ${error.error || '未知錯誤'}`);
       }
     } catch (error) {
       console.error('儲存失敗:', error);
@@ -91,6 +110,32 @@ export default function SettingsPage() {
 
       if (res.ok) {
         alert('目標已儲存');
+      } else {
+        const error = await res.json();
+        alert(`儲存失敗: ${error.error || '未知錯誤'}`);
+      }
+    } catch (error) {
+      console.error('儲存失敗:', error);
+      alert('儲存失敗');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSavePreferences = async () => {
+    setSaving(true);
+    try {
+      const res = await fetch('/api/preferences', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(preferences)
+      });
+
+      if (res.ok) {
+        alert('偏好設定已儲存');
+      } else {
+        const error = await res.json();
+        alert(`儲存失敗: ${error.error || '未知錯誤'}`);
       }
     } catch (error) {
       console.error('儲存失敗:', error);
@@ -441,6 +486,15 @@ export default function SettingsPage() {
                   <span className="text-gray-700">成就通知</span>
                 </label>
               </div>
+
+              <button
+                onClick={handleSavePreferences}
+                disabled={saving}
+                className="flex items-center gap-2 px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-400 transition-colors"
+              >
+                <Save className="w-4 h-4" />
+                {saving ? '儲存中...' : '儲存偏好'}
+              </button>
             </div>
           </div>
 

@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { hash } from 'bcryptjs';
-import { prisma } from '@/lib/prisma';
-import { registerSchema } from '@/lib/validations/auth';
-import { createSuccessResponse, createErrorResponse } from '@/lib/api-response';
-import { ValidationError, ConflictError } from '@/lib/errors';
-import { generateToken } from '@/lib/utils';
+import { NextRequest, NextResponse } from "next/server";
+import { hash } from "bcryptjs";
+import { prisma } from "@/lib/prisma";
+import { registerSchema } from "@/lib/validations/auth";
+import { createSuccessResponse, createErrorResponse } from "@/lib/api-response";
+import { ValidationError, ConflictError } from "@/lib/errors";
+import { generateToken } from "@/lib/utils";
 
 /**
  * POST /api/auth/register
@@ -16,9 +16,11 @@ export async function POST(request: NextRequest) {
 
     // 驗證輸入
     const result = registerSchema.safeParse(body);
+    console.log("Register input validation result:", result);
+
     if (!result.success) {
       throw new ValidationError(
-        result.error.issues.map((e) => e.message).join(', ')
+        result.error.issues.map((e) => e.message).join(", ")
       );
     }
 
@@ -30,7 +32,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (existingUser) {
-      throw new ConflictError('此 Email 已被註冊');
+      throw new ConflictError("此 Email 已被註冊");
     }
 
     // 加密密碼
@@ -70,28 +72,29 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       createSuccessResponse({
         user,
-        message: '註冊成功！請檢查您的 Email 以驗證帳號。',
+        message: "註冊成功！請檢查您的 Email 以驗證帳號。",
       }),
       { status: 201 }
     );
   } catch (error) {
     if (error instanceof ValidationError) {
+      error.message;
+
       return NextResponse.json(
-        createErrorResponse(error.message, 'VALIDATION_ERROR'),
+        createErrorResponse("VALIDATION_ERROR", error.message),
         { status: 400 }
       );
     }
 
     if (error instanceof ConflictError) {
-      return NextResponse.json(
-        createErrorResponse(error.message, 'CONFLICT'),
-        { status: 409 }
-      );
+      return NextResponse.json(createErrorResponse("CONFLICT", error.message), {
+        status: 409,
+      });
     }
 
-    console.error('Register error:', error);
+    console.error("Register error:", error);
     return NextResponse.json(
-      createErrorResponse('註冊失敗，請稍後再試', 'INTERNAL_ERROR'),
+      createErrorResponse("INTERNAL_ERROR", "註冊失敗，請稍後再試"),
       { status: 500 }
     );
   }

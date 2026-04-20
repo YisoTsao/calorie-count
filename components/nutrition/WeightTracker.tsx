@@ -38,15 +38,26 @@ export default function WeightTracker() {
   const loadRecords = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/weight');
+      // 預設取得最近 30 天資料
+      const endDate = new Date();
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - 30);
+      
+      const response = await fetch(
+        `/api/weight?startDate=${startDate.toISOString().split('T')[0]}&endDate=${endDate.toISOString().split('T')[0]}&limit=30`
+      );
       
       if (!response.ok) throw new Error('載入失敗');
       
-      const data = await response.json();
+      const result = await response.json();
+      // API 回傳格式: { success: true, data: { records, stats } }
+      const data = result.data || {};
       setRecords(data.records || []);
       setStats(data.stats || null);
     } catch (error) {
       console.error('載入體重記錄失敗:', error);
+      setRecords([]);
+      setStats(null);
     } finally {
       setLoading(false);
     }

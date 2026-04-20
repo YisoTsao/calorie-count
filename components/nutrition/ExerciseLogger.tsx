@@ -55,11 +55,15 @@ export default function ExerciseLogger({
       
       if (!response.ok) throw new Error('載入失敗');
       
-      const data = await response.json();
-      setRecords(data.records || []);
-      setTotalCalories(data.totalCalories || 0);
+      const result = await response.json();
+      // API 回傳格式: { success: true, data: { exercises, totals } }
+      const data = result.data || {};
+      setRecords(data.exercises || []);
+      setTotalCalories(data.totals?.calories || 0);
     } catch (error) {
       console.error('載入運動記錄失敗:', error);
+      setRecords([]);
+      setTotalCalories(0);
     } finally {
       setLoading(false);
     }
@@ -87,13 +91,17 @@ export default function ExerciseLogger({
 
       if (!response.ok) throw new Error('新增失敗');
 
-      const newRecord = await response.json();
-      setRecords(prev => [newRecord, ...prev]);
-      setTotalCalories(prev => prev + newRecord.calories);
+      const result = await response.json();
+      const newRecord = result.data?.exercise;
+      if (newRecord) {
+        setRecords(prev => [newRecord, ...prev]);
+        setTotalCalories(prev => prev + (newRecord.calories || 0));
+      }
       setDuration('');
+      await loadTodayRecords(); // 重新載入確保資料同步
     } catch (error) {
       console.error('新增運動記錄失敗:', error);
-      alert('新增失敗,請稍後再試');
+      alert('新增失敗，請稍後再試');
     } finally {
       setLoading(false);
     }

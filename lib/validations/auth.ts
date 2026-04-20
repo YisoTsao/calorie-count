@@ -12,8 +12,13 @@ export const registerSchema = z.object({
     .regex(/[a-z]/, { message: '密碼需包含至少一個小寫字母' })
     .regex(/[0-9]/, { message: '密碼需包含至少一個數字' }),
   name: z.string().min(1, { message: '姓名為必填項目' }).max(50),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
+  // confirmPassword 改為可選：若前端未送出，仍允許註冊
+  confirmPassword: z.string().optional(),
+}).refine((data) => {
+  // 只有在前端提供 confirmPassword 時，才檢查是否一致
+  if (typeof data.confirmPassword === 'undefined') return true;
+  return data.password === data.confirmPassword;
+}, {
   message: '密碼不一致',
   path: ['confirmPassword'],
 });

@@ -37,11 +37,15 @@ export default function WaterIntakeCard({
       
       if (!response.ok) throw new Error('載入失敗');
       
-      const data = await response.json();
-      setRecords(data.records || []);
+      const result = await response.json();
+      // API 回傳格式: { success: true, data: { intakes, total, date } }
+      const data = result.data || {};
+      setRecords(data.intakes || []);
       setTotalAmount(data.total || 0);
     } catch (error) {
       console.error('載入飲水記錄失敗:', error);
+      setRecords([]);
+      setTotalAmount(0);
     } finally {
       setLoading(false);
     }
@@ -64,13 +68,17 @@ export default function WaterIntakeCard({
 
       if (!response.ok) throw new Error('新增失敗');
 
-      const newRecord = await response.json();
-      setRecords(prev => [newRecord, ...prev]);
-      setTotalAmount(prev => prev + amount);
+      const result = await response.json();
+      const newRecord = result.data?.waterIntake;
+      if (newRecord) {
+        setRecords(prev => [newRecord, ...prev]);
+        setTotalAmount(prev => prev + amount);
+      }
       setCustomAmount('');
+      await loadTodayRecords(); // 重新載入確保資料同步
     } catch (error) {
       console.error('新增飲水記錄失敗:', error);
-      alert('新增失敗,請稍後再試');
+      alert('新增失敗，請稍後再試');
     } finally {
       setLoading(false);
     }

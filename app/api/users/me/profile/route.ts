@@ -1,25 +1,28 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
-import { createSuccessResponse, createErrorResponse } from '@/lib/api-response';
-import { z } from 'zod';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { createSuccessResponse, createErrorResponse } from "@/lib/api-response";
+import { z } from "zod";
 
 // 個人資料更新 schema
 const updateProfileSchema = z.object({
   name: z.string().min(2).max(50).optional(),
   dateOfBirth: z.string().optional(),
   birthDate: z.string().optional(), // 表單欄位名稱
-  gender: z.enum(['MALE', 'FEMALE', 'OTHER']).optional(),
+  gender: z.enum(["MALE", "FEMALE", "OTHER"]).optional(),
   height: z.number().positive().optional(),
   weight: z.number().positive().optional(),
   targetWeight: z.number().positive().optional(),
-  activityLevel: z.enum(['SEDENTARY', 'LIGHT', 'MODERATE', 'ACTIVE', 'VERY_ACTIVE']).optional(),
+  activityLevel: z
+    .enum(["SEDENTARY", "LIGHT", "MODERATE", "ACTIVE", "VERY_ACTIVE"])
+    .optional(),
   bio: z.string().max(500).optional(),
 });
 
 // 目標更新 schema
 const updateGoalsSchema = z.object({
-  goalType: z.enum(['LOSE_WEIGHT', 'GAIN_WEIGHT', 'MAINTAIN']).optional(),
+  goalType: z.enum(["LOSE_WEIGHT", "GAIN_WEIGHT", "MAINTAIN"]).optional(),
   dailyCalorieGoal: z.number().int().positive().optional(),
   proteinGoal: z.number().positive().optional(),
   carbsGoal: z.number().positive().optional(),
@@ -30,14 +33,14 @@ const updateGoalsSchema = z.object({
 
 // 偏好設定更新 schema
 const updatePreferencesSchema = z.object({
-  theme: z.enum(['LIGHT', 'DARK', 'AUTO']).optional(),
+  theme: z.enum(["LIGHT", "DARK", "AUTO"]).optional(),
   language: z.string().optional(),
-  units: z.enum(['METRIC', 'IMPERIAL']).optional(),
+  units: z.enum(["METRIC", "IMPERIAL"]).optional(),
   notificationMealReminders: z.boolean().optional(),
   notificationWaterReminders: z.boolean().optional(),
   notificationGoalReminders: z.boolean().optional(),
   notificationSocialUpdates: z.boolean().optional(),
-  privacyProfileVisibility: z.enum(['PUBLIC', 'FRIENDS', 'PRIVATE']).optional(),
+  privacyProfileVisibility: z.enum(["PUBLIC", "FRIENDS", "PRIVATE"]).optional(),
   privacyShowWeight: z.boolean().optional(),
   privacyShowProgress: z.boolean().optional(),
 });
@@ -52,7 +55,7 @@ export async function GET() {
 
     if (!session?.user?.id) {
       return NextResponse.json(
-        createErrorResponse('UNAUTHORIZED', '未授權，請先登入'),
+        createErrorResponse("UNAUTHORIZED", "未授權，請先登入"),
         { status: 401 }
       );
     }
@@ -68,16 +71,16 @@ export async function GET() {
 
     if (!user) {
       return NextResponse.json(
-        createErrorResponse('NOT_FOUND', '找不到使用者資料'),
+        createErrorResponse("NOT_FOUND", "找不到使用者資料"),
         { status: 404 }
       );
     }
 
     return NextResponse.json(createSuccessResponse(user));
   } catch (error) {
-    console.error('取得個人資料錯誤:', error);
+    console.error("取得個人資料錯誤:", error);
     return NextResponse.json(
-      createErrorResponse('INTERNAL_ERROR', '取得個人資料失敗'),
+      createErrorResponse("INTERNAL_ERROR", "取得個人資料失敗"),
       { status: 500 }
     );
   }
@@ -93,7 +96,7 @@ export async function PATCH(req: NextRequest) {
 
     if (!session?.user?.id) {
       return NextResponse.json(
-        createErrorResponse('UNAUTHORIZED', '未授權，請先登入'),
+        createErrorResponse("UNAUTHORIZED", "未授權，請先登入"),
         { status: 401 }
       );
     }
@@ -101,14 +104,22 @@ export async function PATCH(req: NextRequest) {
     const body = await req.json();
 
     // 檢查是否為簡單表單提交（直接包含欄位）
-    const isSimpleForm = 'name' in body || 'height' in body || 'weight' in body || 'birthDate' in body;
+    const isSimpleForm =
+      "name" in body ||
+      "height" in body ||
+      "weight" in body ||
+      "birthDate" in body;
 
     if (isSimpleForm) {
       // 處理簡單表單提交
       const result = updateProfileSchema.safeParse(body);
       if (!result.success) {
         return NextResponse.json(
-          createErrorResponse('VALIDATION_ERROR', '個人資料格式不正確', result.error.issues),
+          createErrorResponse(
+            "VALIDATION_ERROR",
+            "個人資料格式不正確",
+            result.error.issues
+          ),
           { status: 400 }
         );
       }
@@ -125,17 +136,41 @@ export async function PATCH(req: NextRequest) {
 
       // 更新 UserProfile 表
       const finalBirthDate = birthDate || dateOfBirth;
+
+      // 只保留 UserProfile schema 支援的欄位，避免傳入不存在的欄位 (例如 bio)
+      const allowedProfileFields = [
+        "dateOfBirth",
+        "gender",
+        "height",
+        "weight",
+        "targetWeight",
+        "activityLevel",
+      ] as const;
+
+      const dbProfileCreate: any = {
+        userId: session.user.id,
+      };
+      const dbProfileUpdate: any = {};
+
+      // map numeric fields and allowed keys
+      for (const key of allowedProfileFields) {
+        const k = key as string;
+        if (k === "dateOfBirth") continue; // 處理日期欄位在後
+        if (k in profileData) {
+          dbProfileCreate[k] = (profileData as any)[k];
+          dbProfileUpdate[k] = (profileData as any)[k];
+        }
+      }
+
+      if (finalBirthDate) {
+        dbProfileCreate.dateOfBirth = new Date(finalBirthDate);
+        dbProfileUpdate.dateOfBirth = new Date(finalBirthDate);
+      }
+
       await prisma.userProfile.upsert({
         where: { userId: session.user.id },
-        create: {
-          userId: session.user.id,
-          ...profileData,
-          ...(finalBirthDate && { dateOfBirth: new Date(finalBirthDate) }),
-        },
-        update: {
-          ...profileData,
-          ...(finalBirthDate && { dateOfBirth: new Date(finalBirthDate) }),
-        },
+        create: dbProfileCreate,
+        update: dbProfileUpdate,
       });
 
       // 取得更新後的資料
@@ -151,7 +186,7 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json(
         createSuccessResponse({
           user: updatedUser,
-          message: '個人資料更新成功',
+          message: "個人資料更新成功",
         })
       );
     }
@@ -164,7 +199,11 @@ export async function PATCH(req: NextRequest) {
       const result = updateProfileSchema.safeParse(profile);
       if (!result.success) {
         return NextResponse.json(
-          createErrorResponse('VALIDATION_ERROR', '個人資料格式不正確', result.error.issues),
+          createErrorResponse(
+            "VALIDATION_ERROR",
+            "個人資料格式不正確",
+            result.error.issues
+          ),
           { status: 400 }
         );
       }
@@ -174,7 +213,11 @@ export async function PATCH(req: NextRequest) {
       const result = updateGoalsSchema.safeParse(goals);
       if (!result.success) {
         return NextResponse.json(
-          createErrorResponse('VALIDATION_ERROR', '目標設定格式不正確', result.error.issues),
+          createErrorResponse(
+            "VALIDATION_ERROR",
+            "目標設定格式不正確",
+            result.error.issues
+          ),
           { status: 400 }
         );
       }
@@ -184,7 +227,11 @@ export async function PATCH(req: NextRequest) {
       const result = updatePreferencesSchema.safeParse(preferences);
       if (!result.success) {
         return NextResponse.json(
-          createErrorResponse('VALIDATION_ERROR', '偏好設定格式不正確', result.error.issues),
+          createErrorResponse(
+            "VALIDATION_ERROR",
+            "偏好設定格式不正確",
+            result.error.issues
+          ),
           { status: 400 }
         );
       }
@@ -192,17 +239,35 @@ export async function PATCH(req: NextRequest) {
 
     // 更新個人資料
     if (profile) {
+      // 過濾 profile 物件，只保留 Prisma schema 支援欄位
+      const allowed = [
+        "dateOfBirth",
+        "gender",
+        "height",
+        "weight",
+        "targetWeight",
+        "activityLevel",
+      ];
+
+      const dbCreate: any = { userId: session.user.id };
+      const dbUpdate: any = {};
+
+      for (const k of allowed) {
+        if ((profile as any)[k] !== undefined) {
+          if (k === "dateOfBirth") {
+            dbCreate.dateOfBirth = new Date((profile as any).dateOfBirth);
+            dbUpdate.dateOfBirth = new Date((profile as any).dateOfBirth);
+          } else {
+            dbCreate[k] = (profile as any)[k];
+            dbUpdate[k] = (profile as any)[k];
+          }
+        }
+      }
+
       await prisma.userProfile.upsert({
         where: { userId: session.user.id },
-        create: {
-          userId: session.user.id,
-          ...profile,
-          ...(profile.dateOfBirth && { dateOfBirth: new Date(profile.dateOfBirth) }),
-        },
-        update: {
-          ...profile,
-          ...(profile.dateOfBirth && { dateOfBirth: new Date(profile.dateOfBirth) }),
-        },
+        create: dbCreate,
+        update: dbUpdate,
       });
     }
 
@@ -247,13 +312,13 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json(
       createSuccessResponse({
         user: updatedUser,
-        message: '個人資料更新成功',
+        message: "個人資料更新成功",
       })
     );
   } catch (error) {
-    console.error('更新個人資料錯誤:', error);
+    console.error("更新個人資料錯誤:", error);
     return NextResponse.json(
-      createErrorResponse('INTERNAL_ERROR', '更新個人資料失敗'),
+      createErrorResponse("INTERNAL_ERROR", "更新個人資料失敗"),
       { status: 500 }
     );
   }
