@@ -92,6 +92,30 @@ export const authConfig: NextAuthConfig = {
     }),
   ],
   callbacks: {
+    // 新增 authorized callback 取代 middleware
+    async authorized({ request, auth }) {
+      const { pathname } = request.nextUrl;
+      
+      // 公開路由 (不需要登入)
+      const publicRoutes = ['/login', '/register', '/verify-email', '/forgot-password'];
+      const isPublicRoute = publicRoutes.some((route) => pathname.startsWith(route));
+      
+      // 認證路由 (已登入用戶不應訪問)
+      const authRoutes = ['/login', '/register'];
+      const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
+      
+      // 如果是認證路由且已登入，返回 false 讓 NextAuth 重定向
+      if (isAuthRoute && auth?.user) {
+        return false; // NextAuth 會自動重定向到 callbackUrl 或首頁
+      }
+      
+      // 如果不是公開路由且未登入，返回 false
+      if (!isPublicRoute && !auth?.user) {
+        return false; // NextAuth 會自動重定向到登入頁
+      }
+      
+      return true; // 允許訪問
+    },
     async jwt({ token, user, account }) {
       if (user) {
         token.id = user.id;
