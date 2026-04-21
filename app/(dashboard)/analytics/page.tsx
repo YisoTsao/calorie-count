@@ -37,32 +37,8 @@ export default function AnalyticsPage() {
     try {
       setLoading(true);
       const response = await fetch(`/api/stats?days=${period}`);
-      
       if (!response.ok) throw new Error('載入失敗');
-      
       const data = await response.json();
-      
-      // 如果沒有統計資料或資料不足,觸發批量計算
-      if (!data.stats || data.stats.length < parseInt(period) / 2) {
-        try {
-          const batchRes = await fetch(`/api/stats/batch?days=${period}`, {
-            method: 'POST',
-          });
-          
-          if (batchRes.ok) {
-            const retryRes = await fetch(`/api/stats?days=${period}`);
-            const retryData = await retryRes.json();
-            
-            if (retryData.stats) {
-              data.stats = retryData.stats;
-              data.summary = retryData.summary;
-            }
-          }
-        } catch (calcError) {
-          console.error('批量計算統計失敗:', calcError);
-        }
-      }
-      
       setStats(data.stats || []);
       setSummary(data.summary || null);
     } catch (error) {
