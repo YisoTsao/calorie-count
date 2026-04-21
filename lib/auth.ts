@@ -43,10 +43,13 @@ export const authConfig: NextAuthConfig = {
           throw new Error('請提供 Email 和密碼');
         }
 
+        const email = credentials.email as string;
+        const password = credentials.password as string;
+
         // 驗證輸入格式
         const result = loginSchema.safeParse({
-          email: credentials.email,
-          password: credentials.password,
+          email,
+          password,
         });
 
         if (!result.success) {
@@ -56,7 +59,7 @@ export const authConfig: NextAuthConfig = {
         // 查詢用戶
         const user = await prisma.user.findUnique({
           where: {
-            email: credentials.email,
+            email,
           },
         });
 
@@ -66,7 +69,7 @@ export const authConfig: NextAuthConfig = {
 
         // 驗證密碼
         const isPasswordValid = await compare(
-          credentials.password,
+          password,
           user.password
         );
 
@@ -102,8 +105,8 @@ export const authConfig: NextAuthConfig = {
 
         if (dbUser) {
           token.email = dbUser.email;
-          token.name = dbUser.name;
-          token.picture = dbUser.image;
+          token.name = dbUser.name ?? undefined;
+          token.picture = dbUser.image ?? undefined;
         }
       }
 

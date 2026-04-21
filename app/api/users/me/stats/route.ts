@@ -10,7 +10,19 @@ import {
   calculateDailyCalorieGoal,
   calculateMacronutrients,
   calculateIdealWeightRange,
+  ActivityLevel as HealthActivityLevel,
+  GoalType as HealthGoalType,
+  Gender as HealthGender,
 } from '@/lib/calculations/health';
+
+// Prisma ActivityLevel → health.ts ActivityLevel
+const ACTIVITY_LEVEL_MAP: Record<string, HealthActivityLevel> = {
+  SEDENTARY: 'SEDENTARY',
+  LIGHT: 'LIGHTLY_ACTIVE',
+  MODERATE: 'MODERATELY_ACTIVE',
+  ACTIVE: 'VERY_ACTIVE',
+  VERY_ACTIVE: 'EXTREMELY_ACTIVE',
+};
 
 export async function GET(req: NextRequest) {
   try {
@@ -58,10 +70,11 @@ export async function GET(req: NextRequest) {
       stats.idealWeightRange = idealWeight;
 
       // 如果有足夠資料,計算代謝率
-      if (profile.birthDate && profile.gender && profile.activityLevel) {
-        const age = new Date().getFullYear() - new Date(profile.birthDate).getFullYear();
-        const bmr = calculateBMR(profile.weight, profile.height, age, profile.gender);
-        const tdee = calculateTDEE(bmr, profile.activityLevel);
+      if (profile.dateOfBirth && profile.gender && profile.activityLevel) {
+        const age = new Date().getFullYear() - new Date(profile.dateOfBirth).getFullYear();
+        const healthActivityLevel = ACTIVITY_LEVEL_MAP[profile.activityLevel];
+        const bmr = calculateBMR(profile.weight, profile.height, age, profile.gender as HealthGender);
+        const tdee = calculateTDEE(bmr, healthActivityLevel);
 
         stats.bmr = bmr;
         stats.tdee = tdee;
@@ -70,13 +83,13 @@ export async function GET(req: NextRequest) {
         if (goals?.goalType) {
           const dailyCalories = calculateDailyCalorieGoal(
             tdee,
-            goals.goalType,
-            goals.weeklyWeightChange || 0
+            goals.goalType as HealthGoalType,
+            0
           );
 
           const macros = calculateMacronutrients(
             dailyCalories,
-            goals.goalType,
+            goals.goalType as HealthGoalType,
             profile.weight
           );
 
@@ -89,7 +102,7 @@ export async function GET(req: NextRequest) {
       const profileFields = [
         'height',
         'weight',
-        'birthDate',
+        'dateOfBirth',
         'gender',
         'activityLevel',
       ];

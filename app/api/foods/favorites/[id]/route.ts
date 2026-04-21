@@ -8,9 +8,10 @@ import { prisma } from '@/lib/prisma';
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: '未授權' }, { status: 401 });
@@ -19,7 +20,7 @@ export async function DELETE(
     // 檢查是否為使用者的常用食物
     const favorite = await prisma.userFavoriteFood.findFirst({
       where: {
-        foodId: params.id,
+        foodId: id,
         userId: session.user.id,
       },
     });
