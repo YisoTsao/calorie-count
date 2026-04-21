@@ -1,34 +1,26 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { checkAchievements, getAchievementsWithProgress } from '@/lib/achievements/checker';
 
-// 查詢使用者成就
+// GET /api/achievements - 查詢並計算成就進度
 export async function GET() {
   try {
     const session = await auth();
-    if (!session?.user) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: '未授權' }, { status: 401 });
     }
 
-    const userId = session.user.id!;
+    const userId = session.user.id;
 
-    const achievements = await prisma.achievement.findMany({
-      where: { userId },
-      orderBy: {
-        earnedAt: 'desc'
-      }
-    });
+    // 先執行 checker（冪等，安全重複呼叫）
+    await checkAchievements(userId);
 
-    return NextResponse.json({
-      achievements,
-      count: achievements.length
-    });
+    // 取得帶進度的完整成就列表
+    const data = await getAchievementsWithProgress(userId);
 
+    return NextResponse.json({ success: true, data });
   } catch (error) {
     console.error('查詢成就失敗:', error);
-    return NextResponse.json(
-      { error: '查詢成就失敗' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: '查詢成就失敗' }, { status: 500 });
   }
 }

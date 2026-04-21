@@ -35,7 +35,7 @@ model User {
   waterIntakes  WaterIntake[] // 水分攝取記錄
   exercises     Exercise[] // 運動記錄
   weightRecords WeightRecord[] // 體重記錄
-  achievements  Achievement[] // 成就記錄
+  achievements  UserAchievement[] // 成就記錄
   dailyStats    DailyStats[] // 每日統計
 
   createdAt DateTime @default(now())
@@ -501,39 +501,54 @@ model WeightRecord {
 
 // ==================== Analytics & Achievements ====================
 
-enum AchievementType {
-  STREAK_7 // 連續記錄 7 天
-  STREAK_30 // 連續記錄 30 天
-  STREAK_100 // 連續記錄 100 天
-  WEIGHT_GOAL // 達成體重目標
-  CALORIE_GOAL_WEEK // 一週達成卡路里目標
-  CALORIE_GOAL_MONTH // 一個月達成卡路里目標
-  WATER_CHAMPION // 連續一週達成飲水目標
-  EXERCISE_WARRIOR // 連續一週運動
-  FIRST_MEAL // 記錄第一餐
-  FIRST_WEEK // 完成第一週
+enum TriggerType {
+  FIRST_MEAL       // 記錄第一餐
+  STREAK_DAYS      // 連續記錄 N 天（trigger_value = N）
+  TOTAL_MEALS      // 累積記錄 N 餐（trigger_value = N）
+  TOTAL_DAYS       // 使用 App 滿 N 天（trigger_value = N）
+  GOAL_HIT_COUNT   // 達成熱量目標 N 次（trigger_value = N）
 }
 
-model Achievement {
-  id          String          @id @default(cuid())
-  userId      String
-  type        AchievementType
-  title       String // 成就標題
-  description String // 成就描述
-  icon        String // 圖示 emoji
-  earnedAt    DateTime @default(now()) // 獲得時間
+model AchievementDefinition {
+  id           String      @id @default(cuid())
+  code         String      @unique   // 唯一識別碼, 如 "first_meal", "streak_7"
+  name         String                // 顯示名稱
+  description  String                // 說明文字
+  icon         String                // Emoji 圖示
+  category     String                // "streak" | "milestone" | "goal"
+  triggerType  TriggerType
+  triggerValue Int?                  // 達成門檻值（null 代表無數值條件）
+  isActive     Boolean     @default(true)
+  sortOrder    Int         @default(0)
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userAchievements UserAchievement[]
 
-  @@unique([userId, type]) // 每個使用者每種成就只能獲得一次
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("achievement_definitions")
+}
+
+model UserAchievement {
+  id               String    @id @default(cuid())
+  userId           String
+  definitionId     String
+  earnedAt         DateTime  @default(now())
+  progressSnapshot Json?     // 達成時的快照, e.g. { streak: 7, totalMeals: 23 }
+  notifiedAt       DateTime? // 通知時間（預留）
+
+  user       User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  definition AchievementDefinition @relation(fields: [definitionId], references: [id])
+
+  @@unique([userId, definitionId]) // 同一成就只能獲得一次
   @@index([userId])
-  @@map("achievements")
+  @@map("user_achievements")
 }
 
 model DailyStats {
   id                String   @id @default(cuid())
   userId            String
-  date              DateTime @unique @db.Date // 統計日期
+  date              DateTime @db.Date // 統計日期
   
   // 飲食統計
   totalCalories     Float    @default(0)
@@ -567,6 +582,7 @@ model DailyStats {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([userId, date])
   @@index([userId, date])
   @@map("daily_stats")
 }
