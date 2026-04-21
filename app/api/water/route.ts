@@ -27,10 +27,10 @@ export async function POST(request: NextRequest) {
     }
 
     const { amount, date } = validation.data;
-    const recordDate = date ? new Date(date) : new Date();
-    
-    // Set to start of day
-    recordDate.setHours(0, 0, 0, 0);
+    const now = new Date();
+    const recordDate = date
+      ? new Date(date + 'T00:00:00.000Z')
+      : new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
 
     const waterIntake = await prisma.waterIntake.create({
       data: {
@@ -65,8 +65,10 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const dateParam = searchParams.get('date');
     
-    const queryDate = dateParam ? new Date(dateParam) : new Date();
-    queryDate.setHours(0, 0, 0, 0);
+    const now = new Date();
+    const queryDate = dateParam
+      ? new Date(dateParam + 'T00:00:00.000Z')
+      : new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
 
     // Get all water intakes for the date
     const intakes = await prisma.waterIntake.findMany({

@@ -3,7 +3,7 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { createSuccessResponse, createErrorResponse } from '@/lib/api-response';
 import { z } from 'zod';
-import { GoalType } from '@prisma/client';
+type GoalType = 'LOSE_WEIGHT' | 'GAIN_WEIGHT' | 'MAINTAIN';
 
 // ==================== GET: 查詢使用者目標 ====================
 

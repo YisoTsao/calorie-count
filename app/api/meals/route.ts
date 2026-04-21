@@ -3,7 +3,28 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { createSuccessResponse, createErrorResponse } from '@/lib/api-response';
 import { z } from 'zod';
-import { MealType, Prisma } from '@prisma/client';
+
+type MealType = 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK' | 'OTHER';
+
+interface MealWhereClause {
+  userId: string;
+  mealDate?: {
+    gte?: Date;
+    lt?: Date;
+    lte?: Date;
+  };
+  mealType?: MealType;
+}
+
+interface NutritionAccumulator {
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  fiber: number;
+  sugar: number;
+  sodium: number;
+}
 
 // ==================== GET: 查詢飲食記錄 ====================
 
@@ -47,7 +68,7 @@ export async function GET(req: NextRequest) {
     }
 
     // 建立查詢條件
-    const where: Prisma.MealWhereInput = {
+    const where: MealWhereClause = {
       userId: session.user.id,
     };
 
@@ -101,8 +122,8 @@ export async function GET(req: NextRequest) {
     // 計算總營養素
     // 注意: 資料庫中的營養值已經是 baseValue * servings 的結果,不需要再乘
     const totals = meals.reduce(
-      (acc, meal) => {
-        meal.foods.forEach((food) => {
+      (acc: NutritionAccumulator, meal: (typeof meals)[number]) => {
+        meal.foods.forEach((food: (typeof meal.foods)[number]) => {
           acc.calories += food.calories;
           acc.protein += food.protein;
           acc.carbs += food.carbs;

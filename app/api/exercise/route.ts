@@ -151,8 +151,8 @@ export async function GET(request: NextRequest) {
     });
 
     // Calculate totals
-    const totalDuration = exercises.reduce((sum, ex) => sum + ex.duration, 0);
-    const totalCalories = exercises.reduce((sum, ex) => sum + ex.calories, 0);
+    const totalDuration = exercises.reduce((sum: number, ex: { duration: number; calories: number }) => sum + ex.duration, 0);
+    const totalCalories = exercises.reduce((sum: number, ex: { duration: number; calories: number }) => sum + ex.calories, 0);
 
     return NextResponse.json({
       success: true,
