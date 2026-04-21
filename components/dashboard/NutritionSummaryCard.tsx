@@ -41,24 +41,24 @@ export default function NutritionSummaryCard() {
         fetch('/api/weight')
       ]);
 
-      const waterData = waterRes.ok ? await waterRes.json() : { total: 0 };
-      const exerciseData = exerciseRes.ok ? await exerciseRes.json() : { totalCalories: 0, records: [] };
-      const weightData = weightRes.ok ? await weightRes.json() : { stats: null };
+      const waterData = waterRes.ok ? await waterRes.json() : null;
+      const exerciseData = exerciseRes.ok ? await exerciseRes.json() : null;
+      const weightData = weightRes.ok ? await weightRes.json() : null;
 
       setData({
         water: {
-          total: waterData.total || 0,
+          total: waterData?.data?.total ?? 0,
           goal: 2000
         },
         exercise: {
-          totalCalories: exerciseData.totalCalories || 0,
+          totalCalories: exerciseData?.data?.totals?.calories ?? 0,
           goal: 300,
-          count: exerciseData.records?.length || 0
+          count: exerciseData?.data?.exercises?.length ?? 0
         },
         weight: {
-          current: weightData.stats?.current || null,
-          change: weightData.stats?.change || 0,
-          bmi: weightData.stats?.current || null
+          current: weightData?.data?.stats?.current ?? null,
+          change: weightData?.data?.stats?.change ?? 0,
+          bmi: weightData?.data?.stats?.current ?? null
         }
       });
     } catch (error) {

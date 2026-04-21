@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
+import { signOut } from 'next-auth/react';
 import { Icon } from '@iconify/react';
 import { Button } from '@/components/ui/button';
 import {
@@ -65,9 +66,9 @@ export function Navbar({ user, isSidebarOpen = false, onToggleSidebar }: NavbarP
           {/* User Menu */}
           <div className="flex items-center gap-4">
             {/* Notifications */}
-            <Button variant="ghost" size="icon" className="hidden md:flex">
+            {/* <Button variant="ghost" size="icon" className="hidden md:flex">
               <Icon icon="lucide:bell" className="h-5 w-5" />
-            </Button>
+            </Button> */}
 
             {/* User Dropdown */}
             <DropdownMenu>
@@ -79,7 +80,7 @@ export function Navbar({ user, isSidebarOpen = false, onToggleSidebar }: NavbarP
                       alt={user.name || 'User'}
                       width={40}
                       height={40}
-                      className="rounded-full"
+                      className="rounded-full min-w-8 min-h-8 object-cover"
                     />
                   ) : (
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-white">
@@ -118,12 +119,13 @@ export function Navbar({ user, isSidebarOpen = false, onToggleSidebar }: NavbarP
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <form action="/api/auth/signout" method="POST" className="w-full">
-                    <button type="submit" className="flex w-full items-center cursor-pointer">
-                      <Icon icon="lucide:log-out" className="mr-2 h-4 w-4" />
-                      登出
-                    </button>
-                  </form>
+                  <button
+                    className="flex w-full items-center cursor-pointer"
+                    onClick={() => signOut({ callbackUrl: '/login' })}
+                  >
+                    <Icon icon="lucide:log-out" className="mr-2 h-4 w-4" />
+                    登出
+                  </button>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
