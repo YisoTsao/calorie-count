@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
 export const profileUpdateSchema = z.object({
-  name: z.string().min(2, '姓名至少需要 2 個字元').max(50, '姓名不能超過 50 個字元').optional(),
-  bio: z.string().max(500, '個人簡介不能超過 500 個字元').optional(),
+  name: z.string().min(2, '姓名至少 2 個字').max(50, '姓名最多 50 字').optional(),
+  bio: z.string().max(500, '簡介最多 500 字').optional(),
   height: z.number().min(50, '身高至少 50 公分').max(300, '身高最多 300 公分').optional(),
   weight: z.number().min(20, '體重至少 20 公斤').max(500, '體重最多 500 公斤').optional(),
   birthDate: z.string().or(z.date()).optional(),

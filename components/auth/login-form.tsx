@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
@@ -23,6 +23,12 @@ export const LoginForm: React.FC = () => {
   const router = useRouter();
   const [error, setError] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
+
+  // 返回此頁時重置 loading 狀態（避免瀏覽器快取保留舊 state）
+  useEffect(() => {
+    setIsLoading(false);
+    setError('');
+  }, []);
 
   const form = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),

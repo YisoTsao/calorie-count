@@ -83,7 +83,9 @@ export function ProfileEditForm({ defaultValues }: ProfileEditFormProps) {
                 id="height"
                 type="number"
                 step="0.1"
-                {...register('height', { valueAsNumber: true })}
+                {...register('height', {
+                  setValueAs: (v) => (v === '' || v === null || v === undefined ? undefined : Number(v)),
+                })}
               />
               {errors.height && (
                 <p className="text-sm text-destructive">{errors.height.message}</p>
@@ -96,7 +98,9 @@ export function ProfileEditForm({ defaultValues }: ProfileEditFormProps) {
                 id="weight"
                 type="number"
                 step="0.1"
-                {...register('weight', { valueAsNumber: true })}
+                {...register('weight', {
+                  setValueAs: (v) => (v === '' || v === null || v === undefined ? undefined : Number(v)),
+                })}
               />
               {errors.weight && (
                 <p className="text-sm text-destructive">{errors.weight.message}</p>
@@ -116,7 +120,9 @@ export function ProfileEditForm({ defaultValues }: ProfileEditFormProps) {
             <Label htmlFor="gender">性別</Label>
             <select
               id="gender"
-              {...register('gender')}
+              {...register('gender', {
+                setValueAs: (v) => (v === '' ? undefined : v),
+              })}
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
             >
               <option value="">請選擇</option>
@@ -133,7 +139,9 @@ export function ProfileEditForm({ defaultValues }: ProfileEditFormProps) {
             <Label htmlFor="activityLevel">活動量</Label>
             <select
               id="activityLevel"
-              {...register('activityLevel')}
+              {...register('activityLevel', {
+                setValueAs: (v) => (v === '' ? undefined : v),
+              })}
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
             >
               <option value="">請選擇</option>
