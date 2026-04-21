@@ -8,6 +8,7 @@ import {
   TrendingDown,
   TrendingUp,
   Target,
+  Edit,
 } from "lucide-react";
 import {
   LineChart,
@@ -590,10 +591,9 @@ export default function WeightPage() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => handleOpenEdit(record)}
-                  className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-                  title="編輯"
+                  className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                 >
-                  <Scale className="w-4 h-4" />
+                  <Edit className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => handleDelete(record.id)}

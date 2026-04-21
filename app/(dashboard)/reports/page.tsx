@@ -76,33 +76,6 @@ export default function ReportsPage() {
       const res = await fetch(url);
       const data = await res.json();
 
-      // 如果沒有統計資料或資料不足,觸發批量計算
-      const expectedDays = reportType === "custom"
-        ? Math.ceil((new Date(customEndDate).getTime() - new Date(customStartDate).getTime()) / 86400000) + 1
-        : reportType === "month" ? 30 : 7;
-
-      if (!data.stats || data.stats.length < expectedDays / 2) {
-        try {
-          const batchParams = reportType === "custom"
-            ? `startDate=${customStartDate}&endDate=${customEndDate}`
-            : `days=${expectedDays}`;
-          const batchRes = await fetch(`/api/stats/batch?${batchParams}`, {
-            method: "POST",
-          });
-
-          if (batchRes.ok) {
-            const retryRes = await fetch(url);
-            const retryData = await retryRes.json();
-            if (retryData.stats) {
-              data.stats = retryData.stats;
-              data.summary = retryData.summary;
-            }
-          }
-        } catch (calcError) {
-          console.error("批量計算統計失敗:", calcError);
-        }
-      }
-
       interface StatRecord {
         date: string;
         totalCalories: number;
@@ -158,11 +131,6 @@ export default function ReportsPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reportType]);
-
-  const handleExportPDF = () => {
-    // TODO: 實作 PDF 匯出
-    alert("PDF 匯出功能開發中...");
-  };
 
   const handleExportCSV = () => {
     if (!reportData) return;

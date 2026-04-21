@@ -277,7 +277,7 @@ export default function SettingsPage() {
         </button>
         <button
           onClick={() => setActiveTab("preferences")}
-          className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-md font-medium transition-all ${
+          className={`flex-1 items-center justify-center gap-2 px-4 py-2 rounded-md font-medium transition-all hidden ${
             activeTab === "preferences"
               ? "bg-white text-gray-900 shadow"
               : "text-gray-600 hover:text-gray-900"
@@ -381,7 +381,7 @@ export default function SettingsPage() {
 
       {/* Preferences Tab */}
       {activeTab === "preferences" && (
-        <div className="space-y-4">
+        <div className="space-y-4 hidden">
           {/* Preferences */}
           <div className="bg-white rounded-xl shadow-sm p-6">
             <div className="flex items-center gap-3 mb-4">

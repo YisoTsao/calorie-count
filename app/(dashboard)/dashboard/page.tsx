@@ -28,13 +28,6 @@ interface WeeklyData {
   calories: number;
 }
 
-interface Meal {
-  calories?: number;
-  protein?: number;
-  carbs?: number;
-  fat?: number;
-}
-
 export default function DashboardPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
@@ -59,22 +52,18 @@ export default function DashboardPage() {
           fetch('/api/goals'),
         ]);
 
-        // 處理今日飲食
+        // 處理今日飲食 — API 回傳 { data: { meals, totals, count } }
         if (mealsResponse.ok) {
           const mealsData = await mealsResponse.json();
-          const meals: Meal[] = mealsData.data || [];
-
-          const totals = meals.reduce(
-            (acc: NutritionTotals, meal: Meal) => ({
-              calories: acc.calories + (meal.calories || 0),
-              protein: acc.protein + (meal.protein || 0),
-              carbs: acc.carbs + (meal.carbs || 0),
-              fat: acc.fat + (meal.fat || 0),
-            }),
-            { calories: 0, protein: 0, carbs: 0, fat: 0 }
-          );
-
-          setTodayTotals(totals);
+          const totals = mealsData.data?.totals;
+          if (totals) {
+            setTodayTotals({
+              calories: totals.calories || 0,
+              protein: totals.protein || 0,
+              carbs: totals.carbs || 0,
+              fat: totals.fat || 0,
+            });
+          }
         }
 
         // 處理目標
@@ -103,8 +92,7 @@ export default function DashboardPage() {
 
           if (response.ok) {
             const data = await response.json();
-            const meals: Meal[] = data.data || [];
-            const calories = meals.reduce((sum: number, meal: Meal) => sum + (meal.calories || 0), 0);
+            const calories = data.data?.totals?.calories || 0;
             weeklyCalories.push({ date: dateStr, calories });
           } else {
             weeklyCalories.push({ date: dateStr, calories: 0 });
@@ -348,11 +336,13 @@ export default function DashboardPage() {
               </>
             ) : (
               <div className="text-center py-8">
-                <p className="text-muted-foreground mb-4">尚未設定營養目標</p>
-                <Button onClick={() => router.push('/goals')}>
-                  <Target className="mr-2 h-4 w-4" />
-                  設定目標
-                </Button>
+                <p className="text-muted-foreground text-sm">尚未設定營養目標</p>
+                <button
+                  onClick={() => router.push('/goals')}
+                  className="mt-2 text-sm text-primary underline-offset-2 hover:underline"
+                >
+                  前往目標設定 →
+                </button>
               </div>
             )}
           </CardContent>
@@ -398,7 +388,7 @@ export default function DashboardPage() {
                         className="absolute top-0 bottom-0 w-0.5 bg-green-500"
                         style={{ left: `${(goals.dailyCalorieGoal / maxCalories) * 100}%` }}
                       >
-                        <span className="absolute -top-1 left-1 text-xs text-green-600 whitespace-nowrap">
+                        <span className="absolute top-1 left-1 text-xs text-green-600 whitespace-nowrap">
                           目標
                         </span>
                       </div>

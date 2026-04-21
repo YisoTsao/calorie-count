@@ -30,7 +30,10 @@ const EXERCISE_TYPES = [
   { value: "健走", icon: "🚶", caloriesPerMin: 4 },
   { value: "籃球", icon: "🏀", caloriesPerMin: 7 },
   { value: "羽球", icon: "🏸", caloriesPerMin: 6 },
+  { value: "自訂", icon: "✏️", caloriesPerMin: 5 },
 ];
+
+const CUSTOM_OPTION = "自訂";
 
 export default function ExercisePage() {
   const [exercises, setExercises] = useState<Exercise[]>([]);
@@ -49,6 +52,7 @@ export default function ExercisePage() {
   const [customEndDate, setCustomEndDate] = useState("");
   const [formData, setFormData] = useState({
     type: "跑步",
+    customType: "",
     duration: "",
     notes: "",
   });
@@ -117,19 +121,27 @@ export default function ExercisePage() {
     }
   };
 
+  const getEffectiveType = () =>
+    formData.type === CUSTOM_OPTION ? formData.customType.trim() : formData.type;
+
+  const getEffectiveCaloriesPerMin = () =>
+    EXERCISE_TYPES.find((t) => t.value === formData.type)?.caloriesPerMin ?? 5;
+
   const handleAddExercise = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const exerciseType = EXERCISE_TYPES.find((t) => t.value === formData.type);
+    const effectiveType = getEffectiveType();
+    if (!effectiveType) return;
+
     const duration = parseInt(formData.duration);
-    const calories = duration * (exerciseType?.caloriesPerMin || 5);
+    const calories = duration * getEffectiveCaloriesPerMin();
 
     try {
       const res = await fetch("/api/exercise", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          type: formData.type,
+          type: effectiveType,
           duration,
           calories,
           notes: formData.notes || undefined,
@@ -138,7 +150,7 @@ export default function ExercisePage() {
 
       if (res.ok) {
         setShowAddModal(false);
-        setFormData({ type: "跑步", duration: "", notes: "" });
+        setFormData({ type: "跑步", customType: "", duration: "", notes: "" });
         loadExercises();
       }
     } catch (error) {
@@ -150,16 +162,18 @@ export default function ExercisePage() {
     e.preventDefault();
     if (!editingExercise) return;
 
-    const exerciseType = EXERCISE_TYPES.find((t) => t.value === formData.type);
+    const effectiveType = getEffectiveType();
+    if (!effectiveType) return;
+
     const duration = parseInt(formData.duration);
-    const calories = duration * (exerciseType?.caloriesPerMin || 5);
+    const calories = duration * getEffectiveCaloriesPerMin();
 
     try {
       const res = await fetch(`/api/exercise?id=${editingExercise.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          type: formData.type,
+          type: effectiveType,
           duration,
           calories,
           notes: formData.notes || undefined,
@@ -169,7 +183,7 @@ export default function ExercisePage() {
       if (res.ok) {
         setShowEditModal(false);
         setEditingExercise(null);
-        setFormData({ type: "跑步", duration: "", notes: "" });
+        setFormData({ type: "跑步", customType: "", duration: "", notes: "" });
         loadExercises();
       }
     } catch (error) {
@@ -195,8 +209,12 @@ export default function ExercisePage() {
 
   const handleEdit = (exercise: Exercise) => {
     setEditingExercise(exercise);
+    const isPreset = EXERCISE_TYPES.some(
+      (t) => t.value !== CUSTOM_OPTION && t.value === exercise.type
+    );
     setFormData({
-      type: exercise.type,
+      type: isPreset ? exercise.type : CUSTOM_OPTION,
+      customType: isPreset ? "" : exercise.type,
       duration: exercise.duration.toString(),
       notes: exercise.notes || "",
     });
@@ -579,7 +597,7 @@ export default function ExercisePage() {
                         {exercise.duration} 分鐘
                       </span>
                       <span className="text-sm text-orange-600 font-medium">
-                        {exercise.calories} kcal
+                        {exercise.calories.toFixed(0)} kcal
                       </span>
                     </div>
                     {exercise.notes && (
@@ -640,16 +658,27 @@ export default function ExercisePage() {
                 <select
                   value={formData.type}
                   onChange={(e) =>
-                    setFormData({ ...formData, type: e.target.value })
+                    setFormData({ ...formData, type: e.target.value, customType: "" })
                   }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                 >
-                  {EXERCISE_TYPES.map((type) => (
+                  {EXERCISE_TYPES.filter((t) => t.value !== CUSTOM_OPTION).map((type) => (
                     <option key={type.value} value={type.value}>
                       {type.icon} {type.value}
                     </option>
                   ))}
+                  <option value={CUSTOM_OPTION}>✏️ 自訂類型</option>
                 </select>
+                {formData.type === CUSTOM_OPTION && (
+                  <input
+                    type="text"
+                    value={formData.customType}
+                    onChange={(e) => setFormData({ ...formData, customType: e.target.value })}
+                    placeholder="輸入運動名稱"
+                    required
+                    className="mt-2 w-full px-4 py-2 border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  />
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -668,9 +697,7 @@ export default function ExercisePage() {
                 {formData.duration && (
                   <p className="text-sm text-gray-500 mt-1">
                     預估消耗:{" "}
-                    {parseInt(formData.duration) *
-                      (EXERCISE_TYPES.find((t) => t.value === formData.type)
-                        ?.caloriesPerMin || 5)}{" "}
+                    {parseInt(formData.duration) * getEffectiveCaloriesPerMin()}{" "}
                     kcal
                   </p>
                 )}
@@ -723,16 +750,27 @@ export default function ExercisePage() {
                 <select
                   value={formData.type}
                   onChange={(e) =>
-                    setFormData({ ...formData, type: e.target.value })
+                    setFormData({ ...formData, type: e.target.value, customType: "" })
                   }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                 >
-                  {EXERCISE_TYPES.map((type) => (
+                  {EXERCISE_TYPES.filter((t) => t.value !== CUSTOM_OPTION).map((type) => (
                     <option key={type.value} value={type.value}>
                       {type.icon} {type.value}
                     </option>
                   ))}
+                  <option value={CUSTOM_OPTION}>✏️ 自訂類型</option>
                 </select>
+                {formData.type === CUSTOM_OPTION && (
+                  <input
+                    type="text"
+                    value={formData.customType}
+                    onChange={(e) => setFormData({ ...formData, customType: e.target.value })}
+                    placeholder="輸入運動名稱"
+                    required
+                    className="mt-2 w-full px-4 py-2 border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  />
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -751,9 +789,7 @@ export default function ExercisePage() {
                 {formData.duration && (
                   <p className="text-sm text-gray-500 mt-1">
                     預估消耗:{" "}
-                    {parseInt(formData.duration) *
-                      (EXERCISE_TYPES.find((t) => t.value === formData.type)
-                        ?.caloriesPerMin || 5)}{" "}
+                    {parseInt(formData.duration) * getEffectiveCaloriesPerMin()}{" "}
                     kcal
                   </p>
                 )}
@@ -777,7 +813,7 @@ export default function ExercisePage() {
                   onClick={() => {
                     setShowEditModal(false);
                     setEditingExercise(null);
-                    setFormData({ type: "跑步", duration: "", notes: "" });
+                    setFormData({ type: "跑步", customType: "", duration: "", notes: "" });
                   }}
                   className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                 >

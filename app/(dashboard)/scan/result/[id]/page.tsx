@@ -47,6 +47,16 @@ export default function ScanResultPage({
   const [paramId, setParamId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
+  // 初始化餐別（根據當前時間推測）
+  const getDefaultMealType = (): 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK' | 'OTHER' => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 11) return 'BREAKFAST';
+    if (hour >= 11 && hour < 14) return 'LUNCH';
+    if (hour >= 17 && hour < 21) return 'DINNER';
+    return 'SNACK';
+  };
+  const [selectedMealType, setSelectedMealType] = useState<'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK' | 'OTHER'>(getDefaultMealType);
+
   // 解析 params
   useEffect(() => {
     params.then(({ id }) => setParamId(id));
@@ -117,15 +127,8 @@ export default function ScanResultPage({
 
     setIsSaving(true);
 
-    // 推測餐別（根據當前時間）
-    const hour = new Date().getHours();
-    let mealType: 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK' | 'OTHER' = 'SNACK';
-    if (hour >= 5 && hour < 11) mealType = 'BREAKFAST';
-    else if (hour >= 11 && hour < 14) mealType = 'LUNCH';
-    else if (hour >= 17 && hour < 21) mealType = 'DINNER';
-
     const requestBody = {
-      mealType,
+      mealType: selectedMealType,
       mealDate: new Date().toISOString(),
       foods: recognition.foods.map((food) => ({
         name: food.name,
@@ -265,6 +268,37 @@ export default function ScanResultPage({
       </Card>
 
       <NutritionSummary foods={recognition.foods} />
+
+      {/* 餐別選擇 */}
+      <Card>
+        <CardContent className="pt-4 pb-4">
+          <p className="text-sm font-medium mb-3 text-muted-foreground">加入到</p>
+          <div className="flex gap-2 flex-wrap">
+            {(
+              [
+                { value: 'BREAKFAST', label: '早餐' },
+                { value: 'LUNCH',     label: '午餐' },
+                { value: 'DINNER',    label: '晚餐' },
+                { value: 'SNACK',     label: '點心' },
+                { value: 'OTHER',     label: '其他' },
+              ] as const
+            ).map(({ value, label }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setSelectedMealType(value)}
+                className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                  selectedMealType === value
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-background text-foreground border-border hover:bg-muted'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="space-y-4">
         <h2 className="text-xl font-semibold">辨識結果</h2>
