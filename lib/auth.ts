@@ -9,16 +9,17 @@ import { loginSchema } from '@/lib/validations/auth';
 
 export const authConfig: NextAuthConfig = {
   adapter: PrismaAdapter(prisma),
+  trustHost: true,
   session: {
     strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30 天
   },
   pages: {
-    signIn: '/auth/login',
-    signOut: '/auth/logout',
-    error: '/auth/error',
-    verifyRequest: '/auth/verify',
-    newUser: '/onboarding',
+    signIn: '/login',
+    signOut: '/login',
+    error: '/login',
+    verifyRequest: '/verify-email',
+    newUser: '/dashboard',
   },
   providers: [
     GoogleProvider({

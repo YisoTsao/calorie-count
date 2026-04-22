@@ -1,17 +1,15 @@
-import { type NextRequest } from "next/server";
-import { updateSession } from "@/utils/supabase/middleware";
+import { auth } from '@/lib/auth';
 
-export async function middleware(request: NextRequest) {
-  return updateSession(request);
-}
+export default auth;
 
 export const config = {
   matcher: [
     /*
-     * 跳過以下路徑（不需要 Supabase session refresh）：
-     *   - _next/static / _next/image / favicon.ico
-     *   - api/auth（NextAuth 自己管理）
+     * 排除以下路徑：
+     *   - _next/static / _next/image / favicon.ico / 靜態圖片
+     * 其餘路徑都跑 NextAuth middleware（route protection + session refresh）
      */
-    "/((?!_next/static|_next/image|favicon.ico|api/auth|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };
+
