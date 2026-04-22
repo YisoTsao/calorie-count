@@ -4,6 +4,7 @@ import { forgotPasswordSchema } from '@/lib/validations/auth';
 import { createSuccessResponse, createErrorResponse } from '@/lib/api-response';
 import { ValidationError } from '@/lib/errors';
 import { generateToken } from '@/lib/utils';
+import { sendPasswordResetEmail } from '@/lib/email';
 
 /**
  * POST /api/auth/forgot-password
@@ -59,7 +60,7 @@ export async function POST(request: NextRequest) {
     });
 
     // TODO: 發送重置密碼郵件
-    // await sendPasswordResetEmail(email, resetToken);
+    await sendPasswordResetEmail(email, resetToken);
 
     return NextResponse.json(
       createSuccessResponse({
@@ -69,14 +70,14 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof ValidationError) {
       return NextResponse.json(
-        createErrorResponse(error.message, 'VALIDATION_ERROR'),
+        createErrorResponse('VALIDATION_ERROR', error.message),
         { status: 400 }
       );
     }
 
     console.error('Forgot password error:', error);
     return NextResponse.json(
-      createErrorResponse('處理失敗，請稍後再試', 'INTERNAL_ERROR'),
+      createErrorResponse('INTERNAL_ERROR', '處理失敗，請稍後再試'),
       { status: 500 }
     );
   }

@@ -5,6 +5,8 @@ import { registerSchema } from "@/lib/validations/auth";
 import { createSuccessResponse, createErrorResponse } from "@/lib/api-response";
 import { ValidationError, ConflictError } from "@/lib/errors";
 import { generateToken } from "@/lib/utils";
+import { sendVerificationEmail } from "@/lib/email";
+import { Prisma } from "@prisma/client";
 
 /**
  * POST /api/auth/register
@@ -16,7 +18,6 @@ export async function POST(request: NextRequest) {
 
     // 驗證輸入
     const result = registerSchema.safeParse(body);
-    console.log("Register input validation result:", result);
 
     if (!result.success) {
       throw new ValidationError(
@@ -53,10 +54,14 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // 生成驗證 Token
+    // 生成驗證 Token（先刪除舊的，避免 identifier unique 衝突）
+    await prisma.verificationToken.deleteMany({
+      where: { identifier: email },
+    });
+
     const verificationToken = generateToken();
     const expiresAt = new Date();
-    expiresAt.setHours(expiresAt.getHours() + 24); // 24 小時後過期
+    expiresAt.setHours(expiresAt.getHours() + 24);
 
     await prisma.verificationToken.create({
       data: {
@@ -66,8 +71,8 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // TODO: 發送驗證郵件
-    // await sendVerificationEmail(email, verificationToken);
+    // 發送驗證郵件
+    await sendVerificationEmail(email, verificationToken);
 
     return NextResponse.json(
       createSuccessResponse({
@@ -78,8 +83,6 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     if (error instanceof ValidationError) {
-      error.message;
-
       return NextResponse.json(
         createErrorResponse("VALIDATION_ERROR", error.message),
         { status: 400 }
@@ -90,6 +93,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(createErrorResponse("CONFLICT", error.message), {
         status: 409,
       });
+    }
+
+    // Prisma unique constraint violation（雙重保護）
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      return NextResponse.json(
+        createErrorResponse("CONFLICT", "此 Email 已被註冊"),
+        { status: 409 }
+      );
     }
 
     console.error("Register error:", error);
