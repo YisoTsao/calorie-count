@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { loginSchema, type LoginInput } from '@/lib/validations/auth';
 import { Button } from '@/components/ui/button';
@@ -21,11 +21,20 @@ import { Icon } from '@iconify/react';
 
 export const LoginForm: React.FC = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [error, setError] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
 
+  // 從 URL 讀取 callbackUrl，過濾掉無效路徑（如 /auth/login）
+  const rawCallbackUrl = searchParams.get('callbackUrl');
+  const callbackUrl =
+    rawCallbackUrl && !rawCallbackUrl.startsWith('/auth/')
+      ? rawCallbackUrl
+      : '/dashboard';
+
   // 返回此頁時重置 loading 狀態（避免瀏覽器快取保留舊 state）
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsLoading(false);
     setError('');
   }, []);
@@ -53,7 +62,7 @@ export const LoginForm: React.FC = () => {
       if (result?.error) {
         setError('Email 或密碼錯誤');
       } else {
-        router.push('/dashboard');
+        router.push(callbackUrl);
         router.refresh();
       }
     } catch (err) {
@@ -65,7 +74,7 @@ export const LoginForm: React.FC = () => {
 
   const handleGoogleLogin = async () => {
     setIsLoading(true);
-    await signIn('google', { callbackUrl: '/dashboard' });
+    await signIn('google', { callbackUrl });
   };
 
   return (

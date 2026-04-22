@@ -5,14 +5,14 @@ import { ProfileEditForm } from '@/components/profile/profile-edit-form';
 
 export default async function EditProfilePage() {
   const session = await auth();
-  if (!session?.user?.id) redirect('/auth/login');
+  if (!session?.user?.id) redirect('/login');
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
     include: { profile: true },
   });
 
-  if (!user) redirect('/auth/login');
+  if (!user) redirect('/login');
 
   const defaultValues = {
     name: user.name || undefined,

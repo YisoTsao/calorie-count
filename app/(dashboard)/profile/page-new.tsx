@@ -10,14 +10,14 @@ import Link from 'next/link';
 
 export default async function ProfilePage() {
   const session = await auth();
-  if (!session?.user?.id) redirect('/auth/login');
+  if (!session?.user?.id) redirect('/login');
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
     include: { profile: true, goals: true, preferences: true },
   });
 
-  if (!user) redirect('/auth/login');
+  if (!user) redirect('/login');
 
   // Mock stats - 實際應該從 API 取得
   const stats = {
