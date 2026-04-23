@@ -1,13 +1,19 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Form,
   FormControl,
@@ -15,56 +21,53 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { ErrorMessage } from '@/components/ui/error-message';
-import { Icon } from '@iconify/react';
+} from "@/components/ui/form";
+import { ErrorMessage } from "@/components/ui/error-message";
+import { Icon } from "@iconify/react";
 
 const forgotPasswordSchema = z.object({
-  email: z.string().email('請輸入有效的 Email 地址'),
+  email: z.string().email("請輸入有效的 Email 地址"),
 });
 
 type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
-  const [error, setError] = useState<string>('');
+  const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<ForgotPasswordInput>({
     resolver: zodResolver(forgotPasswordSchema),
     defaultValues: {
-      email: '',
+      email: "",
     },
   });
 
   const onSubmit = async (data: ForgotPasswordInput) => {
-    setError('');
+    setError("");
     setIsLoading(true);
 
     try {
       // TODO: 實作忘記密碼 API
-      // const response = await fetch('/api/auth/forgot-password', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify(data),
-      // });
+      const response = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
 
-      // const result = await response.json();
+      const result = await response.json();
 
-      // if (!response.ok) {
-      //   setError(result.error?.message || '發送重設密碼郵件失敗');
-      //   return;
-      // }
+      if (!response.ok) {
+        setError(result.error?.message || "發送重設密碼郵件失敗");
+        return;
+      }
 
-      // 暫時模擬成功
-      console.log('Password reset requested for:', data.email);
-      await new Promise(resolve => setTimeout(resolve, 1000));
       setSuccess(true);
     } catch {
-      setError('發送重設密碼郵件時發生錯誤，請稍後再試');
+      setError("發送重設密碼郵件時發生錯誤，請稍後再試");
     } finally {
       setIsLoading(false);
     }
@@ -94,10 +97,7 @@ export default function ForgotPasswordPage() {
             <p className="text-center text-sm text-muted-foreground">
               請檢查您的收件匣（包括垃圾郵件資料夾），並點擊郵件中的連結來重設密碼。
             </p>
-            <Button
-              onClick={() => router.push('/login')}
-              className="w-full"
-            >
+            <Button onClick={() => router.push("/login")} className="w-full">
               返回登入頁面
             </Button>
           </CardContent>
@@ -118,7 +118,9 @@ export default function ForgotPasswordPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {error && <ErrorMessage message={error} type="error" className="mb-4" />}
+          {error && (
+            <ErrorMessage message={error} type="error" className="mb-4" />
+          )}
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -141,12 +143,8 @@ export default function ForgotPasswordPage() {
                 )}
               />
 
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={isLoading}
-              >
-                {isLoading ? '發送中...' : '發送重設連結'}
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? "發送中..." : "發送重設連結"}
               </Button>
             </form>
           </Form>
@@ -154,7 +152,7 @@ export default function ForgotPasswordPage() {
           <div className="mt-4 text-center">
             <Button
               variant="link"
-              onClick={() => router.push('/login')}
+              onClick={() => router.push("/login")}
               className="text-sm"
             >
               返回登入頁面

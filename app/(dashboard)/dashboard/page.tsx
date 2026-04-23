@@ -44,26 +44,68 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const today = new Date().toISOString().split('T')[0];
+        const today = new Date();
+        const todayStr = today.toISOString().split('T')[0];
 
-        // 並行查詢今日飲食和目標
-        const [mealsResponse, goalsResponse] = await Promise.all([
-          fetch(`/api/meals?date=${today}`),
+        // 計算過去 7 天範圍
+        const startDate = new Date(today);
+        startDate.setDate(startDate.getDate() - 6);
+        const startDateStr = startDate.toISOString().split('T')[0];
+
+        // ── 由原本 9 次 API 呼叫（7 天 + 今日 + 目標）合併為 2 次 ──
+        // 1. 一次拿到 7 天所有飲食資料（meals API 支援 startDate/endDate）
+        // 2. 一次拿目標
+        const [weeklyResponse, goalsResponse] = await Promise.all([
+          fetch(`/api/meals?startDate=${startDateStr}&endDate=${todayStr}`),
           fetch('/api/goals'),
         ]);
 
-        // 處理今日飲食 — API 回傳 { data: { meals, totals, count } }
-        if (mealsResponse.ok) {
-          const mealsData = await mealsResponse.json();
-          const totals = mealsData.data?.totals;
-          if (totals) {
+        // 處理 7 天飲食：將 meals 依日期分組，累計每日卡路里
+        if (weeklyResponse.ok) {
+          const weeklyData = await weeklyResponse.json();
+          const meals: Array<{
+            mealDate: string;
+            foods: Array<{ calories: number; protein: number; carbs: number; fat: number }>;
+          }> = weeklyData.data?.meals ?? [];
+
+          // 建立 7 天的日期 key 對應 map
+          const dailyMap: Record<string, { calories: number; protein: number; carbs: number; fat: number }> = {};
+          for (let i = 6; i >= 0; i--) {
+            const d = new Date(today);
+            d.setDate(d.getDate() - i);
+            dailyMap[d.toISOString().split('T')[0]] = { calories: 0, protein: 0, carbs: 0, fat: 0 };
+          }
+
+          // 累加每筆 meal 的食物營養素到對應日期
+          for (const meal of meals) {
+            const dateKey = meal.mealDate.split('T')[0];
+            if (!dailyMap[dateKey]) continue;
+            for (const food of meal.foods) {
+              dailyMap[dateKey].calories += food.calories;
+              dailyMap[dateKey].protein  += food.protein;
+              dailyMap[dateKey].carbs    += food.carbs;
+              dailyMap[dateKey].fat      += food.fat;
+            }
+          }
+
+          // 今日合計
+          const todayNutrition = dailyMap[todayStr];
+          if (todayNutrition) {
             setTodayTotals({
-              calories: totals.calories || 0,
-              protein: totals.protein || 0,
-              carbs: totals.carbs || 0,
-              fat: totals.fat || 0,
+              calories: Math.round(todayNutrition.calories),
+              protein:  Math.round(todayNutrition.protein),
+              carbs:    Math.round(todayNutrition.carbs),
+              fat:      Math.round(todayNutrition.fat),
             });
           }
+
+          // 週資料（給圖表用）
+          setWeeklyData(
+            Object.entries(dailyMap).map(([date, v]) => ({
+              date,
+              calories: Math.round(v.calories),
+            }))
+          );
         }
 
         // 處理目標
@@ -72,34 +114,6 @@ export default function DashboardPage() {
           setGoals(goalsData.data.goals);
         }
 
-        // 查詢過去 7 天資料
-        const promises = [];
-        for (let i = 6; i >= 0; i--) {
-          const date = new Date();
-          date.setDate(date.getDate() - i);
-          const dateStr = date.toISOString().split('T')[0];
-          promises.push(fetch(`/api/meals?date=${dateStr}`));
-        }
-
-        const weeklyResponses = await Promise.all(promises);
-        const weeklyCalories: WeeklyData[] = [];
-
-        for (let i = 0; i < weeklyResponses.length; i++) {
-          const response = weeklyResponses[i];
-          const date = new Date();
-          date.setDate(date.getDate() - (6 - i));
-          const dateStr = date.toISOString().split('T')[0];
-
-          if (response.ok) {
-            const data = await response.json();
-            const calories = data.data?.totals?.calories || 0;
-            weeklyCalories.push({ date: dateStr, calories });
-          } else {
-            weeklyCalories.push({ date: dateStr, calories: 0 });
-          }
-        }
-
-        setWeeklyData(weeklyCalories);
         setIsLoading(false);
       } catch (error) {
         console.error('Failed to fetch data:', error);

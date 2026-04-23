@@ -83,7 +83,7 @@ export function Navbar({ user, isSidebarOpen = false, onToggleSidebar }: NavbarP
                       className="rounded-full min-w-8 min-h-8 object-cover"
                     />
                   ) : (
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-white">
+                    <div className="flex px-4 h-8 w-8 items-center justify-center rounded-full bg-primary text-white">
                       {user.name?.charAt(0).toUpperCase() || 'U'}
                     </div>
                   )}

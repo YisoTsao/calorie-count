@@ -75,21 +75,21 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof ValidationError) {
       return NextResponse.json(
-        createErrorResponse(error.message, 'VALIDATION_ERROR'),
+        createErrorResponse('VALIDATION_ERROR', error.message),
         { status: 400 }
       );
     }
 
     if (error instanceof NotFoundError) {
       return NextResponse.json(
-        createErrorResponse(error.message, 'NOT_FOUND'),
+        createErrorResponse('NOT_FOUND', error.message),
         { status: 404 }
       );
     }
 
     console.error('Reset password error:', error);
     return NextResponse.json(
-      createErrorResponse('重置密碼失敗，請稍後再試', 'INTERNAL_ERROR'),
+      createErrorResponse('INTERNAL_ERROR', '重置密碼失敗，請稍後再試'),
       { status: 500 }
     );
   }
