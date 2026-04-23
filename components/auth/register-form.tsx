@@ -24,6 +24,8 @@ export const RegisterForm: React.FC = () => {
   const searchParams = useSearchParams();
   const [error, setError] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
+  const [registered, setRegistered] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState('');
 
   // 從 URL 讀取 callbackUrl，過濾掉無效路徑
   const rawCallbackUrl = searchParams.get('callbackUrl');
@@ -62,24 +64,18 @@ export const RegisterForm: React.FC = () => {
       const result = await response.json();
 
       if (!response.ok) {
-        setError(result.error?.message || '註冊失敗，請稍後再試');
+        // 409 Conflict = email 已被使用
+        if (response.status === 409) {
+          setError('此 Email 已被註冊，請直接登入或使用其他 Email。');
+        } else {
+          setError(result.error?.message || '註冊失敗，請稍後再試');
+        }
         return;
       }
 
-      // 註冊成功後自動登入
-      const signInResult = await signIn('credentials', {
-        email: data.email,
-        password: data.password,
-        redirect: false,
-      });
-
-      if (signInResult?.error) {
-        setError('註冊成功但登入失敗，請嘗試手動登入');
-        router.push('/login');
-      } else {
-        router.push(callbackUrl);
-        router.refresh();
-      }
+      // 註冊成功 → 顯示驗證 Email 提示（不自動登入，因信箱尚未驗證）
+      setRegisteredEmail(data.email);
+      setRegistered(true);
     } catch {
       setError('註冊時發生錯誤，請稍後再試');
     } finally {
@@ -91,6 +87,31 @@ export const RegisterForm: React.FC = () => {
     setIsLoading(true);
     await signIn('google', { callbackUrl });
   };
+
+  // 註冊成功 → 顯示驗證 Email 提示畫面
+  if (registered) {
+    return (
+      <div className="w-full space-y-6">
+        <div className="space-y-2 text-center">
+          <div className="flex justify-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900">
+              <Icon icon="mdi:email-check" className="h-10 w-10 text-green-600 dark:text-green-400" />
+            </div>
+          </div>
+          <h1 className="text-2xl font-bold">註冊成功！</h1>
+          <p className="text-muted-foreground text-sm">
+            我們已發送驗證信到 <strong>{registeredEmail}</strong>
+          </p>
+        </div>
+        <div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 p-4 text-sm text-blue-700 dark:text-blue-300">
+          請前往收件匣點擊驗證連結，驗證後即可登入。若未收到，請檢查垃圾郵件資料夾。
+        </div>
+        <Button onClick={() => router.push('/login')} className="w-full">
+          前往登入
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full space-y-6">
@@ -210,7 +231,7 @@ export const RegisterForm: React.FC = () => {
         disabled={isLoading}
       >
         <Icon icon="logos:google-icon" className="mr-2 h-4 w-4" />
-        使用 Google 註冊
+        使用 Google 繼續
       </Button>
 
       <p className="text-center text-sm text-muted-foreground">

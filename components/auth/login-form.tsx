@@ -60,7 +60,9 @@ export const LoginForm: React.FC = () => {
       });
 
       if (result?.error) {
-        setError('Email 或密碼錯誤');
+        // NextAuth v5 將所有 credentials 錯誤統一為 "CredentialsSignin"
+        // 加入驗證提示，涵蓋未驗證 Email 的情況
+        setError('Email 或密碼錯誤。若您尚未驗證 Email，請先點擊註冊信中的驗證連結。');
       } else {
         router.push(callbackUrl);
         router.refresh();

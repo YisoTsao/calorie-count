@@ -7,7 +7,7 @@ import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
 
 // 公開路由（不需要登入）
-const publicRoutes = ['/login', '/register', '/verify-email', '/forgot-password'];
+const publicRoutes = ['/login', '/register', '/verify-email', '/forgot-password', '/reset-password'];
 // 已登入後不應再訪問的路由
 const authRoutes = ['/login', '/register'];
 

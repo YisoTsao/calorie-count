@@ -25,9 +25,10 @@ export async function POST(request: NextRequest) {
 
     const { email } = result.data;
 
-    // 查找用戶
+    // 查找用戶（同時查出其 OAuth accounts）
     const user = await prisma.user.findUnique({
       where: { email },
+      include: { accounts: true },
     });
 
     // 為了安全，即使用戶不存在也返回成功訊息
@@ -36,6 +37,18 @@ export async function POST(request: NextRequest) {
         createSuccessResponse({
           message: "如果該 Email 存在，我們已發送重置密碼連結。",
         }),
+      );
+    }
+
+    // OAuth 專用帳號（沒有 password）→ 引導使用原本的登入方式
+    if (!user.password) {
+      const providers = user.accounts.map((a) => a.provider).join("、");
+      return NextResponse.json(
+        createErrorResponse(
+          "OAUTH_ACCOUNT",
+          `您的帳號是透過 ${providers || "第三方"} 登入，無需密碼，請直接使用原本的登入方式。`,
+        ),
+        { status: 400 },
       );
     }
 

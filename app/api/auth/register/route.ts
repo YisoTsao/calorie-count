@@ -71,8 +71,12 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // 發送驗證郵件
-    await sendVerificationEmail(email, verificationToken);
+    // 發送驗證郵件（失敗不影響註冊成功，只記錄錯誤）
+    try {
+      await sendVerificationEmail(email, verificationToken);
+    } catch (emailError) {
+      console.error('Register: 驗證信發送失敗（用戶已建立）:', emailError);
+    }
 
     return NextResponse.json(
       createSuccessResponse({

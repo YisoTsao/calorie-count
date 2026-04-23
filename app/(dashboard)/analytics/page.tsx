@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import TrendChart from '@/components/analytics/TrendChart';
-import AchievementWall from '@/components/analytics/AchievementWall';
-import { TrendingUp, Target, Calendar, Flame } from 'lucide-react';
+import { useEffect, useState } from "react";
+import TrendChart from "@/components/analytics/TrendChart";
+import AchievementWall from "@/components/analytics/AchievementWall";
+import { TrendingUp, Target, Calendar, Flame } from "lucide-react";
 
 interface DailyStats {
   date: string;
@@ -31,19 +31,19 @@ export default function AnalyticsPage() {
   const [stats, setStats] = useState<DailyStats[]>([]);
   const [summary, setSummary] = useState<Summary | null>(null);
   const [loading, setLoading] = useState(true);
-  const [period, setPeriod] = useState<'7' | '30' | '90'>('30');
+  const [period, setPeriod] = useState<"7" | "30" | "90">("30");
 
   useEffect(() => {
     const loadStats = async () => {
       try {
         setLoading(true);
         const response = await fetch(`/api/stats?days=${period}`);
-        if (!response.ok) throw new Error('載入失敗');
+        if (!response.ok) throw new Error("載入失敗");
         const data = await response.json();
         setStats(data.stats || []);
         setSummary(data.summary || null);
       } catch (error) {
-        console.error('載入統計資料失敗:', error);
+        console.error("載入統計資料失敗:", error);
       } finally {
         setLoading(false);
       }
@@ -59,36 +59,39 @@ export default function AnalyticsPage() {
     );
   }
 
-  const caloriesData = stats.map(s => ({
+  const caloriesData = stats.map((s) => ({
     date: s.date,
-    calories: Math.round(s.totalCalories)
+    calories: Math.round(s.totalCalories),
   }));
 
-  const nutrientsData = stats.map(s => ({
+  const nutrientsData = stats.map((s) => ({
     date: s.date,
     protein: Math.round(s.totalProtein),
     carbs: Math.round(s.totalCarbs),
-    fat: Math.round(s.totalFat)
+    fat: Math.round(s.totalFat),
   }));
 
-  const waterData = stats.map(s => ({
+  const waterData = stats.map((s) => ({
     date: s.date,
-    water: s.totalWater
+    water: s.totalWater,
   }));
 
-  const exerciseData = stats.map(s => ({
+  const exerciseData = stats.map((s) => ({
     date: s.date,
-    exercise: s.totalExercise
+    exercise: s.totalExercise,
   }));
 
-  const weightData = stats.filter(s => s.weight !== null).map(s => ({
-    date: s.date,
-    weight: s.weight!
-  }));
+  const weightData = stats
+    .filter((s) => s.weight !== null)
+    .map((s) => ({
+      date: s.date,
+      weight: s.weight!,
+    }));
 
-  const goalSuccessRate = summary && summary.totalDays > 0 
-    ? Math.round((summary.goalsMetDays / summary.totalDays) * 100) 
-    : 0;
+  const goalSuccessRate =
+    summary && summary.totalDays > 0
+      ? Math.round((summary.goalsMetDays / summary.totalDays) * 100)
+      : 0;
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -96,22 +99,21 @@ export default function AnalyticsPage() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">數據分析</h1>
-          <p className="text-gray-600">
-            追蹤您的健康趨勢與成就
-          </p>
+          <p className="text-gray-600">追蹤您的健康趨勢與成就</p>
         </div>
 
         {/* Period Selector */}
         <div className="flex gap-2 bg-gray-100 rounded-lg p-1">
-          {(['7', '30', '90'] as const).map(days => (
+          {(["7", "30", "90"] as const).map((days) => (
             <button
               key={days}
               onClick={() => setPeriod(days)}
               className={`
                 px-4 py-2 rounded-md text-sm font-medium transition-colors
-                ${period === days 
-                  ? 'bg-white text-blue-600 shadow-sm' 
-                  : 'text-gray-600 hover:text-gray-900'
+                ${
+                  period === days
+                    ? "bg-white text-blue-600 shadow-sm"
+                    : "text-gray-600 hover:text-gray-900"
                 }
               `}
             >
@@ -159,9 +161,7 @@ export default function AnalyticsPage() {
               </div>
               <span className="text-sm text-gray-600">連續打卡</span>
             </div>
-            <p className="text-2xl font-bold text-gray-900">
-              {summary.streak}
-            </p>
+            <p className="text-2xl font-bold text-gray-900">{summary.streak}</p>
             <p className="text-xs text-gray-500 mt-1">天</p>
           </div>
 
@@ -182,36 +182,24 @@ export default function AnalyticsPage() {
 
       {/* Charts */}
       <div className="space-y-6 mb-8">
-        <TrendChart 
-          data={caloriesData}
-          type="calories"
-          title="路里攝取趨勢"
-        />
+        <TrendChart data={caloriesData} type="calories" title="路里攝取趨勢" />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <TrendChart 
+          <TrendChart
             data={nutrientsData}
             type="nutrients"
             title="三大營養素趨勢"
           />
 
           {weightData.length > 0 && (
-            <TrendChart 
-              data={weightData}
-              type="weight"
-              title="體重變化"
-            />
+            <TrendChart data={weightData} type="weight" title="體重變化" />
           )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <TrendChart 
-            data={waterData}
-            type="water"
-            title="飲水量趨勢"
-          />
+          <TrendChart data={waterData} type="water" title="飲水量趨勢" />
 
-          <TrendChart 
+          <TrendChart
             data={exerciseData}
             type="exercise"
             title="運動時長趨勢"
@@ -232,25 +220,28 @@ export default function AnalyticsPage() {
                 <div>
                   <p className="font-medium mb-1">卡路里攝取偏高</p>
                   <p className="text-gray-600">
-                    平均每日攝取 {Math.round(summary.avgCalories)} 卡,建議控制在目標範圍內
+                    平均每日攝取 {Math.round(summary.avgCalories)}{" "}
+                    卡,建議控制在目標範圍內
                   </p>
                 </div>
               )}
-              
+
               {summary.avgWater < 1500 && (
                 <div>
                   <p className="font-medium mb-1">飲水量不足</p>
                   <p className="text-gray-600">
-                    平均每日飲水 {Math.round(summary.avgWater)}ml,建議增加至 2000ml 以上
+                    平均每日飲水 {Math.round(summary.avgWater)}ml,建議增加至
+                    2000ml 以上
                   </p>
                 </div>
               )}
-              
+
               {summary.avgExercise < 30 && (
                 <div>
                   <p className="font-medium mb-1">運動量不足</p>
                   <p className="text-gray-600">
-                    平均每日運動 {Math.round(summary.avgExercise)} 分鐘,建議增加至 30 分鐘以上
+                    平均每日運動 {Math.round(summary.avgExercise)}{" "}
+                    分鐘,建議增加至 30 分鐘以上
                   </p>
                 </div>
               )}

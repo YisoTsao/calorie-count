@@ -58,6 +58,7 @@ interface Category {
 interface FoodSearchDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  mealType?: 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK' | 'OTHER';
   onSelectFood: (food: Food, servings: number) => void;
   onSelectFoodAndEdit?: (food: Food, servings: number) => void;
 }
@@ -65,6 +66,7 @@ interface FoodSearchDialogProps {
 export function FoodSearchDialog({
   open,
   onOpenChange,
+  mealType,
   onSelectFood,
   onSelectFoodAndEdit,
 }: FoodSearchDialogProps) {
@@ -242,7 +244,14 @@ export function FoodSearchDialog({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-3xl w-[95vw] sm:w-full max-h-[90vh] h-auto flex flex-col p-0 gap-0">
         <DialogHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 flex-shrink-0">
-          <DialogTitle>搜尋食物</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            搜尋食物
+            {mealType && (
+              <span className="text-sm font-normal text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                {({'BREAKFAST':'早餐','LUNCH':'午餐','DINNER':'晚餐','SNACK':'點心','OTHER':'其他'} as Record<string,string>)[mealType]}
+              </span>
+            )}
+          </DialogTitle>
           <DialogDescription>
             搜尋並選擇要加入的食物,或從常用食物中快速選擇
           </DialogDescription>

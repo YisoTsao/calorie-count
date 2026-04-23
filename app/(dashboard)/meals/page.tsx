@@ -610,6 +610,7 @@ export default function MealsPage() {
       <FoodSearchDialog
         open={isSearchDialogOpen}
         onOpenChange={setIsSearchDialogOpen}
+        mealType={selectedMealType}
         onSelectFood={handleAddFood}
         onSelectFoodAndEdit={handleAddFoodAndEdit}
       />
