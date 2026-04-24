@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Activity, Plus, Trash2, Filter, Edit } from "lucide-react";
+import { Activity, Plus, Edit, Trash2, X } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -9,6 +9,7 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
+  Legend,
   ResponsiveContainer,
 } from "recharts";
 
@@ -35,16 +36,75 @@ const EXERCISE_TYPES = [
 
 const CUSTOM_OPTION = "自訂";
 
+// Exercise type color mapping for stacked chart
+const EXERCISE_COLORS: Record<string, string> = {
+  跑步: "#ef4444",
+  騎車: "#3b82f6",
+  游泳: "#06b6d4",
+  重訓: "#8b5cf6",
+  瑜珈: "#10b981",
+  健走: "#f59e0b",
+  籃球: "#f97316",
+  羽球: "#ec4899",
+};
+const EXTRA_COLORS = [
+  "#14b8a6",
+  "#a855f7",
+  "#64748b",
+  "#e11d48",
+  "#0ea5e9",
+  "#84cc16",
+  "#d946ef",
+];
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+function ExerciseChartTooltip({ active, payload, label }: any) {
+  if (!active || !payload?.length) return null;
+  const filtered = payload.filter((entry: any) => entry.value > 0);
+  if (filtered.length === 0) return null;
+  const total = filtered.reduce(
+    (sum: number, entry: any) => sum + (entry.value || 0),
+    0,
+  );
+  return (
+    <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-3 text-sm">
+      <p className="font-semibold text-gray-900 mb-1.5">📅 {label}</p>
+      <div className="space-y-1">
+        {filtered.map((entry: any) => {
+          const typeInfo = EXERCISE_TYPES.find(
+            (t) => t.value === entry.dataKey,
+          );
+          return (
+            <div key={entry.dataKey} className="flex items-center gap-2">
+              <span
+                className="w-2.5 h-2.5 rounded-sm shrink-0"
+                style={{ backgroundColor: entry.fill }}
+              />
+              <span>
+                {typeInfo?.icon || "🏃"} {entry.dataKey}: {entry.value} 分鐘
+              </span>
+            </div>
+          );
+        })}
+      </div>
+      {filtered.length > 1 && (
+        <p className="text-xs text-gray-500 mt-1.5 pt-1.5 border-t">
+          合計: {total} 分鐘
+        </p>
+      )}
+    </div>
+  );
+}
+/* eslint-enable @typescript-eslint/no-explicit-any */
+
 export default function ExercisePage() {
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
+  const [selectedDayDate, setSelectedDayDate] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState<string>("all");
-  const [selectedPeriod, setSelectedPeriod] = useState<"week" | "month">(
-    "week",
-  );
   const [dateRange, setDateRange] = useState<
     "30d" | "3m" | "6m" | "1y" | "2y" | "all" | "custom"
   >("30d");
@@ -56,11 +116,6 @@ export default function ExercisePage() {
     duration: "",
     notes: "",
   });
-
-  useEffect(() => {
-    loadExercises();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dateRange, customStartDate, customEndDate]);
 
   const loadExercises = async () => {
     try {
@@ -121,8 +176,24 @@ export default function ExercisePage() {
     }
   };
 
+  useEffect(() => {
+    loadExercises();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dateRange, customStartDate, customEndDate]);
+
+  // 統計
+  const weekExercises = (() => {
+    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    return exercises.filter((ex) => new Date(ex.date) >= weekAgo);
+  })();
+  const weekCount = weekExercises.length;
+  const weekDuration = weekExercises.reduce((sum, ex) => sum + ex.duration, 0);
+  const weekCalories = weekExercises.reduce((sum, ex) => sum + ex.calories, 0);
+
   const getEffectiveType = () =>
-    formData.type === CUSTOM_OPTION ? formData.customType.trim() : formData.type;
+    formData.type === CUSTOM_OPTION
+      ? formData.customType.trim()
+      : formData.type;
 
   const getEffectiveCaloriesPerMin = () =>
     EXERCISE_TYPES.find((t) => t.value === formData.type)?.caloriesPerMin ?? 5;
@@ -210,7 +281,7 @@ export default function ExercisePage() {
   const handleEdit = (exercise: Exercise) => {
     setEditingExercise(exercise);
     const isPreset = EXERCISE_TYPES.some(
-      (t) => t.value !== CUSTOM_OPTION && t.value === exercise.type
+      (t) => t.value !== CUSTOM_OPTION && t.value === exercise.type,
     );
     setFormData({
       type: isPreset ? exercise.type : CUSTOM_OPTION,
@@ -220,36 +291,6 @@ export default function ExercisePage() {
     });
     setShowEditModal(true);
   };
-
-  const handleQuickAdd = (type: string) => {
-    setFormData({ ...formData, type });
-    setShowAddModal(true);
-  };
-
-  // 篩選
-  const filteredExercises = exercises.filter((ex) => {
-    if (selectedType !== "all" && ex.type !== selectedType) return false;
-
-    const now = new Date();
-    const exDate = new Date(ex.date);
-    if (selectedPeriod === "week") {
-      const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      return exDate >= weekAgo;
-    } else {
-      const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-      return exDate >= monthAgo;
-    }
-  });
-
-  // 統計
-  const weekExercises = exercises.filter((ex) => {
-    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    return new Date(ex.date) >= weekAgo;
-  });
-
-  const weekCount = weekExercises.length;
-  const weekDuration = weekExercises.reduce((sum, ex) => sum + ex.duration, 0);
-  const weekCalories = weekExercises.reduce((sum, ex) => sum + ex.calories, 0);
 
   // 動態圖表標題
   const getChartTitle = () => {
@@ -316,9 +357,65 @@ export default function ExercisePage() {
           day: "2-digit",
         }),
         duration: totalDuration,
+        exercises: dayExercises,
       };
     });
   })();
+
+  // 圖表上運動類型篩選
+  const uniqueTypes = [...new Set(exercises.map((e) => e.type))];
+
+  const filteredChartData = chartData.map((d) => {
+    if (selectedType === "all") return d;
+    const filtered = d.exercises.filter((e) => e.type === selectedType);
+    return {
+      ...d,
+      duration: filtered.reduce((s, e) => s + e.duration, 0),
+      exercises: filtered,
+    };
+  });
+
+  // Stacked bar chart — each exercise type gets its own colored bar segment
+  const activeChartTypes = [
+    ...new Set(
+      filteredChartData.flatMap((d) => d.exercises.map((e) => e.type)),
+    ),
+  ].sort((a, b) => {
+    const iA = EXERCISE_TYPES.findIndex((t) => t.value === a);
+    const iB = EXERCISE_TYPES.findIndex((t) => t.value === b);
+    return (iA === -1 ? 99 : iA) - (iB === -1 ? 99 : iB);
+  });
+
+  const stackedChartData = filteredChartData.map((d) => {
+    const entry: Record<string, unknown> = {
+      date: d.date,
+      exercises: d.exercises,
+    };
+    for (const type of activeChartTypes) {
+      entry[type] = d.exercises
+        .filter((e) => e.type === type)
+        .reduce((sum, e) => sum + e.duration, 0);
+    }
+    return entry;
+  });
+
+  // Derive selected day data reactively from current exercises
+  const selectedDayData = selectedDayDate
+    ? (filteredChartData.find((d) => d.date === selectedDayDate) ?? null)
+    : null;
+
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  const handleBarClick = (data: any) => {
+    if (data?.payload?.date) {
+      const dayData = filteredChartData.find(
+        (d) => d.date === data.payload.date,
+      );
+      if (dayData && dayData.exercises.length > 0) {
+        setSelectedDayDate(data.payload.date as string);
+      }
+    }
+  };
+  /* eslint-enable @typescript-eslint/no-explicit-any */
 
   if (loading) {
     return (
@@ -381,7 +478,7 @@ export default function ExercisePage() {
       {/* Chart */}
       <div className="bg-white rounded-xl shadow-sm p-6">
         <h2 className="text-xl font-bold text-gray-900 mb-4">
-          📊 {getChartTitle()}
+          {getChartTitle()}
         </h2>
 
         {/* Date Range Filter */}
@@ -389,65 +486,59 @@ export default function ExercisePage() {
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setDateRange("30d")}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                dateRange === "30d"
-                  ? "bg-purple-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${dateRange === "30d" ? "bg-purple-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
             >
               最近 30 天
             </button>
             <button
               onClick={() => setDateRange("3m")}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                dateRange === "3m"
-                  ? "bg-purple-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${dateRange === "3m" ? "bg-purple-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
             >
               最近 3 個月
             </button>
             <button
               onClick={() => setDateRange("6m")}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                dateRange === "6m"
-                  ? "bg-purple-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${dateRange === "6m" ? "bg-purple-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
             >
               最近 6 個月
             </button>
             <button
               onClick={() => setDateRange("1y")}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                dateRange === "1y"
-                  ? "bg-purple-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${dateRange === "1y" ? "bg-purple-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
             >
               最近 1 年
             </button>
             <button
-              onClick={() => setDateRange("2y")}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                dateRange === "2y"
-                  ? "bg-purple-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              最近 2 年
-            </button>
-            <button
               onClick={() => setDateRange("custom")}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                dateRange === "custom"
-                  ? "bg-purple-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${dateRange === "custom" ? "bg-purple-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
             >
               自訂區間
             </button>
           </div>
+
+          {/* 運動類型篩選 */}
+          {uniqueTypes.length > 1 && (
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setSelectedType("all")}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${selectedType === "all" ? "bg-amber-600 text-white" : "bg-amber-50 text-amber-700 hover:bg-amber-100"}`}
+              >
+                全部類型
+              </button>
+              {uniqueTypes.map((type) => {
+                const info = EXERCISE_TYPES.find((t) => t.value === type);
+                return (
+                  <button
+                    key={type}
+                    onClick={() => setSelectedType(type)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${selectedType === type ? "bg-amber-600 text-white" : "bg-amber-50 text-amber-700 hover:bg-amber-100"}`}
+                  >
+                    {info?.icon || "🏃"} {type}
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           {/* Custom Date Picker */}
           {dateRange === "custom" && (
@@ -490,60 +581,118 @@ export default function ExercisePage() {
           )}
 
           <div className="text-sm text-gray-600">
-            📊 總共有 {exercises.length} 筆運動記錄
+            總共有 {exercises.length} 筆運動記錄
           </div>
         </div>
 
-        <ResponsiveContainer width="100%" height={250}>
-          <BarChart data={chartData}>
+        <ResponsiveContainer width="100%" height={280}>
+          <BarChart data={stackedChartData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
             <XAxis dataKey="date" tick={{ fontSize: 12 }} stroke="#9ca3af" />
             <YAxis tick={{ fontSize: 12 }} stroke="#9ca3af" />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: "#fff",
-                border: "1px solid #e5e7eb",
-                borderRadius: "8px",
-              }}
-            />
-            <Bar
-              dataKey="duration"
-              fill="#f59e0b"
-              radius={[8, 8, 0, 0]}
-              name="運動時長 (分鐘)"
-            />
+            <Tooltip content={<ExerciseChartTooltip />} />
+            {activeChartTypes.length > 1 && (
+              <Legend
+                formatter={(value) => {
+                  const info = EXERCISE_TYPES.find((t) => t.value === value);
+                  return `${info?.icon || "🏃"} ${value}`;
+                }}
+                wrapperStyle={{ fontSize: "12px", paddingTop: "8px" }}
+              />
+            )}
+            {activeChartTypes.map((type, i) => (
+              <Bar
+                key={type}
+                dataKey={type}
+                stackId="stack"
+                fill={
+                  EXERCISE_COLORS[type] || EXTRA_COLORS[i % EXTRA_COLORS.length]
+                }
+                radius={
+                  i === activeChartTypes.length - 1
+                    ? [4, 4, 0, 0]
+                    : [0, 0, 0, 0]
+                }
+                cursor="pointer"
+                onClick={handleBarClick}
+                name={type}
+              />
+            ))}
           </BarChart>
         </ResponsiveContainer>
-      </div>
+        <p className="text-xs text-gray-400 mt-3 text-center">
+          💡 點擊柱狀可查看該日運動詳情並進行編輯或刪除
+        </p>
 
-      {/* Filters */}
-      <div className="flex flex-wrap items-center gap-4">
-        <div className="flex items-center gap-2">
-          <Filter className="w-5 h-5 text-gray-600" />
-          <span className="text-sm font-medium text-gray-700">篩選:</span>
-        </div>
-        <select
-          value={selectedType}
-          onChange={(e) => setSelectedType(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500"
-        >
-          <option value="all">全部類型</option>
-          {EXERCISE_TYPES.map((type) => (
-            <option key={type.value} value={type.value}>
-              {type.icon} {type.value}
-            </option>
-          ))}
-        </select>
-        <select
-          value={selectedPeriod}
-          onChange={(e) =>
-            setSelectedPeriod(e.target.value as "week" | "month")
-          }
-          className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500"
-        >
-          <option value="week">本週</option>
-          <option value="month">本月</option>
-        </select>
+        {/* Selected Day Detail Panel */}
+        {selectedDayData && selectedDayData.exercises.length > 0 && (
+          <div className="mt-4 p-4 bg-amber-50 rounded-xl border border-amber-200 animate-in fade-in duration-200">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="font-semibold text-gray-900">
+                {selectedDayData.date} 的運動記錄
+              </h4>
+              <button
+                onClick={() => setSelectedDayDate(null)}
+                className="p-1 hover:bg-amber-100 rounded-full transition-colors"
+              >
+                <X className="w-4 h-4 text-gray-500" />
+              </button>
+            </div>
+            <div className="space-y-3">
+              {selectedDayData.exercises.map((ex) => {
+                const typeInfo = EXERCISE_TYPES.find(
+                  (t) => t.value === ex.type,
+                );
+                const typeColor = EXERCISE_COLORS[ex.type] || "#6b7280";
+                return (
+                  <div
+                    key={ex.id}
+                    className="flex items-center justify-between bg-white rounded-lg p-3 shadow-sm"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="w-10 h-10 rounded-lg flex items-center justify-center text-xl"
+                        style={{ backgroundColor: `${typeColor}18` }}
+                      >
+                        {typeInfo?.icon || "🏃"}
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">{ex.type}</p>
+                        <p className="text-sm text-gray-500">
+                          {ex.duration} 分鐘 · {ex.calories.toFixed(0)} kcal
+                        </p>
+                        {ex.notes && (
+                          <p className="text-xs text-gray-400 mt-0.5">
+                            📝 {ex.notes}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => handleEdit(ex)}
+                        className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
+                      >
+                        <Edit className="w-3.5 h-3.5" />
+                        編輯
+                      </button>
+                      <button
+                        onClick={() => handleDelete(ex.id)}
+                        className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        刪除
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <p className="text-xs text-gray-400 mt-2 pt-2 border-t border-amber-200">
+              總計 {selectedDayData.duration} 分鐘
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Quick Add Buttons */}
@@ -553,93 +702,16 @@ export default function ExercisePage() {
           {EXERCISE_TYPES.map((type) => (
             <button
               key={type.value}
-              onClick={() => handleQuickAdd(type.value)}
+              onClick={() => {
+                setFormData({ ...formData, type: type.value });
+                setShowAddModal(true);
+              }}
               className="flex flex-col items-center gap-1 p-3 bg-gray-50 hover:bg-amber-50 rounded-lg transition-colors"
             >
               <span className="text-2xl">{type.icon}</span>
               <span className="text-xs text-gray-700">{type.value}</span>
             </button>
           ))}
-        </div>
-      </div>
-
-      {/* Records List */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">📋 記錄列表</h2>
-        <div className="space-y-3">
-          {filteredExercises.map((exercise) => {
-            const typeInfo = EXERCISE_TYPES.find(
-              (t) => t.value === exercise.type,
-            );
-            return (
-              <div
-                key={exercise.id}
-                className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="text-3xl">{typeInfo?.icon || "🏃"}</div>
-                  <div>
-                    <div className="flex items-center gap-3">
-                      <span className="font-bold text-lg text-gray-900">
-                        {exercise.type}
-                      </span>
-                      <span className="text-sm text-gray-600">
-                        {new Date(exercise.date).toLocaleString("zh-TW", {
-                          month: "2-digit",
-                          day: "2-digit",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-4 mt-1">
-                      <span className="text-sm text-gray-600">
-                        {exercise.duration} 分鐘
-                      </span>
-                      <span className="text-sm text-orange-600 font-medium">
-                        {exercise.calories.toFixed(0)} kcal
-                      </span>
-                    </div>
-                    {exercise.notes && (
-                      <p className="text-sm text-gray-500 mt-1">
-                        {exercise.notes}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => handleEdit(exercise)}
-                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                  >
-                    <Edit className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(exercise.id)}
-                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-          {filteredExercises.length === 0 && (
-            <div className="text-center py-12">
-              <Activity className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500">
-                {selectedType === "all"
-                  ? "還沒有運動記錄"
-                  : "沒有符合的運動記錄"}
-              </p>
-              <button
-                onClick={() => setShowAddModal(true)}
-                className="mt-4 text-amber-600 hover:underline"
-              >
-                新增第一筆記錄
-              </button>
-            </div>
-          )}
         </div>
       </div>
 
@@ -658,22 +730,30 @@ export default function ExercisePage() {
                 <select
                   value={formData.type}
                   onChange={(e) =>
-                    setFormData({ ...formData, type: e.target.value, customType: "" })
+                    setFormData({
+                      ...formData,
+                      type: e.target.value,
+                      customType: "",
+                    })
                   }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                 >
-                  {EXERCISE_TYPES.filter((t) => t.value !== CUSTOM_OPTION).map((type) => (
-                    <option key={type.value} value={type.value}>
-                      {type.icon} {type.value}
-                    </option>
-                  ))}
+                  {EXERCISE_TYPES.filter((t) => t.value !== CUSTOM_OPTION).map(
+                    (type) => (
+                      <option key={type.value} value={type.value}>
+                        {type.icon} {type.value}
+                      </option>
+                    ),
+                  )}
                   <option value={CUSTOM_OPTION}>✏️ 自訂類型</option>
                 </select>
                 {formData.type === CUSTOM_OPTION && (
                   <input
                     type="text"
                     value={formData.customType}
-                    onChange={(e) => setFormData({ ...formData, customType: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, customType: e.target.value })
+                    }
                     placeholder="輸入運動名稱"
                     required
                     className="mt-2 w-full px-4 py-2 border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
@@ -704,7 +784,7 @@ export default function ExercisePage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  備註 選填
+                  備註
                 </label>
                 <textarea
                   value={formData.notes}
@@ -750,22 +830,30 @@ export default function ExercisePage() {
                 <select
                   value={formData.type}
                   onChange={(e) =>
-                    setFormData({ ...formData, type: e.target.value, customType: "" })
+                    setFormData({
+                      ...formData,
+                      type: e.target.value,
+                      customType: "",
+                    })
                   }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                 >
-                  {EXERCISE_TYPES.filter((t) => t.value !== CUSTOM_OPTION).map((type) => (
-                    <option key={type.value} value={type.value}>
-                      {type.icon} {type.value}
-                    </option>
-                  ))}
+                  {EXERCISE_TYPES.filter((t) => t.value !== CUSTOM_OPTION).map(
+                    (type) => (
+                      <option key={type.value} value={type.value}>
+                        {type.icon} {type.value}
+                      </option>
+                    ),
+                  )}
                   <option value={CUSTOM_OPTION}>✏️ 自訂類型</option>
                 </select>
                 {formData.type === CUSTOM_OPTION && (
                   <input
                     type="text"
                     value={formData.customType}
-                    onChange={(e) => setFormData({ ...formData, customType: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, customType: e.target.value })
+                    }
                     placeholder="輸入運動名稱"
                     required
                     className="mt-2 w-full px-4 py-2 border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
@@ -796,7 +884,7 @@ export default function ExercisePage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  備註 選填
+                  備註
                 </label>
                 <textarea
                   value={formData.notes}
@@ -813,7 +901,12 @@ export default function ExercisePage() {
                   onClick={() => {
                     setShowEditModal(false);
                     setEditingExercise(null);
-                    setFormData({ type: "跑步", customType: "", duration: "", notes: "" });
+                    setFormData({
+                      type: "跑步",
+                      customType: "",
+                      duration: "",
+                      notes: "",
+                    });
                   }}
                   className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                 >

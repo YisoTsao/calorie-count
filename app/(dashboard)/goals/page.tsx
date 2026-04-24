@@ -45,6 +45,8 @@ export default function GoalsPage() {
   const [protein, setProtein] = useState(50);
   const [carbs, setCarbs] = useState(250);
   const [fat, setFat] = useState(65);
+  const [waterGoal, setWaterGoal] = useState(2000);
+  const [targetWeight, setTargetWeight] = useState<number | ''>('');
 
   // 載入使用者資料
   useEffect(() => {
@@ -63,6 +65,10 @@ export default function GoalsPage() {
           setProtein(data.data.goals.proteinGoal);
           setCarbs(data.data.goals.carbsGoal);
           setFat(data.data.goals.fatGoal);
+          if (data.data.goals.waterGoal) setWaterGoal(data.data.goals.waterGoal);
+        }
+        if (data.data.profile?.targetWeight) {
+          setTargetWeight(data.data.profile.targetWeight);
         }
 
         setIsLoading(false);
@@ -108,19 +114,33 @@ export default function GoalsPage() {
     setIsSaving(true);
 
     try {
-      const response = await fetch('/api/goals', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          goalType,
-          dailyCalorieGoal: dailyCalories,
-          proteinGoal: protein,
-          carbsGoal: carbs,
-          fatGoal: fat,
+      const requests: Promise<Response>[] = [
+        fetch('/api/goals', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            goalType,
+            dailyCalorieGoal: dailyCalories,
+            proteinGoal: protein,
+            carbsGoal: carbs,
+            fatGoal: fat,
+            waterGoal,
+          }),
         }),
-      });
+      ];
 
-      if (!response.ok) throw new Error('儲存失敗');
+      if (targetWeight !== '') {
+        requests.push(
+          fetch('/api/users/me/profile', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ targetWeight }),
+          })
+        );
+      }
+
+      const results = await Promise.all(requests);
+      if (!results.every((r) => r.ok)) throw new Error('儲存失敗');
 
       alert('✅ 目標已儲存！');
       router.push('/dashboard');
@@ -270,6 +290,35 @@ export default function GoalsPage() {
               step={50}
             />
             <p className="text-xs text-muted-foreground">建議範圍: 1200-3000 kcal</p>
+          </div>
+
+          {/* 飲水目標 + 目標體重 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="water">每日飲水目標 (ml)</Label>
+              <Input
+                id="water"
+                type="number"
+                value={waterGoal}
+                onChange={(e) => setWaterGoal(Number(e.target.value))}
+                min={0}
+                max={10000}
+                step={100}
+              />
+              <p className="text-xs text-muted-foreground">建議 1500–3000 ml</p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="targetWeight">目標體重 (kg)</Label>
+              <Input
+                id="targetWeight"
+                type="number"
+                step="0.1"
+                value={targetWeight}
+                onChange={(e) => setTargetWeight(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                placeholder={profile?.weight ? String(profile.weight) : '68.0'}
+              />
+              <p className="text-xs text-muted-foreground">儲存至個人資料</p>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

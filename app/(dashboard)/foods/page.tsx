@@ -9,7 +9,21 @@ import {
   Loader2,
   Pencil,
   Trash2,
+  Leaf,
+  Apple,
+  Drumstick,
+  Fish,
+  Egg,
+  Wheat,
+  Bean,
+  Nut,
+  Coffee,
+  Cookie,
+  FlaskConical,
+  Hamburger,
+  UtensilsCrossed,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,6 +44,31 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+
+// Map category names to Lucide icons for consistent visual style
+const CATEGORY_ICON_MAP: Record<string, { icon: LucideIcon; color: string }> = {
+  "蔬菜類": { icon: Leaf, color: "text-green-600" },
+  "水果類": { icon: Apple, color: "text-red-500" },
+  "肉類": { icon: Drumstick, color: "text-amber-700" },
+  "海鮮類": { icon: Fish, color: "text-blue-500" },
+  "蛋奶類": { icon: Egg, color: "text-yellow-500" },
+  "五穀雜糧": { icon: Wheat, color: "text-amber-600" },
+  "豆類": { icon: Bean, color: "text-green-700" },
+  "堅果類": { icon: Nut, color: "text-amber-800" },
+  "飲料": { icon: Coffee, color: "text-brown-600" },
+  "零食點心": { icon: Cookie, color: "text-orange-500" },
+  "調味料": { icon: FlaskConical, color: "text-purple-500" },
+  "速食": { icon: Hamburger, color: "text-red-600" },
+};
+
+function CategoryIcon({ name, className }: { name: string; className?: string }) {
+  const mapping = CATEGORY_ICON_MAP[name];
+  if (mapping) {
+    const IconComp = mapping.icon;
+    return <IconComp className={`${className || "w-5 h-5"} ${mapping.color}`} />;
+  }
+  return <UtensilsCrossed className={`${className || "w-5 h-5"} text-gray-500`} />;
+}
 
 interface Food {
   id: string;
@@ -488,7 +527,7 @@ export default function FoodsPage() {
                   <SelectContent>
                     {categories.map((category) => (
                       <SelectItem key={category.id} value={category.id}>
-                        {category.icon} {category.name}
+                        <span className="inline-flex items-center gap-1.5"><CategoryIcon name={category.name} className="w-4 h-4" /> {category.name}</span>
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -737,7 +776,7 @@ export default function FoodsPage() {
                   <SelectContent>
                     {categories.map((category) => (
                       <SelectItem key={category.id} value={category.id}>
-                        {category.icon} {category.name}
+                        <span className="inline-flex items-center gap-1.5"><CategoryIcon name={category.name} className="w-4 h-4" /> {category.name}</span>
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -960,8 +999,7 @@ export default function FoodsPage() {
                     <SelectItem value="favorites">❤️ 我的最愛</SelectItem>
                     {categories.map((category) => (
                       <SelectItem key={category.id} value={category.id}>
-                        {category.icon} {category.name} ({category._count.foods}
-                        )
+                        <span className="inline-flex items-center gap-1.5"><CategoryIcon name={category.name} className="w-4 h-4" /> {category.name} ({category._count.foods})</span>
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -1027,9 +1065,7 @@ export default function FoodsPage() {
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      {food.category.icon && (
-                        <span className="text-xl">{food.category.icon}</span>
-                      )}
+                      <CategoryIcon name={food.category.name} className="w-5 h-5" />
                       <CardTitle className="text-lg">{food.name}</CardTitle>
                     </div>
                     {food.nameEn && (

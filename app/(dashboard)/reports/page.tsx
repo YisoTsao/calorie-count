@@ -104,8 +104,8 @@ export default function ReportsPage() {
           reportType === "week"
             ? "週報表"
             : reportType === "month"
-            ? "月報表"
-            : `${customStartDate} ~ ${customEndDate}`,
+              ? "月報表"
+              : `${customStartDate} ~ ${customEndDate}`,
         stats: data.summary || {
           totalDays: 0,
           avgCalories: 0,
@@ -277,7 +277,9 @@ export default function ReportsPage() {
       {reportType === "custom" && (
         <div className="flex flex-wrap items-end gap-4 bg-gray-50 rounded-xl p-4 border border-gray-200">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">開始日期</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              開始日期
+            </label>
             <input
               type="date"
               value={customStartDate}
@@ -287,7 +289,9 @@ export default function ReportsPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">結束日期</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              結束日期
+            </label>
             <input
               type="date"
               value={customEndDate}
@@ -346,9 +350,7 @@ export default function ReportsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Nutrient Distribution Pie Chart */}
         <div className="bg-white rounded-xl shadow-sm p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">
-            📊 營養素分布
-          </h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-4">營養素分布</h2>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
@@ -423,7 +425,7 @@ export default function ReportsPage() {
         {/* Nutrients Line Chart */}
         <div className="bg-white rounded-xl shadow-sm p-6">
           <h2 className="text-xl font-bold text-gray-900 mb-4">
-            🥗 三大營養素趨勢
+            三大營養素趨勢
           </h2>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={reportData.dailyData}>

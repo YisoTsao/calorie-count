@@ -33,24 +33,22 @@ export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<'7' | '30' | '90'>('30');
 
-  const loadStats = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(`/api/stats?days=${period}`);
-      if (!response.ok) throw new Error('載入失敗');
-      const data = await response.json();
-      setStats(data.stats || []);
-      setSummary(data.summary || null);
-    } catch (error) {
-      console.error('載入統計資料失敗:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    loadStats();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    const loadStats = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`/api/stats?days=${period}`);
+        if (!response.ok) throw new Error('載入失敗');
+        const data = await response.json();
+        setStats(data.stats || []);
+        setSummary(data.summary || null);
+      } catch (error) {
+        console.error('載入統計資料失敗:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    void loadStats();
   }, [period]);
 
   if (loading) {
@@ -187,21 +185,21 @@ export default function AnalyticsPage() {
         <TrendChart 
           data={caloriesData}
           type="calories"
-          title="📊 卡路里攝取趨勢"
+          title="路里攝取趨勢"
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <TrendChart 
             data={nutrientsData}
             type="nutrients"
-            title="🥗 三大營養素趨勢"
+            title="三大營養素趨勢"
           />
 
           {weightData.length > 0 && (
             <TrendChart 
               data={weightData}
               type="weight"
-              title="⚖️ 體重變化"
+              title="體重變化"
             />
           )}
         </div>
@@ -210,13 +208,13 @@ export default function AnalyticsPage() {
           <TrendChart 
             data={waterData}
             type="water"
-            title="💧 飲水量趨勢"
+            title="飲水量趨勢"
           />
 
           <TrendChart 
             data={exerciseData}
             type="exercise"
-            title="🏃 運動時長趨勢"
+            title="運動時長趨勢"
           />
         </div>
       </div>
@@ -226,13 +224,13 @@ export default function AnalyticsPage() {
 
       {/* Tips */}
       <div className="mt-8 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-3">💡 健康建議</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-3">健康建議</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-700">
           {summary && summary.avgCalories > 0 && (
             <>
               {summary.avgCalories > 2500 && (
                 <div>
-                  <p className="font-medium mb-1">📉 卡路里攝取偏高</p>
+                  <p className="font-medium mb-1">卡路里攝取偏高</p>
                   <p className="text-gray-600">
                     平均每日攝取 {Math.round(summary.avgCalories)} 卡,建議控制在目標範圍內
                   </p>
@@ -241,7 +239,7 @@ export default function AnalyticsPage() {
               
               {summary.avgWater < 1500 && (
                 <div>
-                  <p className="font-medium mb-1">💧 飲水量不足</p>
+                  <p className="font-medium mb-1">飲水量不足</p>
                   <p className="text-gray-600">
                     平均每日飲水 {Math.round(summary.avgWater)}ml,建議增加至 2000ml 以上
                   </p>
@@ -250,7 +248,7 @@ export default function AnalyticsPage() {
               
               {summary.avgExercise < 30 && (
                 <div>
-                  <p className="font-medium mb-1">🏃 運動量不足</p>
+                  <p className="font-medium mb-1">運動量不足</p>
                   <p className="text-gray-600">
                     平均每日運動 {Math.round(summary.avgExercise)} 分鐘,建議增加至 30 分鐘以上
                   </p>
@@ -259,7 +257,7 @@ export default function AnalyticsPage() {
 
               {summary.streak >= 7 && (
                 <div>
-                  <p className="font-medium mb-1">🔥 堅持打卡</p>
+                  <p className="font-medium mb-1">堅持打卡</p>
                   <p className="text-gray-600">
                     太棒了!已連續記錄 {summary.streak} 天,繼續保持!
                   </p>
@@ -268,7 +266,7 @@ export default function AnalyticsPage() {
 
               {goalSuccessRate >= 80 && (
                 <div>
-                  <p className="font-medium mb-1">🎯 目標達成優秀</p>
+                  <p className="font-medium mb-1">目標達成優秀</p>
                   <p className="text-gray-600">
                     目標達成率 {goalSuccessRate}%,表現很好!
                   </p>

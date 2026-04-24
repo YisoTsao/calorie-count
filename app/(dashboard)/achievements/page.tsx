@@ -31,9 +31,9 @@ interface AchievementData {
 }
 
 const CATEGORY_CONFIG: Record<string, { label: string; colorClass: string }> = {
-  streak:    { label: '🔥 打卡',   colorClass: 'text-orange-500' },
-  milestone: { label: '⭐ 里程碑', colorClass: 'text-yellow-500' },
-  goal:      { label: '🎯 目標',   colorClass: 'text-blue-500' },
+  streak:    { label: '打卡',   colorClass: 'text-orange-500' },
+  milestone: { label: '里程碑', colorClass: 'text-yellow-500' },
+  goal:      { label: '目標',   colorClass: 'text-blue-500' },
 };
 
 const CATEGORY_CARD_COLORS: Record<string, { earned: string; progress: string }> = {
