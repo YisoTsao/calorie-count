@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Check, Loader2, Plus } from 'lucide-react';
+import { Check, Plus } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -136,21 +136,40 @@ export function RecognitionResultDialog({
             </div>
           )}
 
-          {/* 載入中 */}
-          {isLoading && !recognition && (
-            <div className="flex flex-col items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-              <p className="text-sm text-muted-foreground">正在上傳並分析...</p>
+          {/* 載入中 / 處理中 — 掃描特效 */}
+          {(isLoading && !recognition) || recognition?.status === 'PROCESSING' ? (
+            <div className="flex flex-col items-center justify-center py-10 gap-6">
+              <style>{`
+                @keyframes scanMoveModal {
+                  0%   { top: 0%; }
+                  50%  { top: calc(100% - 2px); }
+                  100% { top: 0%; }
+                }
+                .scan-line-modal {
+                  position: absolute;
+                  left: 0; right: 0;
+                  height: 2px;
+                  background: linear-gradient(to right, transparent, #4ade80, transparent);
+                  animation: scanMoveModal 1.8s ease-in-out infinite;
+                }
+              `}</style>
+              {/* 掃描角框（Modal 尺寸縮小版） */}
+              <div className="relative w-36 h-36 bg-black/5 rounded">
+                <div className="absolute top-0 left-0 w-7 h-7 border-t-[3px] border-l-[3px] border-green-500 rounded-tl" />
+                <div className="absolute top-0 right-0 w-7 h-7 border-t-[3px] border-r-[3px] border-green-500 rounded-tr" />
+                <div className="absolute bottom-0 left-0 w-7 h-7 border-b-[3px] border-l-[3px] border-green-500 rounded-bl" />
+                <div className="absolute bottom-0 right-0 w-7 h-7 border-b-[3px] border-r-[3px] border-green-500 rounded-br" />
+                <div className="absolute inset-0 border border-green-500/15 rounded" />
+                <div className="scan-line-modal" />
+              </div>
+              <div className="text-center space-y-1">
+                <p className="text-green-600 font-semibold tracking-widest animate-pulse">
+                  AI 辨識中...
+                </p>
+                <p className="text-sm text-muted-foreground">正在分析食物照片，請稍候</p>
+              </div>
             </div>
-          )}
-
-          {/* 處理中 */}
-          {recognition?.status === 'PROCESSING' && (
-            <div className="flex flex-col items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-              <p className="text-sm text-muted-foreground">AI 正在辨識中...</p>
-            </div>
-          )}
+          ) : null}
 
           {/* 失敗 */}
           {recognition?.status === 'FAILED' && (

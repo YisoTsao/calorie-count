@@ -155,7 +155,7 @@ export function PhotoUploadDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs value={activeTab} onValueChange={handleTabChange} className="flex-1 flex flex-col px-6">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="flex-1 flex flex-col px-6 pb-6">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="upload">
               <Upload className="h-4 w-4 mr-2" />
