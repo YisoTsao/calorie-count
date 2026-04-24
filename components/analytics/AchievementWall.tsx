@@ -50,7 +50,7 @@ export default function AchievementWall() {
   if (loading) {
     return (
       <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-lg font-semibold mb-4">🏆 成就牆</h3>
+        <h3 className="text-lg font-semibold mb-4">成就牆</h3>
         <p className="text-center text-gray-400 py-8">載入中...</p>
       </div>
     );
@@ -59,7 +59,7 @@ export default function AchievementWall() {
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold">🏆 成就牆</h3>
+        <h3 className="text-lg font-semibold">成就牆</h3>
         <div className="flex items-center gap-3">
           <span className="text-sm text-gray-500">{earnedCount} / {total}</span>
           <Link href="/achievements" className="text-sm text-primary hover:underline">
