@@ -7,6 +7,8 @@ import ExerciseLogger from "@/components/nutrition/ExerciseLogger";
 import WeightTracker from "@/components/nutrition/WeightTracker";
 import NutritionQuickStats from "@/components/nutrition/NutritionQuickStats";
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: "營養追蹤 - Calorie Count",
   description: "追蹤每日飲水量、運動消耗及體重變化",
