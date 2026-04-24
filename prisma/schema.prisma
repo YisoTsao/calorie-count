@@ -484,7 +484,7 @@ model Exercise {
 model WeightRecord {
   id     String   @id @default(cuid())
   userId String
-  date   DateTime @unique @db.Date // 記錄日期 (每天只能一筆)
+  date   DateTime @db.Date // 記錄日期 (每位使用者每天只能一筆)
   weight Float // 體重 (公斤)
   bmi    Float? // BMI (可選,自動計算)
   bodyFat Float? // 體脂率 (可選)
@@ -495,6 +495,7 @@ model WeightRecord {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([userId, date])
   @@index([userId, date])
   @@map("weight_records")
 }
