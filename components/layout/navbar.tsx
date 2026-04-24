@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import { Icon } from '@iconify/react';
 import { Button } from '@/components/ui/button';
@@ -26,15 +25,6 @@ interface NavbarProps {
 }
 
 export function Navbar({ user, isSidebarOpen = false, onToggleSidebar }: NavbarProps) {
-  const pathname = usePathname();
-
-  const navItems = [
-    { href: '/dashboard', label: '首頁', icon: 'lucide:home' },
-    { href: '/foods', label: '食物資料庫', icon: 'lucide:search' },
-    { href: '/meals', label: '飲食記錄', icon: 'lucide:utensils' },
-    { href: '/analytics', label: '數據分析', icon: 'lucide:chart-line' },
-  ];
-
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-white dark:bg-gray-900 dark:border-gray-800">
       <div className="container mx-auto px-4">
@@ -44,24 +34,6 @@ export function Navbar({ user, isSidebarOpen = false, onToggleSidebar }: NavbarP
             <Icon icon="lucide:apple" className="h-8 w-8 text-primary" />
             <span className="text-xl font-bold">CalorieCount</span>
           </Link>
-
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-6">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary ${
-                  pathname === item.href
-                    ? 'text-primary'
-                    : 'text-gray-600 dark:text-gray-400'
-                }`}
-              >
-                <Icon icon={item.icon} className="h-4 w-4" />
-                {item.label}
-              </Link>
-            ))}
-          </div>
 
           {/* User Menu */}
           <div className="flex items-center gap-4">

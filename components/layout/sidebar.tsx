@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Icon } from '@iconify/react';
@@ -46,6 +47,66 @@ const navItems = [
   },
 ];
 
+function QuickStats() {
+  const [calories, setCalories] = useState(0);
+  const [goal, setGoal] = useState(2000);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const today = new Date().toISOString().split('T')[0];
+        const [mealsRes, goalsRes] = await Promise.all([
+          fetch(`/api/meals?startDate=${today}&endDate=${today}`),
+          fetch('/api/goals'),
+        ]);
+
+        if (mealsRes.ok) {
+          const mealsData = await mealsRes.json();
+          const meals: Array<{ foods: Array<{ calories: number }> }> = mealsData.data?.meals ?? [];
+          const total = meals.reduce((sum, meal) => sum + meal.foods.reduce((s, f) => s + f.calories, 0), 0);
+          setCalories(Math.round(total));
+        }
+
+        if (goalsRes.ok) {
+          const goalsData = await goalsRes.json();
+          const dailyGoal = goalsData.data?.goals?.dailyCalorieGoal;
+          if (dailyGoal) setGoal(dailyGoal);
+        }
+      } catch (error) {
+        console.error('載入今日摘要失敗:', error);
+      }
+    };
+    void fetchStats();
+  }, []);
+
+  const progress = goal > 0 ? Math.min((calories / goal) * 100, 100) : 0;
+
+  return (
+    <div className="mt-auto border-t pt-4 dark:border-gray-800">
+      <div className="rounded-lg bg-blue-50 dark:bg-blue-950/30 p-4">
+        <h4 className="text-sm font-semibold mb-2">今日摘要</h4>
+        <div className="space-y-2 text-xs text-gray-600 dark:text-gray-400">
+          <div className="flex justify-between">
+            <span>已攝取</span>
+            <span className="font-semibold text-blue-600 dark:text-blue-400">{calories} kcal</span>
+          </div>
+          <div className="flex justify-between">
+            <span>目標</span>
+            <span className="font-semibold">{goal} kcal</span>
+          </div>
+          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-2">
+            <div
+              className="bg-blue-500 h-2 rounded-full transition-all"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          <p className="text-center text-[11px] text-gray-500">{Math.round(progress)}%</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function NavContent({
   pathname,
   onClose,
@@ -85,24 +146,7 @@ function NavContent({
       ))}
 
       {/* Quick Stats */}
-      <div className="mt-auto border-t pt-4 dark:border-gray-800">
-        <div className="rounded-lg bg-primary/10 p-4">
-          <h4 className="text-sm font-semibold mb-2">今日摘要</h4>
-          <div className="space-y-2 text-xs text-gray-600 dark:text-gray-400">
-            <div className="flex justify-between">
-              <span>已攝取</span>
-              <span className="font-semibold">0 kcal</span>
-            </div>
-            <div className="flex justify-between">
-              <span>目標</span>
-              <span className="font-semibold">2000 kcal</span>
-            </div>
-            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-2">
-              <div className="bg-primary h-2 rounded-full" style={{ width: '0%' }}></div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <QuickStats />
     </div>
   );
 }
