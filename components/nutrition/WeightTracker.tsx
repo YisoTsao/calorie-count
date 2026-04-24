@@ -317,7 +317,7 @@ export default function WeightTracker() {
           </div>
 
           {/* Records List */}
-          <div>
+          <div className='hidden'>
             <div className="flex justify-between items-center mb-2">
               <p className="text-sm text-gray-600">歷史記錄</p>
               <span className="text-xs text-gray-500">{records.length} 筆</span>
