@@ -86,8 +86,8 @@ export async function GET(req: NextRequest) {
     // 或是日期範圍
     else if (startDate && endDate) {
       where.mealDate = {
-        gte: new Date(startDate),
-        lte: new Date(endDate),
+        gte: new Date(startDate + 'T00:00:00.000Z'),
+        lte: new Date(endDate + 'T23:59:59.999Z'),
       };
     }
     // 預設查詢今天
