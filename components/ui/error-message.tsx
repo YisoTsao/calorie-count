@@ -38,19 +38,10 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
 
   return (
     <div
-      className={cn(
-        'flex items-start gap-3 rounded-lg border p-4',
-        config.className,
-        className
-      )}
+      className={cn('flex items-start gap-3 rounded-lg border p-4', config.className, className)}
       role="alert"
     >
-      {showIcon && (
-        <Icon
-          icon={config.icon}
-          className="mt-0.5 h-5 w-5 flex-shrink-0"
-        />
-      )}
+      {showIcon && <Icon icon={config.icon} className="mt-0.5 h-5 w-5 flex-shrink-0" />}
       <p className="text-sm font-medium">{message}</p>
     </div>
   );
