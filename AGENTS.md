@@ -1,14 +1,17 @@
 <!-- OPENSPEC:START -->
+
 # OpenSpec Instructions
 
 These instructions are for AI assistants working in this project.
 
 Always open `@/openspec/AGENTS.md` when the request:
+
 - Mentions planning or proposals (words like proposal, spec, change, plan)
 - Introduces new capabilities, breaking changes, architecture shifts, or big performance/security work
 - Sounds ambiguous and you need the authoritative spec before coding
 
 Use `@/openspec/AGENTS.md` to learn:
+
 - How to create and apply change proposals
 - Spec format and conventions
 - Project structure and guidelines
@@ -127,12 +130,12 @@ const Button: React.FC<ButtonProps> = ({
 
 ```typescript
 // ✅ 正確的 import 順序
-import React, { useEffect, useState } from 'react';  // 1. React (優先)
-import { NextPage } from 'next';                     // 2. Next.js
-import { Icon } from '@iconify/react';               // 3. 外部套件
-import { Button } from '@/components/UI';            // 4. 內部模組 (@/)
-import { getUserData } from '../utils';              // 5. 相對路徑
-import styles from './UserCard.module.css';          // 6. 樣式檔案
+import React, { useEffect, useState } from 'react'; // 1. React (優先)
+import { NextPage } from 'next'; // 2. Next.js
+import { Icon } from '@iconify/react'; // 3. 外部套件
+import { Button } from '@/components/UI'; // 4. 內部模組 (@/)
+import { getUserData } from '../utils'; // 5. 相對路徑
+import styles from './UserCard.module.css'; // 6. 樣式檔案
 ```
 
 ### 型別定義規範
@@ -333,14 +336,12 @@ export const useExampleStore = create<ExampleState & ExampleActions>((set, get) 
 
   updateData: (id, newData) => {
     const { data } = get();
-    const updatedData = data.map((item) => 
-      item.id === id ? { ...item, ...newData } : item
-    );
+    const updatedData = data.map((item) => (item.id === id ? { ...item, ...newData } : item));
     set({ data: updatedData });
   },
 
   clearError: () => set({ error: null }),
-  
+
   reset: () => set(initialState),
 }));
 ```
@@ -400,15 +401,12 @@ import { ApiResponse } from '@/types/api';
 
 export class ApiClient {
   private baseUrl: string;
-  
+
   constructor(baseUrl: string = '/api') {
     this.baseUrl = baseUrl;
   }
 
-  async fetch<T>(
-    endpoint: string,
-    options?: RequestInit
-  ): Promise<ApiResponse<T>> {
+  async fetch<T>(endpoint: string, options?: RequestInit): Promise<ApiResponse<T>> {
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
       ...options,
       headers: {
@@ -442,23 +440,27 @@ export const apiClient = new ApiClient();
 ## 🎯 開發最佳實踐
 
 ### 1. 元件設計原則
+
 - ✅ 單一職責：每個元件只做一件事
 - ✅ 可重用性：設計時考慮多場景使用
 - ✅ 可測試性：邏輯與 UI 分離
 - ✅ 可維護性：清晰的命名與註解
 
 ### 2. 效能優化
+
 - ✅ 使用 `React.memo` 避免不必要的重渲染
 - ✅ 大列表使用虛擬滾動
 - ✅ 圖片使用 Next.js Image 組件
 - ✅ 動態 import 減少初始包大小
 
 ### 3. 錯誤處理
+
 - ✅ 所有 async 操作包裹 try-catch
 - ✅ 友善的錯誤訊息給使用者
 - ✅ 記錄錯誤到 console (開發) 或日誌系統 (生產)
 
 ### 4. 可訪問性 (a11y)
+
 - ✅ 語意化 HTML
 - ✅ ARIA 屬性
 - ✅ 鍵盤導航支援
@@ -467,6 +469,7 @@ export const apiClient = new ApiClient();
 ## 🚨 常見錯誤與解決
 
 ### 問題 1: Import 路徑錯誤
+
 ```typescript
 // ❌ 錯誤
 import { Button } from '../../components/UI/Button';
@@ -476,6 +479,7 @@ import { Button } from '@/components/UI/Button';
 ```
 
 ### 問題 2: 狀態更新不即時
+
 ```typescript
 // ❌ 錯誤 (直接修改狀態)
 state.data.push(newItem);
@@ -485,6 +489,7 @@ set({ data: [...state.data, newItem] });
 ```
 
 ### 問題 3: useEffect 無限循環
+
 ```typescript
 // ❌ 錯誤 (缺少依賴)
 useEffect(() => {
@@ -510,6 +515,7 @@ useEffect(() => {
 ## 🔗 與 OpenSpec 協作
 
 當實作 OpenSpec 變更時:
+
 1. 先查閱 `openspec/changes/<change-id>/specs/` 了解規格
 2. 遵循上述前端開發規範
 3. 確保實作符合 spec.md 中的所有 Scenarios
