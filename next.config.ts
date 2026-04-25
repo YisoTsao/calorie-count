@@ -1,4 +1,4 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   // Next.js 16.0.x bug: .next/dev/types/validator.ts imports AppRouteHandlerRoutes
