@@ -7,16 +7,18 @@ export async function GET(req: NextRequest) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
-      return NextResponse.json(
-        createErrorResponse('UNAUTHORIZED', '請先登入'),
-        { status: 401 }
-      );
+      return NextResponse.json(createErrorResponse('UNAUTHORIZED', '請先登入'), { status: 401 });
     }
 
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get('page') || '1');
     const pageSize = parseInt(searchParams.get('pageSize') || '10');
-    const status = searchParams.get('status') as 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'EDITED' | null;
+    const status = searchParams.get('status') as
+      | 'PROCESSING'
+      | 'COMPLETED'
+      | 'FAILED'
+      | 'EDITED'
+      | null;
 
     const where = {
       userId: session.user.id,
@@ -52,9 +54,6 @@ export async function GET(req: NextRequest) {
     );
   } catch (error) {
     console.error('List recognitions error:', error);
-    return NextResponse.json(
-      createErrorResponse('INTERNAL_ERROR', '查詢失敗'),
-      { status: 500 }
-    );
+    return NextResponse.json(createErrorResponse('INTERNAL_ERROR', '查詢失敗'), { status: 500 });
   }
 }

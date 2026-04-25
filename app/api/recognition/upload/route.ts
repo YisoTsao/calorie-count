@@ -18,10 +18,7 @@ export async function POST(req: NextRequest) {
     // 驗證使用者
     const session = await auth();
     if (!session?.user?.id) {
-      return NextResponse.json(
-        createErrorResponse('UNAUTHORIZED', '請先登入'),
-        { status: 401 }
-      );
+      return NextResponse.json(createErrorResponse('UNAUTHORIZED', '請先登入'), { status: 401 });
     }
 
     // 解析表單資料
@@ -29,18 +26,16 @@ export async function POST(req: NextRequest) {
     const file = formData.get('image') as File;
 
     if (!file) {
-      return NextResponse.json(
-        createErrorResponse('VALIDATION_ERROR', '請上傳圖片'),
-        { status: 400 }
-      );
+      return NextResponse.json(createErrorResponse('VALIDATION_ERROR', '請上傳圖片'), {
+        status: 400,
+      });
     }
 
     // 驗證檔案
     if (file.size > MAX_FILE_SIZE) {
-      return NextResponse.json(
-        createErrorResponse('VALIDATION_ERROR', '圖片大小不能超過 10MB'),
-        { status: 400 }
-      );
+      return NextResponse.json(createErrorResponse('VALIDATION_ERROR', '圖片大小不能超過 10MB'), {
+        status: 400,
+      });
     }
 
     if (!ALLOWED_TYPES.includes(file.type)) {
@@ -68,17 +63,17 @@ export async function POST(req: NextRequest) {
       // 使用本地檔案系統 (開發環境)
       const publicDir = join(process.cwd(), 'public', 'uploads', 'food-recognition');
       const userDir = join(publicDir, session.user.id);
-      
+
       // 確保目錄存在
       await mkdir(userDir, { recursive: true });
-      
+
       const ext = file.type.split('/')[1] || 'jpg';
       const fileName = `${Date.now()}.${ext}`;
       const filePath = join(userDir, fileName);
-      
+
       // 儲存檔案
       await writeFile(filePath, buffer);
-      
+
       // 生成公開 URL
       imageUrl = `/uploads/food-recognition/${session.user.id}/${fileName}`;
     }
@@ -107,10 +102,7 @@ export async function POST(req: NextRequest) {
     );
   } catch (error) {
     console.error('Upload error:', error);
-    return NextResponse.json(
-      createErrorResponse('INTERNAL_ERROR', '上傳失敗'),
-      { status: 500 }
-    );
+    return NextResponse.json(createErrorResponse('INTERNAL_ERROR', '上傳失敗'), { status: 500 });
   }
 }
 
