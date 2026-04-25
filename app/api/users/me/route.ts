@@ -12,10 +12,9 @@ export async function GET() {
     const session = await auth();
 
     if (!session?.user?.id) {
-      return NextResponse.json(
-        createErrorResponse('UNAUTHORIZED', '未授權，請先登入'),
-        { status: 401 }
-      );
+      return NextResponse.json(createErrorResponse('UNAUTHORIZED', '未授權，請先登入'), {
+        status: 401,
+      });
     }
 
     const user = await prisma.user.findUnique({
@@ -64,19 +63,17 @@ export async function GET() {
     });
 
     if (!user) {
-      return NextResponse.json(
-        createErrorResponse('NOT_FOUND', '找不到使用者資料'),
-        { status: 404 }
-      );
+      return NextResponse.json(createErrorResponse('NOT_FOUND', '找不到使用者資料'), {
+        status: 404,
+      });
     }
 
     return NextResponse.json(createSuccessResponse(user));
   } catch (error) {
     console.error('取得使用者資料錯誤:', error);
-    return NextResponse.json(
-      createErrorResponse('INTERNAL_ERROR', '取得使用者資料失敗'),
-      { status: 500 }
-    );
+    return NextResponse.json(createErrorResponse('INTERNAL_ERROR', '取得使用者資料失敗'), {
+      status: 500,
+    });
   }
 }
 
@@ -89,10 +86,9 @@ export async function PATCH(req: NextRequest) {
     const session = await auth();
 
     if (!session?.user?.id) {
-      return NextResponse.json(
-        createErrorResponse('UNAUTHORIZED', '未授權，請先登入'),
-        { status: 401 }
-      );
+      return NextResponse.json(createErrorResponse('UNAUTHORIZED', '未授權，請先登入'), {
+        status: 401,
+      });
     }
 
     const body = await req.json();
@@ -122,9 +118,8 @@ export async function PATCH(req: NextRequest) {
     );
   } catch (error) {
     console.error('更新使用者資料錯誤:', error);
-    return NextResponse.json(
-      createErrorResponse('INTERNAL_ERROR', '更新使用者資料失敗'),
-      { status: 500 }
-    );
+    return NextResponse.json(createErrorResponse('INTERNAL_ERROR', '更新使用者資料失敗'), {
+      status: 500,
+    });
   }
 }

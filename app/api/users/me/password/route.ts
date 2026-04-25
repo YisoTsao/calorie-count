@@ -35,10 +35,7 @@ export async function PATCH(req: NextRequest) {
     const isValidPassword = await compare(validated.currentPassword, user.password);
 
     if (!isValidPassword) {
-      return NextResponse.json(
-        createErrorResponse('BAD_REQUEST', '當前密碼錯誤'),
-        { status: 400 }
-      );
+      return NextResponse.json(createErrorResponse('BAD_REQUEST', '當前密碼錯誤'), { status: 400 });
     }
 
     // 加密新密碼
@@ -57,17 +54,15 @@ export async function PATCH(req: NextRequest) {
     );
   } catch (error) {
     console.error('密碼修改錯誤:', error);
-    
+
     if (error instanceof Error && error.name === 'ZodError') {
-      return NextResponse.json(
-        createErrorResponse('VALIDATION_ERROR', '輸入資料格式錯誤'),
-        { status: 400 }
-      );
+      return NextResponse.json(createErrorResponse('VALIDATION_ERROR', '輸入資料格式錯誤'), {
+        status: 400,
+      });
     }
 
-    return NextResponse.json(
-      createErrorResponse('INTERNAL_ERROR', '密碼修改失敗'),
-      { status: 500 }
-    );
+    return NextResponse.json(createErrorResponse('INTERNAL_ERROR', '密碼修改失敗'), {
+      status: 500,
+    });
   }
 }

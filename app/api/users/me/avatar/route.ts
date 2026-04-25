@@ -16,7 +16,9 @@ export async function POST(req: NextRequest) {
     const file = formData.get('avatar') as File;
 
     if (!file) {
-      return NextResponse.json(createErrorResponse('BAD_REQUEST', '請選擇圖片檔案'), { status: 400 });
+      return NextResponse.json(createErrorResponse('BAD_REQUEST', '請選擇圖片檔案'), {
+        status: 400,
+      });
     }
 
     // 驗證檔案
@@ -55,10 +57,9 @@ export async function POST(req: NextRequest) {
     );
   } catch (error) {
     console.error('頭像上傳錯誤:', error);
-    return NextResponse.json(
-      createErrorResponse('INTERNAL_ERROR', '頭像上傳失敗'),
-      { status: 500 }
-    );
+    return NextResponse.json(createErrorResponse('INTERNAL_ERROR', '頭像上傳失敗'), {
+      status: 500,
+    });
   }
 }
 
@@ -90,9 +91,8 @@ export async function DELETE() {
     );
   } catch (error) {
     console.error('頭像刪除錯誤:', error);
-    return NextResponse.json(
-      createErrorResponse('INTERNAL_ERROR', '頭像刪除失敗'),
-      { status: 500 }
-    );
+    return NextResponse.json(createErrorResponse('INTERNAL_ERROR', '頭像刪除失敗'), {
+      status: 500,
+    });
   }
 }

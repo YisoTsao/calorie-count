@@ -12,7 +12,7 @@ export async function GET() {
     }
 
     let preferences = await prisma.userPreferences.findUnique({
-      where: { userId: session.user.id }
+      where: { userId: session.user.id },
     });
 
     // 如果沒有偏好設定，建立預設值
@@ -27,13 +27,13 @@ export async function GET() {
           notificationWaterReminders: true,
           notificationGoalReminders: true,
           notificationSocialUpdates: true,
-        }
+        },
       });
     }
 
     return NextResponse.json({
       success: true,
-      data: preferences
+      data: preferences,
     });
   } catch (error) {
     console.error('Get preferences error:', error);
@@ -54,10 +54,12 @@ export async function PUT(request: NextRequest) {
       language: z.string().optional(),
       units: z.enum(['METRIC', 'IMPERIAL']).optional(),
       // 支援舊版 notifications 物件，也支援直接傳新版欄位
-      notifications: z.object({
-        mealReminder: z.boolean().optional(),
-        achievementNotif: z.boolean().optional(),
-      }).optional(),
+      notifications: z
+        .object({
+          mealReminder: z.boolean().optional(),
+          achievementNotif: z.boolean().optional(),
+        })
+        .optional(),
       notificationMealReminders: z.boolean().optional(),
       notificationWaterReminders: z.boolean().optional(),
       notificationGoalReminders: z.boolean().optional(),
@@ -89,10 +91,18 @@ export async function PUT(request: NextRequest) {
       ...(theme && { theme }),
       ...(language && { language }),
       ...(units && { units }),
-      ...(rest.notificationMealReminders !== undefined && { notificationMealReminders: rest.notificationMealReminders }),
-      ...(rest.notificationWaterReminders !== undefined && { notificationWaterReminders: rest.notificationWaterReminders }),
-      ...(rest.notificationGoalReminders !== undefined && { notificationGoalReminders: rest.notificationGoalReminders }),
-      ...(rest.notificationSocialUpdates !== undefined && { notificationSocialUpdates: rest.notificationSocialUpdates }),
+      ...(rest.notificationMealReminders !== undefined && {
+        notificationMealReminders: rest.notificationMealReminders,
+      }),
+      ...(rest.notificationWaterReminders !== undefined && {
+        notificationWaterReminders: rest.notificationWaterReminders,
+      }),
+      ...(rest.notificationGoalReminders !== undefined && {
+        notificationGoalReminders: rest.notificationGoalReminders,
+      }),
+      ...(rest.notificationSocialUpdates !== undefined && {
+        notificationSocialUpdates: rest.notificationSocialUpdates,
+      }),
       ...notifFields,
     };
 
@@ -113,7 +123,7 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      data: preferences
+      data: preferences,
     });
   } catch (error) {
     console.error('Update preferences error:', error);

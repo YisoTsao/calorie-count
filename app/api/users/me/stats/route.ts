@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { createSuccessResponse, createErrorResponse } from '@/lib/api-response';
 import { prisma } from '@/lib/prisma';
@@ -24,7 +24,7 @@ const ACTIVITY_LEVEL_MAP: Record<string, HealthActivityLevel> = {
   VERY_ACTIVE: 'EXTREMELY_ACTIVE',
 };
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     const session = await auth();
 
@@ -43,17 +43,14 @@ export async function GET(req: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.json(
-        createErrorResponse('NOT_FOUND', '使用者不存在'),
-        { status: 404 }
-      );
+      return NextResponse.json(createErrorResponse('NOT_FOUND', '使用者不存在'), { status: 404 });
     }
 
     const profile = user.profile;
     const goals = user.goals;
 
     // 基本統計
-    const stats: any = {
+    const stats: Record<string, unknown> = {
       hasProfile: !!profile,
       hasGoals: !!goals,
       profileCompleteness: 0,
@@ -73,7 +70,12 @@ export async function GET(req: NextRequest) {
       if (profile.dateOfBirth && profile.gender && profile.activityLevel) {
         const age = new Date().getFullYear() - new Date(profile.dateOfBirth).getFullYear();
         const healthActivityLevel = ACTIVITY_LEVEL_MAP[profile.activityLevel];
-        const bmr = calculateBMR(profile.weight, profile.height, age, profile.gender as HealthGender);
+        const bmr = calculateBMR(
+          profile.weight,
+          profile.height,
+          age,
+          profile.gender as HealthGender
+        );
         const tdee = calculateTDEE(bmr, healthActivityLevel);
 
         stats.bmr = bmr;
@@ -99,19 +101,11 @@ export async function GET(req: NextRequest) {
       }
 
       // 計算個人資料完整度
-      const profileFields = [
-        'height',
-        'weight',
-        'dateOfBirth',
-        'gender',
-        'activityLevel',
-      ];
+      const profileFields = ['height', 'weight', 'dateOfBirth', 'gender', 'activityLevel'];
       const completedFields = profileFields.filter(
         (field) => profile[field as keyof typeof profile] !== null
       );
-      stats.profileCompleteness = Math.round(
-        (completedFields.length / profileFields.length) * 100
-      );
+      stats.profileCompleteness = Math.round((completedFields.length / profileFields.length) * 100);
     }
 
     // 目標進度 (需要從其他表取得實際數據,這裡先模擬)
@@ -121,9 +115,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(createSuccessResponse(stats));
   } catch (error) {
     console.error('統計資料錯誤:', error);
-    return NextResponse.json(
-      createErrorResponse('INTERNAL_ERROR', '取得統計資料失敗'),
-      { status: 500 }
-    );
+    return NextResponse.json(createErrorResponse('INTERNAL_ERROR', '取得統計資料失敗'), {
+      status: 500,
+    });
   }
 }
