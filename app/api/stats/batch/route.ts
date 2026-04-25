@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Cookie': request.headers.get('cookie') || '',
+            Cookie: request.headers.get('cookie') || '',
           },
           body: JSON.stringify({ date: dateString }),
         });
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const successCount = results.filter(r => r.success).length;
+    const successCount = results.filter((r) => r.success).length;
 
     return NextResponse.json({
       success: true,
@@ -58,9 +58,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Batch stats calculation error:', error);
-    return NextResponse.json(
-      { error: '批量計算統計失敗' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: '批量計算統計失敗' }, { status: 500 });
   }
 }
