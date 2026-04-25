@@ -57,7 +57,7 @@ const foods = [
     servingSize: 100,
     servingUnit: '克',
   },
-  
+
   // 海鮮類
   {
     name: '鮭魚',
@@ -95,7 +95,7 @@ const foods = [
     servingSize: 100,
     servingUnit: '克',
   },
-  
+
   // 蛋奶類
   {
     name: '雞蛋',
@@ -133,7 +133,7 @@ const foods = [
     servingSize: 100,
     servingUnit: '克',
   },
-  
+
   // 蔬菜類
   {
     name: '花椰菜',
@@ -196,7 +196,7 @@ const foods = [
     servingSize: 100,
     servingUnit: '克',
   },
-  
+
   // 水果類
   {
     name: '香蕉',
@@ -250,7 +250,7 @@ const foods = [
     servingSize: 100,
     servingUnit: '克',
   },
-  
+
   // 五穀雜糧
   {
     name: '白飯',
@@ -313,7 +313,7 @@ const foods = [
     servingSize: 100,
     servingUnit: '克',
   },
-  
+
   // 豆類
   {
     name: '豆腐',
@@ -351,7 +351,7 @@ const foods = [
     servingSize: 100,
     servingUnit: '克',
   },
-  
+
   // 堅果類
   {
     name: '杏仁',
@@ -389,7 +389,7 @@ const foods = [
     servingSize: 32,
     servingUnit: '克',
   },
-  
+
   // 飲料
   {
     name: '黑咖啡',
@@ -464,7 +464,7 @@ async function main() {
     console.log('建立食物分類...');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const createdCategories: Record<string, any> = {};
-    
+
     for (const category of categories) {
       const created = await prisma.foodCategory.create({
         data: category,
@@ -476,10 +476,10 @@ async function main() {
     // 2. 建立食物
     console.log('\n建立食物資料...');
     let foodCount = 0;
-    
+
     for (const food of foods) {
       const categoryId = createdCategories[food.category]?.id;
-      
+
       if (!categoryId) {
         console.warn(`⚠️ 找不到分類: ${food.category}`);
         continue;
@@ -502,7 +502,7 @@ async function main() {
           isVerified: true,
         },
       });
-      
+
       foodCount++;
       console.log(`✓ 建立食物: ${food.name}`);
     }
