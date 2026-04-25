@@ -11,10 +11,7 @@ export async function GET() {
   try {
     const session = await auth();
     if (!session?.user?.id) {
-      return NextResponse.json(
-        createErrorResponse('UNAUTHORIZED', '請先登入'),
-        { status: 401 }
-      );
+      return NextResponse.json(createErrorResponse('UNAUTHORIZED', '請先登入'), { status: 401 });
     }
 
     // 查詢使用者目標和個人資料
@@ -41,18 +38,13 @@ export async function GET() {
         },
       });
 
-      return NextResponse.json(
-        createSuccessResponse({ goals: defaultGoals, profile })
-      );
+      return NextResponse.json(createSuccessResponse({ goals: defaultGoals, profile }));
     }
 
     return NextResponse.json(createSuccessResponse({ goals, profile }));
   } catch (error) {
     console.error('Get goals error:', error);
-    return NextResponse.json(
-      createErrorResponse('INTERNAL_ERROR', '查詢失敗'),
-      { status: 500 }
-    );
+    return NextResponse.json(createErrorResponse('INTERNAL_ERROR', '查詢失敗'), { status: 500 });
   }
 }
 
@@ -72,10 +64,7 @@ export async function POST(req: NextRequest) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
-      return NextResponse.json(
-        createErrorResponse('UNAUTHORIZED', '請先登入'),
-        { status: 401 }
-      );
+      return NextResponse.json(createErrorResponse('UNAUTHORIZED', '請先登入'), { status: 401 });
     }
 
     const body = await req.json();
@@ -84,10 +73,9 @@ export async function POST(req: NextRequest) {
     const validation = updateGoalsSchema.safeParse(body);
     if (!validation.success) {
       const firstError = validation.error.issues[0];
-      return NextResponse.json(
-        createErrorResponse('VALIDATION_ERROR', firstError.message),
-        { status: 400 }
-      );
+      return NextResponse.json(createErrorResponse('VALIDATION_ERROR', firstError.message), {
+        status: 400,
+      });
     }
 
     const { goalType, dailyCalorieGoal, proteinGoal, carbsGoal, fatGoal, waterGoal, targetDate } =
@@ -135,10 +123,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(createSuccessResponse({ goals }));
   } catch (error) {
     console.error('Update goals error:', error);
-    return NextResponse.json(
-      createErrorResponse('INTERNAL_ERROR', '更新失敗'),
-      { status: 500 }
-    );
+    return NextResponse.json(createErrorResponse('INTERNAL_ERROR', '更新失敗'), { status: 500 });
   }
 }
 
