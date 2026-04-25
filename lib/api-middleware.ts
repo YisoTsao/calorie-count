@@ -5,7 +5,14 @@
 
 import { NextResponse } from 'next/server';
 import { createErrorResponse } from '@/lib/api-response';
-import { AppError, ValidationError, UnauthorizedError, ForbiddenError, NotFoundError, ConflictError } from '@/lib/errors';
+import {
+  AppError,
+  ValidationError,
+  UnauthorizedError,
+  ForbiddenError,
+  NotFoundError,
+  ConflictError,
+} from '@/lib/errors';
 import { ZodError } from 'zod';
 
 /**
@@ -35,56 +42,38 @@ export function handleApiError(error: unknown): NextResponse {
   // Zod 驗證錯誤
   if (error instanceof ZodError) {
     return NextResponse.json(
-      createErrorResponse(
-        'VALIDATION_ERROR',
-        '輸入資料格式不正確',
-        error.issues
-      ),
+      createErrorResponse('VALIDATION_ERROR', '輸入資料格式不正確', error.issues),
       { status: 400 }
     );
   }
 
   // 自訂應用程式錯誤
   if (error instanceof ValidationError) {
-    return NextResponse.json(
-      createErrorResponse('VALIDATION_ERROR', error.message),
-      { status: 400 }
-    );
+    return NextResponse.json(createErrorResponse('VALIDATION_ERROR', error.message), {
+      status: 400,
+    });
   }
 
   if (error instanceof UnauthorizedError) {
-    return NextResponse.json(
-      createErrorResponse('UNAUTHORIZED', error.message),
-      { status: 401 }
-    );
+    return NextResponse.json(createErrorResponse('UNAUTHORIZED', error.message), { status: 401 });
   }
 
   if (error instanceof ForbiddenError) {
-    return NextResponse.json(
-      createErrorResponse('FORBIDDEN', error.message),
-      { status: 403 }
-    );
+    return NextResponse.json(createErrorResponse('FORBIDDEN', error.message), { status: 403 });
   }
 
   if (error instanceof NotFoundError) {
-    return NextResponse.json(
-      createErrorResponse('NOT_FOUND', error.message),
-      { status: 404 }
-    );
+    return NextResponse.json(createErrorResponse('NOT_FOUND', error.message), { status: 404 });
   }
 
   if (error instanceof ConflictError) {
-    return NextResponse.json(
-      createErrorResponse('CONFLICT', error.message),
-      { status: 409 }
-    );
+    return NextResponse.json(createErrorResponse('CONFLICT', error.message), { status: 409 });
   }
 
   if (error instanceof AppError) {
-    return NextResponse.json(
-      createErrorResponse(error.code, error.message),
-      { status: error.statusCode }
-    );
+    return NextResponse.json(createErrorResponse(error.code, error.message), {
+      status: error.statusCode,
+    });
   }
 
   // Prisma 錯誤
@@ -125,32 +114,25 @@ function handlePrismaError(error: any): NextResponse {
 
     case 'P2025':
       // Record not found
-      return NextResponse.json(
-        createErrorResponse('NOT_FOUND', '找不到指定的資料'),
-        { status: 404 }
-      );
+      return NextResponse.json(createErrorResponse('NOT_FOUND', '找不到指定的資料'), {
+        status: 404,
+      });
 
     case 'P2003':
       // Foreign key constraint violation
-      return NextResponse.json(
-        createErrorResponse('BAD_REQUEST', '資料關聯錯誤'),
-        { status: 400 }
-      );
+      return NextResponse.json(createErrorResponse('BAD_REQUEST', '資料關聯錯誤'), { status: 400 });
 
     case 'P2014':
       // Required relation violation
-      return NextResponse.json(
-        createErrorResponse('BAD_REQUEST', '缺少必要的關聯資料'),
-        { status: 400 }
-      );
+      return NextResponse.json(createErrorResponse('BAD_REQUEST', '缺少必要的關聯資料'), {
+        status: 400,
+      });
 
     default:
       return NextResponse.json(
         createErrorResponse(
           'DATABASE_ERROR',
-          process.env.NODE_ENV === 'development'
-            ? `資料庫錯誤: ${error.message}`
-            : '資料庫操作失敗'
+          process.env.NODE_ENV === 'development' ? `資料庫錯誤: ${error.message}` : '資料庫操作失敗'
         ),
         { status: 500 }
       );
@@ -165,12 +147,10 @@ export function validateRequiredFields<T extends Record<string, any>>(
   data: T,
   requiredFields: (keyof T)[]
 ): void {
-  const missingFields = requiredFields.filter(field => !data[field]);
+  const missingFields = requiredFields.filter((field) => !data[field]);
 
   if (missingFields.length > 0) {
-    throw new ValidationError(
-      `缺少必要欄位: ${missingFields.join(', ')}`
-    );
+    throw new ValidationError(`缺少必要欄位: ${missingFields.join(', ')}`);
   }
 }
 

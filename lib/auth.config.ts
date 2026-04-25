@@ -4,10 +4,21 @@
  */
 import type { NextAuthConfig } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
+import FacebookProvider from 'next-auth/providers/facebook';
+import LineProvider from 'next-auth/providers/line';
 import CredentialsProvider from 'next-auth/providers/credentials';
 
 // 公開路由（不需要登入）
-const publicRoutes = ['/login', '/register', '/verify-email', '/forgot-password', '/reset-password'];
+const publicRoutes = [
+  '/login',
+  '/register',
+  '/verify-email',
+  '/forgot-password',
+  '/reset-password',
+  '/terms',
+  '/privacy',
+  '/complete-profile',
+];
 // 已登入後不應再訪問的路由
 const authRoutes = ['/login', '/register'];
 
@@ -28,7 +39,29 @@ export const authConfig: NextAuthConfig = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID ?? '',
       clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? '',
+      // 允許已有 credentials 帳號的 email 透過 Google 登入（帳號合併）
+      allowDangerousEmailAccountLinking: true,
     }),
+    // Facebook Login（需設定 FACEBOOK_CLIENT_ID / FACEBOOK_CLIENT_SECRET）
+    ...(process.env.FACEBOOK_CLIENT_ID
+      ? [
+          FacebookProvider({
+            clientId: process.env.FACEBOOK_CLIENT_ID,
+            clientSecret: process.env.FACEBOOK_CLIENT_SECRET ?? '',
+            allowDangerousEmailAccountLinking: true,
+          }),
+        ]
+      : []),
+    // LINE Login（需設定 LINE_CLIENT_ID / LINE_CLIENT_SECRET）
+    ...(process.env.LINE_CLIENT_ID
+      ? [
+          LineProvider({
+            clientId: process.env.LINE_CLIENT_ID,
+            clientSecret: process.env.LINE_CLIENT_SECRET ?? '',
+            allowDangerousEmailAccountLinking: true,
+          }),
+        ]
+      : []),
     // CredentialsProvider 在 Edge 不能做 DB 查詢，只宣告佔位
     CredentialsProvider({
       name: 'credentials',

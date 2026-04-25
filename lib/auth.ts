@@ -45,7 +45,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           throw new Error('請先驗證您的 Email');
         }
 
-        return { id: user.id, email: user.email, name: user.name, image: user.image };
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          image: user.image,
+        };
       },
     }),
     // Google Provider 繼承自 authConfig（spread 已包含）
@@ -64,11 +69,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (account?.provider && account.provider !== 'credentials') {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.id as string },
+          select: { email: true, name: true, image: true },
         });
         if (dbUser) {
-          token.email = dbUser.email;
+          token.email = dbUser.email ?? undefined;
           token.name = dbUser.name ?? undefined;
           token.picture = dbUser.image ?? undefined;
+          // Log OAuth email for debugging
+          console.info(
+            `[auth:jwt] provider=${account.provider} email=${dbUser.email ?? '(none)'} userId=${token.id}`
+          );
         }
       }
 
@@ -83,11 +93,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   events: {
     async signIn({ user, account, isNewUser }) {
+      // OAuth 新用戶自動標記 emailVerified（已通過 OAuth 信任）
       if (isNewUser && account?.provider !== 'credentials') {
         await prisma.user.update({
           where: { id: user.id },
           data: { emailVerified: new Date() },
         });
+      }
+
+      // Log OAuth 登入資訊，確認 email 有正確取得
+
+      if (account && account.provider !== 'credentials') {
+        const linkedAccounts = await prisma.account.count({
+          where: { userId: user.id },
+        });
+        console.info(
+          `[auth:signIn] provider=${account.provider} email=${user.email ?? '(none)'} userId=${user.id} isNewUser=${isNewUser} linkedProviders=${linkedAccounts}`
+        );
       }
     },
   },
