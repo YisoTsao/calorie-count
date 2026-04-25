@@ -89,7 +89,7 @@ export async function recognizeFood(imageUrl: string): Promise<FoodRecognitionRe
     });
 
     const content = response.choices[0]?.message?.content;
-    
+
     if (!content) {
       throw new Error('No response from OpenAI');
     }
@@ -109,11 +109,11 @@ export async function recognizeFood(imageUrl: string): Promise<FoodRecognitionRe
     };
   } catch (error) {
     console.error('Food recognition error:', error);
-    
+
     if (error instanceof Error) {
       throw new Error(`食物辨識失敗: ${error.message}`);
     }
-    
+
     throw new Error('食物辨識過程發生未知錯誤');
   }
 }
@@ -132,10 +132,10 @@ export async function recognizeFoodWithRetry(
       return await recognizeFood(imageUrl);
     } catch (error) {
       lastError = error as Error;
-      
+
       if (attempt < maxRetries) {
         // 等待後重試 (指數退避)
-        await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+        await new Promise((resolve) => setTimeout(resolve, Math.pow(2, attempt) * 1000));
         continue;
       }
     }
@@ -153,7 +153,7 @@ export function validateRecognitionResult(result: FoodRecognitionResult): boolea
   }
 
   // 檢查每個食物項目是否有必要的欄位
-  return result.foods.every(food => {
+  return result.foods.every((food) => {
     return (
       food.name &&
       food.portion &&

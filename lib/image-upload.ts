@@ -38,12 +38,7 @@ export async function compressImage(
   buffer: Buffer,
   options: ImageUploadOptions = {}
 ): Promise<Buffer> {
-  const {
-    maxWidth = 1920,
-    maxHeight = 1920,
-    quality = 80,
-    format = 'webp',
-  } = options;
+  const { maxWidth = 1920, maxHeight = 1920, quality = 80, format = 'webp' } = options;
 
   let image = sharp(buffer);
 
@@ -51,7 +46,10 @@ export async function compressImage(
   const metadata = await image.metadata();
 
   // 如果圖片超過最大尺寸,進行縮放
-  if (metadata.width && metadata.width > maxWidth || metadata.height && metadata.height > maxHeight) {
+  if (
+    (metadata.width && metadata.width > maxWidth) ||
+    (metadata.height && metadata.height > maxHeight)
+  ) {
     image = image.resize(maxWidth, maxHeight, {
       fit: 'inside',
       withoutEnlargement: true,

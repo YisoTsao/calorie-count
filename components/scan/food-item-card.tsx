@@ -26,22 +26,15 @@ interface FoodItemCardProps {
   showActions?: boolean;
 }
 
-export function FoodItemCard({
-  food,
-  onEdit,
-  onDelete,
-  showActions = true,
-}: FoodItemCardProps) {
+export function FoodItemCard({ food, onEdit, onDelete, showActions = true }: FoodItemCardProps) {
   return (
     <Card>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <CardTitle className="text-lg">{food.name}</CardTitle>
-            {food.nameEn && (
-              <p className="text-sm text-muted-foreground">{food.nameEn}</p>
-            )}
-            <p className="text-sm text-muted-foreground mt-1">{food.portion}</p>
+            {food.nameEn && <p className="text-sm text-muted-foreground">{food.nameEn}</p>}
+            <p className="mt-1 text-sm text-muted-foreground">{food.portion}</p>
           </div>
           <div className="flex items-center gap-2">
             {food.isEdited && (
@@ -50,10 +43,7 @@ export function FoodItemCard({
               </Badge>
             )}
             {food.confidence !== null && food.confidence !== undefined && (
-              <Badge
-                variant={food.confidence > 0.7 ? 'default' : 'secondary'}
-                className="text-xs"
-              >
+              <Badge variant={food.confidence > 0.7 ? 'default' : 'secondary'} className="text-xs">
                 {Math.round(food.confidence * 100)}%
               </Badge>
             )}
@@ -99,7 +89,7 @@ export function FoodItemCard({
         </div>
 
         {showActions && (onEdit || onDelete) && (
-          <div className="flex gap-2 mt-4">
+          <div className="mt-4 flex gap-2">
             {onEdit && (
               <Button
                 variant="outline"
@@ -107,7 +97,7 @@ export function FoodItemCard({
                 onClick={() => onEdit(food.id)}
                 className="flex-1"
               >
-                <Edit2 className="h-4 w-4 mr-1" />
+                <Edit2 className="mr-1 h-4 w-4" />
                 編輯
               </Button>
             )}
@@ -118,7 +108,7 @@ export function FoodItemCard({
                 onClick={() => onDelete(food.id)}
                 className="flex-1"
               >
-                <Trash2 className="h-4 w-4 mr-1" />
+                <Trash2 className="mr-1 h-4 w-4" />
                 刪除
               </Button>
             )}

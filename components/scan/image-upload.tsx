@@ -80,18 +80,13 @@ export function ImageUpload({ onUpload, maxSize = 10 }: ImageUploadProps) {
 
   if (preview) {
     return (
-      <div className="relative w-full h-64">
-        <Image
-          src={preview}
-          alt="Preview"
-          fill
-          className="object-cover rounded-lg"
-        />
+      <div className="relative h-64 w-full">
+        <Image src={preview} alt="Preview" fill className="rounded-lg object-cover" />
         <Button
           variant="destructive"
           size="icon"
           onClick={clearPreview}
-          className="absolute top-2 right-2"
+          className="absolute right-2 top-2"
         >
           <X className="h-4 w-4" />
         </Button>
@@ -105,29 +100,16 @@ export function ImageUpload({ onUpload, maxSize = 10 }: ImageUploadProps) {
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       className={`
-        border-2 border-dashed rounded-lg p-8
-        transition-colors cursor-pointer
-        ${
-          isDragging
-            ? 'border-primary bg-primary/10'
-            : 'border-gray-300 hover:border-primary'
-        }
+        cursor-pointer rounded-lg border-2 border-dashed
+        p-8 transition-colors
+        ${isDragging ? 'border-primary bg-primary/10' : 'border-gray-300 hover:border-primary'}
       `}
     >
-      <label className="flex flex-col items-center justify-center cursor-pointer">
-        <Upload className="h-12 w-12 text-gray-400 mb-4" />
-        <p className="text-sm text-gray-600 mb-2">
-          拖曳圖片到此處或點擊上傳
-        </p>
-        <p className="text-xs text-gray-500">
-          支援 JPG, PNG, WebP (最大 {maxSize}MB)
-        </p>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleFileInput}
-          className="hidden"
-        />
+      <label className="flex cursor-pointer flex-col items-center justify-center">
+        <Upload className="mb-4 h-12 w-12 text-gray-400" />
+        <p className="mb-2 text-sm text-gray-600">拖曳圖片到此處或點擊上傳</p>
+        <p className="text-xs text-gray-500">支援 JPG, PNG, WebP (最大 {maxSize}MB)</p>
+        <input type="file" accept="image/*" onChange={handleFileInput} className="hidden" />
       </label>
     </div>
   );

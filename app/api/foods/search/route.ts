@@ -6,7 +6,7 @@ import { Prisma } from '@prisma/client';
 /**
  * GET /api/foods/search
  * 搜尋食物 - 支援關鍵字、分類篩選、分頁
- * 
+ *
  * Query Parameters:
  * - q: 搜尋關鍵字 (搜尋名稱)
  * - categoryId: 分類 ID (可選)
@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
 
     // 建立搜尋條件
     const where: Prisma.FoodWhereInput = {};
-    
+
     // 關鍵字搜尋
     if (query) {
       where.OR = [
@@ -49,20 +49,14 @@ export async function GET(request: NextRequest) {
     if (source && ['SYSTEM', 'USER', 'API'].includes(source)) {
       if (source === 'USER') {
         // 自訂食物: 只顯示使用者自己的食物
-        where.AND = [
-          { source: 'USER' },
-          { userId: session.user.id },
-        ];
+        where.AND = [{ source: 'USER' }, { userId: session.user.id }];
       } else {
         // 系統食物或 API 食物: 直接篩選來源
         where.source = source as 'SYSTEM' | 'USER' | 'API';
       }
     } else {
       // 預設顯示系統食物和使用者自己的食物
-      where.OR = [
-        { source: 'SYSTEM' },
-        { source: 'USER', userId: session.user.id },
-      ];
+      where.OR = [{ source: 'SYSTEM' }, { source: 'USER', userId: session.user.id }];
     }
 
     // 執行搜尋
@@ -105,31 +99,33 @@ export async function GET(request: NextRequest) {
     const userFavorites = await prisma.userFavoriteFood.findMany({
       where: {
         userId: session.user.id,
-        foodId: { in: foods.map(f => f.id) },
+        foodId: { in: foods.map((f) => f.id) },
       },
       select: {
         foodId: true,
       },
     });
 
-    const favoriteIds = new Set(userFavorites.map(f => f.foodId));
+    const favoriteIds = new Set(userFavorites.map((f) => f.foodId));
 
     // 加入 isFavorite 資訊
-    const foodsWithFavorite = foods.map(food => ({
+    const foodsWithFavorite = foods.map((food) => ({
       ...food,
       isFavorite: favoriteIds.has(food.id),
     }));
 
     // 更新搜尋計數 (非同步,不等待)
     if (query && foods.length > 0) {
-      prisma.food.updateMany({
-        where: {
-          id: { in: foods.map(f => f.id) },
-        },
-        data: {
-          searchCount: { increment: 1 },
-        },
-      }).catch(console.error);
+      prisma.food
+        .updateMany({
+          where: {
+            id: { in: foods.map((f) => f.id) },
+          },
+          data: {
+            searchCount: { increment: 1 },
+          },
+        })
+        .catch(console.error);
     }
 
     return NextResponse.json({
@@ -143,9 +139,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('搜尋食物失敗:', error);
-    return NextResponse.json(
-      { error: '搜尋失敗' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: '搜尋失敗' }, { status: 500 });
   }
 }

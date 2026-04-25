@@ -26,10 +26,7 @@ export async function DELETE(
     });
 
     if (!favorite) {
-      return NextResponse.json(
-        { error: '找不到該常用食物' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: '找不到該常用食物' }, { status: 404 });
     }
 
     // 刪除常用食物
@@ -42,9 +39,6 @@ export async function DELETE(
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('移除常用食物失敗:', error);
-    return NextResponse.json(
-      { error: '移除失敗' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: '移除失敗' }, { status: 500 });
   }
 }

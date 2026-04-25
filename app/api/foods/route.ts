@@ -33,12 +33,12 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    
+
     // 驗證資料
     const validationResult = createFoodSchema.safeParse(body);
     if (!validationResult.success) {
       return NextResponse.json(
-        { 
+        {
           error: '資料驗證失敗',
           details: validationResult.error.issues,
         },
@@ -54,10 +54,7 @@ export async function POST(request: NextRequest) {
         where: { id: data.categoryId },
       });
       if (!category) {
-        return NextResponse.json(
-          { error: '指定的分類不存在' },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: '指定的分類不存在' }, { status: 400 });
       }
     }
 
@@ -91,10 +88,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(food, { status: 201 });
   } catch (error) {
     console.error('建立食物失敗:', error);
-    return NextResponse.json(
-      { error: '建立失敗' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: '建立失敗' }, { status: 500 });
   }
 }
 
@@ -139,9 +133,6 @@ export async function GET() {
     return NextResponse.json({ foods });
   } catch (error) {
     console.error('取得自訂食物失敗:', error);
-    return NextResponse.json(
-      { error: '取得失敗' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: '取得失敗' }, { status: 500 });
   }
 }

@@ -6,10 +6,7 @@ import { prisma } from '@/lib/prisma';
  * GET /api/foods/[id]
  * 取得單一食物詳細資訊
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -78,10 +75,7 @@ export async function GET(
     });
   } catch (error) {
     console.error('取得食物詳情失敗:', error);
-    return NextResponse.json(
-      { error: '取得失敗' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: '取得失敗' }, { status: 500 });
   }
 }
 
@@ -89,10 +83,7 @@ export async function GET(
  * PUT /api/foods/[id]
  * 更新食物資訊 (僅限自訂食物)
  */
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -131,10 +122,7 @@ export async function PUT(
 
     // 驗證必填欄位
     if (!name || !categoryId || !servingSize || !servingUnit) {
-      return NextResponse.json(
-        { error: '請填寫所有必填欄位' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: '請填寫所有必填欄位' }, { status: 400 });
     }
 
     // 更新食物
@@ -173,10 +161,7 @@ export async function PUT(
     return NextResponse.json(updatedFood);
   } catch (error) {
     console.error('更新食物失敗:', error);
-    return NextResponse.json(
-      { error: '更新失敗' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: '更新失敗' }, { status: 500 });
   }
 }
 
@@ -218,9 +203,6 @@ export async function DELETE(
     return NextResponse.json({ message: '刪除成功' });
   } catch (error) {
     console.error('刪除食物失敗:', error);
-    return NextResponse.json(
-      { error: '刪除失敗' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: '刪除失敗' }, { status: 500 });
   }
 }

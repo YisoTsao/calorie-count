@@ -38,14 +38,11 @@ export async function GET() {
           },
         },
       },
-      orderBy: [
-        { useCount: 'desc' },
-        { lastUsed: 'desc' },
-      ],
+      orderBy: [{ useCount: 'desc' }, { lastUsed: 'desc' }],
     });
 
     return NextResponse.json({
-      favorites: favorites.map(f => ({
+      favorites: favorites.map((f) => ({
         ...f.food,
         favoriteInfo: {
           useCount: f.useCount,
@@ -55,10 +52,7 @@ export async function GET() {
     });
   } catch (error) {
     console.error('取得常用食物失敗:', error);
-    return NextResponse.json(
-      { error: '取得失敗' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: '取得失敗' }, { status: 500 });
   }
 }
 
@@ -76,10 +70,7 @@ export async function POST(request: NextRequest) {
     const { foodId, isFavorite } = await request.json();
 
     if (!foodId) {
-      return NextResponse.json(
-        { error: '缺少 foodId' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: '缺少 foodId' }, { status: 400 });
     }
 
     // 檢查食物是否存在
@@ -88,29 +79,28 @@ export async function POST(request: NextRequest) {
     });
 
     if (!food) {
-      return NextResponse.json(
-        { error: '食物不存在' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: '食物不存在' }, { status: 404 });
     }
 
     // 如果 isFavorite 為 false,則移除收藏
     if (isFavorite === false) {
-      await prisma.userFavoriteFood.delete({
-        where: {
-          userId_foodId: {
-            userId: session.user.id,
-            foodId,
+      await prisma.userFavoriteFood
+        .delete({
+          where: {
+            userId_foodId: {
+              userId: session.user.id,
+              foodId,
+            },
           },
-        },
-      }).catch(() => {
-        // 如果記錄不存在,忽略錯誤
-      });
+        })
+        .catch(() => {
+          // 如果記錄不存在,忽略錯誤
+        });
 
-      return NextResponse.json({ 
+      return NextResponse.json({
         success: true,
         isFavorite: false,
-        message: '已移除收藏' 
+        message: '已移除收藏',
       });
     }
 
@@ -133,17 +123,17 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({ 
-      success: true,
-      isFavorite: true,
-      favorite,
-      message: '已加入收藏' 
-    }, { status: 201 });
+    return NextResponse.json(
+      {
+        success: true,
+        isFavorite: true,
+        favorite,
+        message: '已加入收藏',
+      },
+      { status: 201 }
+    );
   } catch (error) {
     console.error('切換收藏狀態失敗:', error);
-    return NextResponse.json(
-      { error: '操作失敗' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: '操作失敗' }, { status: 500 });
   }
 }

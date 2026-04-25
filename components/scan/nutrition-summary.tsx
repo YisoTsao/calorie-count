@@ -41,7 +41,7 @@ export function NutritionSummary({ foods, dailyGoals }: NutritionSummaryProps) {
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
-          <div className="flex justify-between mb-2">
+          <div className="mb-2 flex justify-between">
             <span className="text-sm font-medium">熱量</span>
             <span className="text-sm">
               {totals.calories.toFixed(0)} {dailyGoals?.calories && `/ ${dailyGoals.calories}`} 大卡
@@ -53,7 +53,7 @@ export function NutritionSummary({ foods, dailyGoals }: NutritionSummaryProps) {
         </div>
 
         <div>
-          <div className="flex justify-between mb-2">
+          <div className="mb-2 flex justify-between">
             <span className="text-sm font-medium">蛋白質</span>
             <span className="text-sm">
               {totals.protein.toFixed(1)} {dailyGoals?.protein && `/ ${dailyGoals.protein}`}g
@@ -68,7 +68,7 @@ export function NutritionSummary({ foods, dailyGoals }: NutritionSummaryProps) {
         </div>
 
         <div>
-          <div className="flex justify-between mb-2">
+          <div className="mb-2 flex justify-between">
             <span className="text-sm font-medium">碳水化合物</span>
             <span className="text-sm">
               {totals.carbs.toFixed(1)} {dailyGoals?.carbs && `/ ${dailyGoals.carbs}`}g
@@ -83,7 +83,7 @@ export function NutritionSummary({ foods, dailyGoals }: NutritionSummaryProps) {
         </div>
 
         <div>
-          <div className="flex justify-between mb-2">
+          <div className="mb-2 flex justify-between">
             <span className="text-sm font-medium">脂肪</span>
             <span className="text-sm">
               {totals.fat.toFixed(1)} {dailyGoals?.fat && `/ ${dailyGoals.fat}`}g

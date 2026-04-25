@@ -29,9 +29,6 @@ export async function GET() {
     return NextResponse.json({ categories });
   } catch (error) {
     console.error('取得食物分類失敗:', error);
-    return NextResponse.json(
-      { error: '取得失敗' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: '取得失敗' }, { status: 500 });
   }
 }

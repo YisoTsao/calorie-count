@@ -5,20 +5,20 @@ import { z } from 'zod';
 
 // Exercise types and their MET values (Metabolic Equivalent of Task)
 const EXERCISE_TYPES = {
-  '慢跑': 7.0,
-  '快跑': 11.0,
-  '步行': 3.5,
-  '游泳': 8.0,
-  '騎自行車': 6.8,
-  '重量訓練': 6.0,
-  '瑜伽': 3.0,
-  '有氧運動': 7.3,
-  '爬樓梯': 8.8,
-  '跳繩': 12.3,
-  '籃球': 6.5,
-  '羽毛球': 5.5,
-  '網球': 7.3,
-  '其他': 5.0,
+  慢跑: 7.0,
+  快跑: 11.0,
+  步行: 3.5,
+  游泳: 8.0,
+  騎自行車: 6.8,
+  重量訓練: 6.0,
+  瑜伽: 3.0,
+  有氧運動: 7.3,
+  爬樓梯: 8.8,
+  跳繩: 12.3,
+  籃球: 6.5,
+  羽毛球: 5.5,
+  網球: 7.3,
+  其他: 5.0,
 };
 
 // Calculate calories burned: MET × weight(kg) × duration(hours)
@@ -88,10 +88,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Add exercise error:', error);
-    return NextResponse.json(
-      { error: '新增失敗' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: '新增失敗' }, { status: 500 });
   }
 }
 
@@ -108,7 +105,7 @@ export async function GET(request: NextRequest) {
     const startDateParam = searchParams.get('startDate');
     const endDateParam = searchParams.get('endDate');
     const limitParam = searchParams.get('limit');
-    
+
     const whereClause: {
       userId: string;
       date?: {
@@ -124,7 +121,7 @@ export async function GET(request: NextRequest) {
       const queryDate = new Date(dateParam + 'T00:00:00.000Z');
       const nextDate = new Date(dateParam + 'T00:00:00.000Z');
       nextDate.setDate(nextDate.getDate() + 1);
-      
+
       whereClause.date = {
         gte: queryDate,
         lt: nextDate,
@@ -135,7 +132,7 @@ export async function GET(request: NextRequest) {
       const startDate = new Date(startDateParam + 'T00:00:00.000Z');
       const endDate = new Date(endDateParam + 'T00:00:00.000Z');
       endDate.setDate(endDate.getDate() + 1); // Include end date
-      
+
       whereClause.date = {
         gte: startDate,
         lt: endDate,
@@ -151,8 +148,14 @@ export async function GET(request: NextRequest) {
     });
 
     // Calculate totals
-    const totalDuration = exercises.reduce((sum: number, ex: { duration: number; calories: number }) => sum + ex.duration, 0);
-    const totalCalories = exercises.reduce((sum: number, ex: { duration: number; calories: number }) => sum + ex.calories, 0);
+    const totalDuration = exercises.reduce(
+      (sum: number, ex: { duration: number; calories: number }) => sum + ex.duration,
+      0
+    );
+    const totalCalories = exercises.reduce(
+      (sum: number, ex: { duration: number; calories: number }) => sum + ex.calories,
+      0
+    );
 
     return NextResponse.json({
       success: true,
@@ -171,10 +174,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Get exercises error:', error);
-    return NextResponse.json(
-      { error: '查詢失敗' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: '查詢失敗' }, { status: 500 });
   }
 }
 
@@ -190,10 +190,7 @@ export async function DELETE(request: NextRequest) {
     const id = searchParams.get('id');
 
     if (!id) {
-      return NextResponse.json(
-        { error: '缺少 id 參數' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: '缺少 id 參數' }, { status: 400 });
     }
 
     // Find and verify ownership
@@ -205,10 +202,7 @@ export async function DELETE(request: NextRequest) {
     });
 
     if (!exercise) {
-      return NextResponse.json(
-        { error: '找不到此記錄或無權限刪除' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: '找不到此記錄或無權限刪除' }, { status: 404 });
     }
 
     // Delete
@@ -222,10 +216,7 @@ export async function DELETE(request: NextRequest) {
     });
   } catch (error) {
     console.error('Delete exercise error:', error);
-    return NextResponse.json(
-      { error: '刪除失敗' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: '刪除失敗' }, { status: 500 });
   }
 }
 
@@ -241,10 +232,7 @@ export async function PUT(request: NextRequest) {
     const id = searchParams.get('id');
 
     if (!id) {
-      return NextResponse.json(
-        { error: '缺少 id 參數' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: '缺少 id 參數' }, { status: 400 });
     }
 
     const updateExerciseSchema = z.object({
@@ -273,14 +261,11 @@ export async function PUT(request: NextRequest) {
     });
 
     if (!exercise) {
-      return NextResponse.json(
-        { error: '找不到此記錄或無權限修改' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: '找不到此記錄或無權限修改' }, { status: 404 });
     }
 
     const { type, duration, calories, notes } = validation.data;
-    
+
     // Recalculate calories if type or duration changed
     let calculatedCalories = calories;
     if ((type || duration) && !calories) {
@@ -311,10 +296,7 @@ export async function PUT(request: NextRequest) {
     });
   } catch (error) {
     console.error('Update exercise error:', error);
-    return NextResponse.json(
-      { error: '更新失敗' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: '更新失敗' }, { status: 500 });
   }
 }
 

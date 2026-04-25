@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   LineChart,
@@ -13,7 +13,7 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-} from "recharts";
+} from 'recharts';
 
 interface TrendChartProps {
   data: Array<{
@@ -26,18 +26,28 @@ interface TrendChartProps {
     exercise?: number;
     weight?: number;
   }>;
-  type: "calories" | "nutrients" | "water" | "exercise" | "weight";
+  type: 'calories' | 'nutrients' | 'water' | 'exercise' | 'weight';
   title: string;
 }
 
 export default function TrendChart({ data, type, title }: TrendChartProps) {
   if (data.length === 0) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-lg font-semibold mb-4">{title}</h3>
-        <div className="flex flex-col items-center justify-center h-48 text-gray-400 gap-2">
-          <svg className="w-10 h-10 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+      <div className="rounded-lg bg-white p-6 shadow-md">
+        <h3 className="mb-4 text-lg font-semibold">{title}</h3>
+        <div className="flex h-48 flex-col items-center justify-center gap-2 text-gray-400">
+          <svg
+            className="h-10 w-10 opacity-30"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+            />
           </svg>
           <p className="text-sm">尚無資料，開始記錄後顯示趨勢圖</p>
         </div>
@@ -70,9 +80,9 @@ export default function TrendChart({ data, type, title }: TrendChartProps) {
 
   const tooltipStyle = {
     contentStyle: {
-      backgroundColor: "#fff",
-      border: "1px solid #e5e7eb",
-      borderRadius: "8px",
+      backgroundColor: '#fff',
+      border: '1px solid #e5e7eb',
+      borderRadius: '8px',
     },
   };
 
@@ -80,18 +90,18 @@ export default function TrendChart({ data, type, title }: TrendChartProps) {
     <XAxis
       dataKey="date"
       stroke="#888"
-      style={{ fontSize: "11px" }}
+      style={{ fontSize: '11px' }}
       interval={tickInterval}
       tick={{ fontSize: 11 }}
     />
   );
 
-  const yAxis = <YAxis stroke="#888" style={{ fontSize: "12px" }} />;
+  const yAxis = <YAxis stroke="#888" style={{ fontSize: '12px' }} />;
 
   const grid = <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />;
 
   const innerChart = (() => {
-    if (type === "calories")
+    if (type === 'calories')
       return (
         <AreaChart data={chartData}>
           <defs>
@@ -115,7 +125,7 @@ export default function TrendChart({ data, type, title }: TrendChartProps) {
         </AreaChart>
       );
 
-    if (type === "nutrients")
+    if (type === 'nutrients')
       return (
         <LineChart data={chartData}>
           {grid}
@@ -150,7 +160,7 @@ export default function TrendChart({ data, type, title }: TrendChartProps) {
         </LineChart>
       );
 
-    if (type === "water")
+    if (type === 'water')
       return (
         <BarChart data={chartData}>
           {grid}
@@ -167,7 +177,7 @@ export default function TrendChart({ data, type, title }: TrendChartProps) {
         </BarChart>
       );
 
-    if (type === "exercise")
+    if (type === 'exercise')
       return (
         <BarChart data={chartData}>
           {grid}
@@ -189,21 +199,14 @@ export default function TrendChart({ data, type, title }: TrendChartProps) {
       <LineChart data={chartData}>
         {grid}
         {xAxis}
-        <YAxis
-          stroke="#888"
-          style={{ fontSize: "12px" }}
-          domain={["dataMin - 2", "dataMax + 2"]}
-        />
-        <Tooltip
-          {...tooltipStyle}
-          formatter={(v) => [`${v} kg`, "體重"]}
-        />
+        <YAxis stroke="#888" style={{ fontSize: '12px' }} domain={['dataMin - 2', 'dataMax + 2']} />
+        <Tooltip {...tooltipStyle} formatter={(v) => [`${v} kg`, '體重']} />
         <Line
           type="monotone"
           dataKey="weight"
           stroke="#9333ea"
           strokeWidth={3}
-          dot={{ fill: "#9333ea", r: 4 }}
+          dot={{ fill: '#9333ea', r: 4 }}
           name="體重 (kg)"
           connectNulls={false}
         />
@@ -212,8 +215,8 @@ export default function TrendChart({ data, type, title }: TrendChartProps) {
   })();
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <h3 className="text-lg font-semibold mb-4">{title}</h3>
+    <div className="rounded-lg bg-white p-6 shadow-md">
+      <h3 className="mb-4 text-lg font-semibold">{title}</h3>
 
       {needsWideLayout ? (
         // 寬圖表：橫向滾動
