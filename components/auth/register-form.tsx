@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
+import { useTranslations } from 'next-intl';
 import { registerSchema, type RegisterInput } from '@/lib/validations/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,6 +21,7 @@ import { ErrorMessage } from '@/components/ui/error-message';
 import { Icon } from '@iconify/react';
 
 export const RegisterForm: React.FC = () => {
+  const t = useTranslations('auth.register');
   const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState<string>('');
@@ -62,7 +64,7 @@ export const RegisterForm: React.FC = () => {
       const result = await response.json();
 
       if (!response.ok) {
-        setError(result.error?.message || '註冊失敗，請稍後再試');
+        setError(result.error?.message || t('errors.generic'));
         return;
       }
 
@@ -74,14 +76,14 @@ export const RegisterForm: React.FC = () => {
       });
 
       if (signInResult?.error) {
-        setError('註冊成功但登入失敗，請嘗試手動登入');
+        setError(t('errors.loginFailed'));
         router.push('/login');
       } else {
         router.push(callbackUrl);
         router.refresh();
       }
     } catch {
-      setError('註冊時發生錯誤，請稍後再試');
+      setError(t('errors.generic'));
     } finally {
       setIsLoading(false);
     }
@@ -95,9 +97,9 @@ export const RegisterForm: React.FC = () => {
   return (
     <div className="w-full space-y-6">
       <div className="space-y-2 text-center">
-        <h1 className="text-3xl font-bold">註冊</h1>
+        <h1 className="text-3xl font-bold">{t('title')}</h1>
         <p className="text-muted-foreground">
-          建立您的帳號以開始使用
+          {t('subtitle')}
         </p>
       </div>
 
@@ -110,11 +112,11 @@ export const RegisterForm: React.FC = () => {
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>姓名</FormLabel>
+                <FormLabel>{t('name')}</FormLabel>
                 <FormControl>
                   <Input
                     type="text"
-                    placeholder="您的姓名"
+                    placeholder={t('namePlaceholder')}
                     disabled={isLoading}
                     {...field}
                   />
@@ -148,7 +150,7 @@ export const RegisterForm: React.FC = () => {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>密碼</FormLabel>
+                <FormLabel>{t('password')}</FormLabel>
                 <FormControl>
                   <Input
                     type="password"
@@ -167,7 +169,7 @@ export const RegisterForm: React.FC = () => {
             name="confirmPassword"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>確認密碼</FormLabel>
+                <FormLabel>{t('confirmPassword')}</FormLabel>
                 <FormControl>
                   <Input
                     type="password"
@@ -186,7 +188,7 @@ export const RegisterForm: React.FC = () => {
             className="w-full"
             disabled={isLoading}
           >
-            {isLoading ? '註冊中...' : '註冊'}
+            {isLoading ? t('submitting') : t('submit')}
           </Button>
         </form>
       </Form>
@@ -197,7 +199,7 @@ export const RegisterForm: React.FC = () => {
         </div>
         <div className="relative flex justify-center text-xs uppercase">
           <span className="bg-background px-2 text-muted-foreground">
-            或使用
+            {t('title')}
           </span>
         </div>
       </div>
@@ -210,13 +212,13 @@ export const RegisterForm: React.FC = () => {
         disabled={isLoading}
       >
         <Icon icon="logos:google-icon" className="mr-2 h-4 w-4" />
-        使用 Google 註冊
+        {t('withGoogle') ?? 'Google Sign Up'}
       </Button>
 
       <p className="text-center text-sm text-muted-foreground">
-        已經有帳號了？{' '}
+        {t('alreadyHaveAccount')}{' '}
         <a href="/login" className="text-primary hover:underline">
-          立即登入
+          {t('loginLink')}
         </a>
       </p>
     </div>

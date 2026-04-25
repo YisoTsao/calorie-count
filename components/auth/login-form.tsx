@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
+import { useTranslations } from 'next-intl';
 import { loginSchema, type LoginInput } from '@/lib/validations/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,6 +21,7 @@ import { ErrorMessage } from '@/components/ui/error-message';
 import { Icon } from '@iconify/react';
 
 export const LoginForm: React.FC = () => {
+  const t = useTranslations('auth.login');
   const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState<string>('');
@@ -60,13 +62,13 @@ export const LoginForm: React.FC = () => {
       });
 
       if (result?.error) {
-        setError('Email 或密碼錯誤');
+        setError(t('errors.invalidCredentials'));
       } else {
         router.push(callbackUrl);
         router.refresh();
       }
     } catch (err) {
-      setError('登入時發生錯誤，請稍後再試');
+      setError(t('errors.generic'));
     } finally {
       setIsLoading(false);
     }
@@ -80,9 +82,9 @@ export const LoginForm: React.FC = () => {
   return (
     <div className="w-full space-y-6">
       <div className="space-y-2 text-center">
-        <h1 className="text-3xl font-bold">登入</h1>
+        <h1 className="text-3xl font-bold">{t('title')}</h1>
         <p className="text-muted-foreground">
-          輸入您的帳號資訊以登入
+          {t('description')}
         </p>
       </div>
 
@@ -114,7 +116,7 @@ export const LoginForm: React.FC = () => {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>密碼</FormLabel>
+                <FormLabel>{t('password')}</FormLabel>
                 <FormControl>
                   <Input
                     type="password"
@@ -135,13 +137,13 @@ export const LoginForm: React.FC = () => {
                 {...form.register('rememberMe')}
                 className="rounded border-gray-300"
               />
-              記住我
+              {t('rememberMe')}
             </label>
             <a
               href="/forgot-password"
               className="text-sm text-primary hover:underline"
             >
-              忘記密碼？
+              {t('forgotPassword')}
             </a>
           </div>
 
@@ -150,7 +152,7 @@ export const LoginForm: React.FC = () => {
             className="w-full"
             disabled={isLoading}
           >
-            {isLoading ? '登入中...' : '登入'}
+            {isLoading ? t('submitting') : t('submit')}
           </Button>
         </form>
       </Form>
@@ -161,7 +163,7 @@ export const LoginForm: React.FC = () => {
         </div>
         <div className="relative flex justify-center text-xs uppercase">
           <span className="bg-background px-2 text-muted-foreground">
-            或使用
+            {t('orContinueWith')}
           </span>
         </div>
       </div>
@@ -174,13 +176,13 @@ export const LoginForm: React.FC = () => {
         disabled={isLoading}
       >
         <Icon icon="logos:google-icon" className="mr-2 h-4 w-4" />
-        使用 Google 登入
+        {t('withGoogle')}
       </Button>
 
       <p className="text-center text-sm text-muted-foreground">
-        還沒有帳號？{' '}
+        {t('noAccount')}{' '}
         <a href="/register" className="text-primary hover:underline">
-          立即註冊
+          {t('registerLink')}
         </a>
       </p>
     </div>

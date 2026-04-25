@@ -1,0 +1,8 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^cd /Users/tsaoyiso/Desktop/react/calorie-count && python3 -c \"\nimport re\nwith open\\('app/\\[locale\\]/\\(dashboard\\)/meals/page\\.tsx', 'r'\\) as f:\n    for i, line in enumerate\\(f, 1\\):\n        if re\\.search\\(r'\\[\\\\u4e00-\\\\u9fff\\]', line\\) and 'console' not in line:\n            print\\(f'\\{i\\}: \\{line\\}', end=''\\)\n\" \\| tail -100$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}

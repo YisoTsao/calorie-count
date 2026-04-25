@@ -3,8 +3,10 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { signOut } from 'next-auth/react';
+import { useTranslations } from 'next-intl';
 import { Icon } from '@iconify/react';
 import { Button } from '@/components/ui/button';
+import { LocaleSwitcher } from '@/components/ui/LocaleSwitcher';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,6 +27,8 @@ interface NavbarProps {
 }
 
 export function Navbar({ user, isSidebarOpen = false, onToggleSidebar }: NavbarProps) {
+  const t = useTranslations('nav');
+
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-white dark:bg-gray-900 dark:border-gray-800">
       <div className="container mx-auto px-4">
@@ -36,11 +40,9 @@ export function Navbar({ user, isSidebarOpen = false, onToggleSidebar }: NavbarP
           </Link>
 
           {/* User Menu */}
-          <div className="flex items-center gap-4">
-            {/* Notifications */}
-            {/* <Button variant="ghost" size="icon" className="hidden md:flex">
-              <Icon icon="lucide:bell" className="h-5 w-5" />
-            </Button> */}
+          <div className="flex items-center gap-2">
+            {/* Language Switcher */}
+            <LocaleSwitcher />
 
             {/* User Dropdown */}
             <DropdownMenu>
@@ -74,19 +76,19 @@ export function Navbar({ user, isSidebarOpen = false, onToggleSidebar }: NavbarP
                 <DropdownMenuItem asChild>
                   <Link href="/profile" className="cursor-pointer">
                     <Icon icon="lucide:user" className="mr-2 h-4 w-4" />
-                    個人資料
+                    {t('myProfile')}
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/settings" className="cursor-pointer">
                     <Icon icon="lucide:settings" className="mr-2 h-4 w-4" />
-                    設定
+                    {t('mySettings')}
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/achievements" className="cursor-pointer">
                     <Icon icon="lucide:trophy" className="mr-2 h-4 w-4" />
-                    成就
+                    {t('myAchievements')}
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -96,7 +98,7 @@ export function Navbar({ user, isSidebarOpen = false, onToggleSidebar }: NavbarP
                     onClick={() => signOut({ callbackUrl: '/login' })}
                   >
                     <Icon icon="lucide:log-out" className="mr-2 h-4 w-4" />
-                    登出
+                    {t('logout')}
                   </button>
                 </DropdownMenuItem>
               </DropdownMenuContent>

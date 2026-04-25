@@ -1,0 +1,126 @@
+"use client";
+
+import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
+import { Camera } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { CameraCapture } from "@/components/scan/camera-capture";
+import { ImageUpload } from "@/components/scan/image-upload";
+import { compressImageFromSrc } from "@/lib/client-image-compress";
+
+export default function ScanPage() {
+  const t = useTranslations('scan');
+  const tc = useTranslations('common');
+  const router = useRouter();
+  const [showCamera, setShowCamera] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleCapture = async (imageSrc: string) => {
+    setShowCamera(false);
+    await uploadImage(imageSrc);
+  };
+
+  const handleUpload = async (file: File) => {
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const imageSrc = e.target?.result as string;
+      await uploadImage(imageSrc);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const uploadImage = async (imageSrc: string) => {
+    try {
+      setIsUploading(true);
+
+      // 壓縮圖片
+      const compressedBlob = await compressImageFromSrc(imageSrc, {
+        maxWidth: 1920,
+        maxHeight: 1920,
+        quality: 0.85,
+        format: "image/webp",
+      });
+
+      // 建立 FormData
+      const formData = new FormData();
+      formData.append("image", compressedBlob, "food.webp");
+
+      // 上傳圖片
+      const uploadResponse = await fetch("/api/recognition/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error(tc('error'));
+      }
+
+      const data = await uploadResponse.json();
+
+      // 跳轉到結果頁面
+      router.push(`/scan/result/${data.data.recognition.id}`);
+    } catch (error) {
+      console.error("Upload error:", error);
+      alert(tc('error'));
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  if (showCamera) {
+    return (
+      <CameraCapture
+        onCapture={handleCapture}
+        onClose={() => setShowCamera(false)}
+      />
+    );
+  }
+
+  return (
+    <div className="container max-w-2xl mx-auto p-6 space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold mb-2">{t('title')}</h1>
+        <p className="text-muted-foreground">
+          {t('subtitle')}
+        </p>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('selectMethod')}</CardTitle>
+          <CardDescription>{t('selectMethodDesc')}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Button
+            size="lg"
+            className="w-full"
+            onClick={() => setShowCamera(true)}
+            disabled={isUploading}
+          >
+            <Camera className="h-5 w-5 mr-2" />
+            {isUploading ? t('analyzing') : t('takePhoto')}
+          </Button>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">{tc('or')}</span>
+            </div>
+          </div>
+
+          <ImageUpload onUpload={handleUpload} />
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
