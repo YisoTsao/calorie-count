@@ -16,9 +16,7 @@ export async function POST(request: NextRequest) {
     // 驗證輸入
     const result = resetPasswordSchema.safeParse(body);
     if (!result.success) {
-      throw new ValidationError(
-        result.error.issues.map((e) => e.message).join(', ')
-      );
+      throw new ValidationError(result.error.issues.map((e) => e.message).join(', '));
     }
 
     const { token, password } = result.data;
@@ -74,23 +72,18 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     if (error instanceof ValidationError) {
-      return NextResponse.json(
-        createErrorResponse('VALIDATION_ERROR', error.message),
-        { status: 400 }
-      );
+      return NextResponse.json(createErrorResponse('VALIDATION_ERROR', error.message), {
+        status: 400,
+      });
     }
 
     if (error instanceof NotFoundError) {
-      return NextResponse.json(
-        createErrorResponse('NOT_FOUND', error.message),
-        { status: 404 }
-      );
+      return NextResponse.json(createErrorResponse('NOT_FOUND', error.message), { status: 404 });
     }
 
     console.error('Reset password error:', error);
-    return NextResponse.json(
-      createErrorResponse('INTERNAL_ERROR', '重置密碼失敗，請稍後再試'),
-      { status: 500 }
-    );
+    return NextResponse.json(createErrorResponse('INTERNAL_ERROR', '重置密碼失敗，請稍後再試'), {
+      status: 500,
+    });
   }
 }

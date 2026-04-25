@@ -3,25 +3,30 @@ import { z } from 'zod';
 /**
  * 註冊 Schema
  */
-export const registerSchema = z.object({
-  email: z.string().email({ message: 'Email 格式不正確' }),
-  password: z
-    .string()
-    .min(8, { message: '密碼至少需要 8 個字元' })
-    .regex(/[A-Z]/, { message: '密碼需包含至少一個大寫字母' })
-    .regex(/[a-z]/, { message: '密碼需包含至少一個小寫字母' })
-    .regex(/[0-9]/, { message: '密碼需包含至少一個數字' }),
-  name: z.string().min(1, { message: '姓名為必填項目' }).max(50),
-  // confirmPassword 改為可選：若前端未送出，仍允許註冊
-  confirmPassword: z.string().optional(),
-}).refine((data) => {
-  // 只有在前端提供 confirmPassword 時，才檢查是否一致
-  if (typeof data.confirmPassword === 'undefined') return true;
-  return data.password === data.confirmPassword;
-}, {
-  message: '密碼不一致',
-  path: ['confirmPassword'],
-});
+export const registerSchema = z
+  .object({
+    email: z.string().email({ message: 'Email 格式不正確' }),
+    password: z
+      .string()
+      .min(8, { message: '密碼至少需要 8 個字元' })
+      .regex(/[A-Z]/, { message: '密碼需包含至少一個大寫字母' })
+      .regex(/[a-z]/, { message: '密碼需包含至少一個小寫字母' })
+      .regex(/[0-9]/, { message: '密碼需包含至少一個數字' }),
+    name: z.string().min(1, { message: '姓名為必填項目' }).max(50),
+    // confirmPassword 改為可選：若前端未送出，仍允許註冊
+    confirmPassword: z.string().optional(),
+  })
+  .refine(
+    (data) => {
+      // 只有在前端提供 confirmPassword 時，才檢查是否一致
+      if (typeof data.confirmPassword === 'undefined') return true;
+      return data.password === data.confirmPassword;
+    },
+    {
+      message: '密碼不一致',
+      path: ['confirmPassword'],
+    }
+  );
 
 export type RegisterInput = z.infer<typeof registerSchema>;
 
@@ -48,19 +53,21 @@ export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 /**
  * 重置密碼 Schema
  */
-export const resetPasswordSchema = z.object({
-  token: z.string().min(1, { message: 'Token 為必填項目' }),
-  password: z
-    .string()
-    .min(8, { message: '密碼至少需要 8 個字元' })
-    .regex(/[A-Z]/, { message: '密碼需包含至少一個大寫字母' })
-    .regex(/[a-z]/, { message: '密碼需包含至少一個小寫字母' })
-    .regex(/[0-9]/, { message: '密碼需包含至少一個數字' }),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: '密碼不一致',
-  path: ['confirmPassword'],
-});
+export const resetPasswordSchema = z
+  .object({
+    token: z.string().min(1, { message: 'Token 為必填項目' }),
+    password: z
+      .string()
+      .min(8, { message: '密碼至少需要 8 個字元' })
+      .regex(/[A-Z]/, { message: '密碼需包含至少一個大寫字母' })
+      .regex(/[a-z]/, { message: '密碼需包含至少一個小寫字母' })
+      .regex(/[0-9]/, { message: '密碼需包含至少一個數字' }),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: '密碼不一致',
+    path: ['confirmPassword'],
+  });
 
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 

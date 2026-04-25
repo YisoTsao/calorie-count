@@ -5,7 +5,7 @@ export async function POST() {
   try {
     // 清除 NextAuth cookies
     const cookieStore = await cookies();
-    
+
     // NextAuth 使用的 cookie 名稱
     const cookieNames = [
       'next-auth.session-token',
@@ -33,9 +33,6 @@ export async function POST() {
     );
   } catch (error) {
     console.error('登出失敗:', error);
-    return NextResponse.json(
-      { success: false, error: '登出失敗' },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: '登出失敗' }, { status: 500 });
   }
 }

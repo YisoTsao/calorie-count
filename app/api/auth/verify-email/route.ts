@@ -11,22 +11,20 @@ export async function POST(req: NextRequest) {
     const { token } = await req.json();
 
     if (!token) {
-      return NextResponse.json(
-        createErrorResponse('VALIDATION_ERROR', '缺少驗證 token'),
-        { status: 400 }
-      );
+      return NextResponse.json(createErrorResponse('VALIDATION_ERROR', '缺少驗證 token'), {
+        status: 400,
+      });
     }
 
-        // 查找驗證 token
+    // 查找驗證 token
     const verificationToken = await prisma.verificationToken.findUnique({
       where: { token },
     });
 
     if (!verificationToken) {
-      return NextResponse.json(
-        createErrorResponse('NOT_FOUND', '無效的驗證 token'),
-        { status: 404 }
-      );
+      return NextResponse.json(createErrorResponse('NOT_FOUND', '無效的驗證 token'), {
+        status: 404,
+      });
     }
 
     // 檢查 token 是否過期
@@ -35,10 +33,9 @@ export async function POST(req: NextRequest) {
         where: { token },
       });
 
-      return NextResponse.json(
-        createErrorResponse('EXPIRED', '驗證 token 已過期，請重新申請'),
-        { status: 400 }
-      );
+      return NextResponse.json(createErrorResponse('EXPIRED', '驗證 token 已過期，請重新申請'), {
+        status: 400,
+      });
     }
 
     // 更新使用者的 emailVerified 狀態
@@ -68,10 +65,9 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     console.error('Email 驗證錯誤:', err);
 
-    return NextResponse.json(
-      createErrorResponse('INTERNAL_ERROR', 'Email 驗證失敗，請稍後再試'),
-      { status: 500 }
-    );
+    return NextResponse.json(createErrorResponse('INTERNAL_ERROR', 'Email 驗證失敗，請稍後再試'), {
+      status: 500,
+    });
   }
 }
 
@@ -83,10 +79,9 @@ export async function GET(req: NextRequest) {
   const token = req.nextUrl.searchParams.get('token');
 
   if (!token) {
-    return NextResponse.json(
-      createErrorResponse('VALIDATION_ERROR', '缺少驗證 token'),
-      { status: 400 }
-    );
+    return NextResponse.json(createErrorResponse('VALIDATION_ERROR', '缺少驗證 token'), {
+      status: 400,
+    });
   }
 
   // 複用 POST 邏輯

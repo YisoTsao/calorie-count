@@ -11,7 +11,8 @@ export const profileUpdateSchema = z.object({
 });
 
 export const avatarUploadSchema = z.object({
-  file: z.instanceof(File)
+  file: z
+    .instanceof(File)
     .refine((file) => file.size <= 5 * 1024 * 1024, '圖片大小不能超過 5MB')
     .refine(
       (file) => ['image/jpeg', 'image/png', 'image/webp'].includes(file.type),

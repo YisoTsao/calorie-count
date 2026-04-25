@@ -1,17 +1,11 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -49,7 +43,7 @@ function ResetPasswordContent() {
 
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [status, setStatus] = useState<'idle' | 'success' | 'invalid'>('idle');
+  const [status, setStatus] = useState<'idle' | 'success' | 'invalid'>(token ? 'idle' : 'invalid');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -57,10 +51,6 @@ function ResetPasswordContent() {
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: { password: '', confirmPassword: '' },
   });
-
-  useEffect(() => {
-    if (!token) setStatus('invalid');
-  }, [token]);
 
   const onSubmit = async (data: ResetPasswordInput) => {
     if (!token) return;
@@ -71,7 +61,11 @@ function ResetPasswordContent() {
       const response = await fetch('/api/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, password: data.password, confirmPassword: data.confirmPassword }),
+        body: JSON.stringify({
+          token,
+          password: data.password,
+          confirmPassword: data.confirmPassword,
+        }),
       });
 
       const result = await response.json();
@@ -104,7 +98,10 @@ function ResetPasswordContent() {
           <CardHeader className="space-y-1">
             <div className="flex justify-center">
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900">
-                <Icon icon="mdi:lock-check" className="h-10 w-10 text-green-600 dark:text-green-400" />
+                <Icon
+                  icon="mdi:lock-check"
+                  className="h-10 w-10 text-green-600 dark:text-green-400"
+                />
               </div>
             </div>
             <CardTitle className="text-center text-2xl font-bold">密碼已重設</CardTitle>
@@ -183,7 +180,10 @@ function ResetPasswordContent() {
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                           onClick={() => setShowPassword((v) => !v)}
                         >
-                          <Icon icon={showPassword ? 'mdi:eye-off' : 'mdi:eye'} className="h-5 w-5" />
+                          <Icon
+                            icon={showPassword ? 'mdi:eye-off' : 'mdi:eye'}
+                            className="h-5 w-5"
+                          />
                         </button>
                       </div>
                     </FormControl>
@@ -211,7 +211,10 @@ function ResetPasswordContent() {
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                           onClick={() => setShowConfirmPassword((v) => !v)}
                         >
-                          <Icon icon={showConfirmPassword ? 'mdi:eye-off' : 'mdi:eye'} className="h-5 w-5" />
+                          <Icon
+                            icon={showConfirmPassword ? 'mdi:eye-off' : 'mdi:eye'}
+                            className="h-5 w-5"
+                          />
                         </button>
                       </div>
                     </FormControl>

@@ -13,12 +13,8 @@ export default function RegisterPage() {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-12 dark:from-gray-900 dark:to-gray-800">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-center text-2xl font-bold">
-            建立帳號
-          </CardTitle>
-          <CardDescription className="text-center">
-            開始您的健康飲食追蹤之旅
-          </CardDescription>
+          <CardTitle className="text-center text-2xl font-bold">建立帳號</CardTitle>
+          <CardDescription className="text-center">開始您的健康飲食追蹤之旅</CardDescription>
         </CardHeader>
         <CardContent>
           <Suspense fallback={null}>

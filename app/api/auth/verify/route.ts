@@ -57,23 +57,18 @@ export async function GET(request: NextRequest) {
     );
   } catch (error) {
     if (error instanceof ValidationError) {
-      return NextResponse.json(
-        createErrorResponse(error.message, 'VALIDATION_ERROR'),
-        { status: 400 }
-      );
+      return NextResponse.json(createErrorResponse(error.message, 'VALIDATION_ERROR'), {
+        status: 400,
+      });
     }
 
     if (error instanceof NotFoundError) {
-      return NextResponse.json(
-        createErrorResponse(error.message, 'NOT_FOUND'),
-        { status: 404 }
-      );
+      return NextResponse.json(createErrorResponse(error.message, 'NOT_FOUND'), { status: 404 });
     }
 
     console.error('Verify email error:', error);
-    return NextResponse.json(
-      createErrorResponse('驗證失敗，請稍後再試', 'INTERNAL_ERROR'),
-      { status: 500 }
-    );
+    return NextResponse.json(createErrorResponse('驗證失敗，請稍後再試', 'INTERNAL_ERROR'), {
+      status: 500,
+    });
   }
 }

@@ -1,12 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
-import { hash } from "bcryptjs";
-import { prisma } from "@/lib/prisma";
-import { registerSchema } from "@/lib/validations/auth";
-import { createSuccessResponse, createErrorResponse } from "@/lib/api-response";
-import { ValidationError, ConflictError } from "@/lib/errors";
-import { generateToken } from "@/lib/utils";
-import { sendVerificationEmail } from "@/lib/email";
-import { Prisma } from "@prisma/client";
+import { NextRequest, NextResponse } from 'next/server';
+import { hash } from 'bcryptjs';
+import { prisma } from '@/lib/prisma';
+import { registerSchema } from '@/lib/validations/auth';
+import { createSuccessResponse, createErrorResponse } from '@/lib/api-response';
+import { ValidationError, ConflictError } from '@/lib/errors';
+import { generateToken } from '@/lib/utils';
+import { sendVerificationEmail } from '@/lib/email';
+import { Prisma } from '@prisma/client';
 
 /**
  * POST /api/auth/register
@@ -20,9 +20,7 @@ export async function POST(request: NextRequest) {
     const result = registerSchema.safeParse(body);
 
     if (!result.success) {
-      throw new ValidationError(
-        result.error.issues.map((e) => e.message).join(", ")
-      );
+      throw new ValidationError(result.error.issues.map((e) => e.message).join(', '));
     }
 
     const { email, password, name } = result.data;
@@ -33,7 +31,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (existingUser) {
-      throw new ConflictError("此 Email 已被註冊");
+      throw new ConflictError('此 Email 已被註冊');
     }
 
     // 加密密碼
@@ -81,36 +79,33 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       createSuccessResponse({
         user,
-        message: "註冊成功！請檢查您的 Email 以驗證帳號。",
+        message: '註冊成功！請檢查您的 Email 以驗證帳號。',
       }),
       { status: 201 }
     );
   } catch (error) {
     if (error instanceof ValidationError) {
-      return NextResponse.json(
-        createErrorResponse("VALIDATION_ERROR", error.message),
-        { status: 400 }
-      );
+      return NextResponse.json(createErrorResponse('VALIDATION_ERROR', error.message), {
+        status: 400,
+      });
     }
 
     if (error instanceof ConflictError) {
-      return NextResponse.json(createErrorResponse("CONFLICT", error.message), {
+      return NextResponse.json(createErrorResponse('CONFLICT', error.message), {
         status: 409,
       });
     }
 
     // Prisma unique constraint violation（雙重保護）
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-      return NextResponse.json(
-        createErrorResponse("CONFLICT", "此 Email 已被註冊"),
-        { status: 409 }
-      );
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      return NextResponse.json(createErrorResponse('CONFLICT', '此 Email 已被註冊'), {
+        status: 409,
+      });
     }
 
-    console.error("Register error:", error);
-    return NextResponse.json(
-      createErrorResponse("INTERNAL_ERROR", "註冊失敗，請稍後再試"),
-      { status: 500 }
-    );
+    console.error('Register error:', error);
+    return NextResponse.json(createErrorResponse('INTERNAL_ERROR', '註冊失敗，請稍後再試'), {
+      status: 500,
+    });
   }
 }

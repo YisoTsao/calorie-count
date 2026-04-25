@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { forgotPasswordSchema } from "@/lib/validations/auth";
-import { createSuccessResponse, createErrorResponse } from "@/lib/api-response";
-import { ValidationError } from "@/lib/errors";
-import { generateToken } from "@/lib/utils";
-import { sendPasswordResetEmail } from "@/lib/email";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { forgotPasswordSchema } from '@/lib/validations/auth';
+import { createSuccessResponse, createErrorResponse } from '@/lib/api-response';
+import { ValidationError } from '@/lib/errors';
+import { generateToken } from '@/lib/utils';
+import { sendPasswordResetEmail } from '@/lib/email';
 // ── 測試用：縮短過期時間方便本機驗證；正式改回 1（小時）──
 const RESET_TOKEN_EXPIRES_HOURS = 1;
 /**
@@ -18,9 +18,7 @@ export async function POST(request: NextRequest) {
     // 驗證輸入
     const result = forgotPasswordSchema.safeParse(body);
     if (!result.success) {
-      throw new ValidationError(
-        result.error.issues.map((e) => e.message).join(", "),
-      );
+      throw new ValidationError(result.error.issues.map((e) => e.message).join(', '));
     }
 
     const { email } = result.data;
@@ -35,20 +33,20 @@ export async function POST(request: NextRequest) {
     if (!user) {
       return NextResponse.json(
         createSuccessResponse({
-          message: "如果該 Email 存在，我們已發送重置密碼連結。",
-        }),
+          message: '如果該 Email 存在，我們已發送重置密碼連結。',
+        })
       );
     }
 
     // OAuth 專用帳號（沒有 password）→ 引導使用原本的登入方式
     if (!user.password) {
-      const providers = user.accounts.map((a) => a.provider).join("、");
+      const providers = user.accounts.map((a) => a.provider).join('、');
       return NextResponse.json(
         createErrorResponse(
-          "OAUTH_ACCOUNT",
-          `您的帳號是透過 ${providers || "第三方"} 登入，無需密碼，請直接使用原本的登入方式。`,
+          'OAUTH_ACCOUNT',
+          `您的帳號是透過 ${providers || '第三方'} 登入，無需密碼，請直接使用原本的登入方式。`
         ),
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -78,21 +76,19 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       createSuccessResponse({
-        message: "如果該 Email 存在，我們已發送重置密碼連結。",
-      }),
+        message: '如果該 Email 存在，我們已發送重置密碼連結。',
+      })
     );
   } catch (error) {
     if (error instanceof ValidationError) {
-      return NextResponse.json(
-        createErrorResponse("VALIDATION_ERROR", error.message),
-        { status: 400 },
-      );
+      return NextResponse.json(createErrorResponse('VALIDATION_ERROR', error.message), {
+        status: 400,
+      });
     }
 
-    console.error("Forgot password error:", error);
-    return NextResponse.json(
-      createErrorResponse("INTERNAL_ERROR", "處理失敗，請稍後再試"),
-      { status: 500 },
-    );
+    console.error('Forgot password error:', error);
+    return NextResponse.json(createErrorResponse('INTERNAL_ERROR', '處理失敗，請稍後再試'), {
+      status: 500,
+    });
   }
 }
