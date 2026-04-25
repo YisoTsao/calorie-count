@@ -56,10 +56,7 @@ export async function PATCH(
     });
 
     if (!mealFood) {
-      return NextResponse.json(
-        { error: '找不到此食物' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: '找不到此食物' }, { status: 404 });
     }
 
     // Calculate nutrition values based on new servings
@@ -88,9 +85,6 @@ export async function PATCH(
     });
   } catch (error) {
     console.error('Update meal food error:', error);
-    return NextResponse.json(
-      { error: '更新食物失敗' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: '更新食物失敗' }, { status: 500 });
   }
 }

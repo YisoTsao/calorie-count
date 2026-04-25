@@ -39,10 +39,7 @@ export async function GET(req: NextRequest) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
-      return NextResponse.json(
-        createErrorResponse('UNAUTHORIZED', '請先登入'),
-        { status: 401 }
-      );
+      return NextResponse.json(createErrorResponse('UNAUTHORIZED', '請先登入'), { status: 401 });
     }
 
     const { searchParams } = new URL(req.url);
@@ -146,10 +143,7 @@ export async function GET(req: NextRequest) {
     );
   } catch (error) {
     console.error('Get meals error:', error);
-    return NextResponse.json(
-      createErrorResponse('INTERNAL_ERROR', '查詢失敗'),
-      { status: 500 }
-    );
+    return NextResponse.json(createErrorResponse('INTERNAL_ERROR', '查詢失敗'), { status: 500 });
   }
 }
 
@@ -159,23 +153,26 @@ const createMealSchema = z.object({
   mealType: z.enum(['BREAKFAST', 'LUNCH', 'DINNER', 'SNACK', 'OTHER']),
   mealDate: z.string().optional(), // ISO 日期字串
   notes: z.string().optional(),
-  foods: z.array(
-    z.object({
-      name: z.string().min(1, '食物名稱不能為空'),
-      nameEn: z.string().optional(),
-      portion: z.string().min(1, '份量描述不能為空'),
-      portionSize: z.number().positive('份量必須大於 0'),
-      portionUnit: z.string().min(1, '單位不能為空'),
-      calories: z.number().min(0, '卡路里不能為負數'),
-      protein: z.number().min(0, '蛋白質不能為負數'),
-      carbs: z.number().min(0, '碳水化合物不能為負數'),
-      fat: z.number().min(0, '脂肪不能為負數'),
-      fiber: z.number().min(0).optional(),
-      sugar: z.number().min(0).optional(),
-      sodium: z.number().min(0).optional(),
-      servings: z.number().positive().optional().default(1),
-    })
-  ).optional().default([]), // 改為 optional,允許空陣列
+  foods: z
+    .array(
+      z.object({
+        name: z.string().min(1, '食物名稱不能為空'),
+        nameEn: z.string().optional(),
+        portion: z.string().min(1, '份量描述不能為空'),
+        portionSize: z.number().positive('份量必須大於 0'),
+        portionUnit: z.string().min(1, '單位不能為空'),
+        calories: z.number().min(0, '卡路里不能為負數'),
+        protein: z.number().min(0, '蛋白質不能為負數'),
+        carbs: z.number().min(0, '碳水化合物不能為負數'),
+        fat: z.number().min(0, '脂肪不能為負數'),
+        fiber: z.number().min(0).optional(),
+        sugar: z.number().min(0).optional(),
+        sodium: z.number().min(0).optional(),
+        servings: z.number().positive().optional().default(1),
+      })
+    )
+    .optional()
+    .default([]), // 改為 optional,允許空陣列
   sourceRecognitionId: z.string().optional(), // 來源辨識記錄 ID
 });
 
@@ -183,10 +180,7 @@ export async function POST(req: NextRequest) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
-      return NextResponse.json(
-        createErrorResponse('UNAUTHORIZED', '請先登入'),
-        { status: 401 }
-      );
+      return NextResponse.json(createErrorResponse('UNAUTHORIZED', '請先登入'), { status: 401 });
     }
 
     const body = await req.json();
@@ -195,10 +189,9 @@ export async function POST(req: NextRequest) {
     const validation = createMealSchema.safeParse(body);
     if (!validation.success) {
       const firstError = validation.error.issues[0];
-      return NextResponse.json(
-        createErrorResponse('VALIDATION_ERROR', firstError.message),
-        { status: 400 }
-      );
+      return NextResponse.json(createErrorResponse('VALIDATION_ERROR', firstError.message), {
+        status: 400,
+      });
     }
 
     const { mealType, mealDate, notes, foods, sourceRecognitionId } = validation.data;
@@ -234,15 +227,9 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json(
-      createSuccessResponse({ meal }),
-      { status: 201 }
-    );
+    return NextResponse.json(createSuccessResponse({ meal }), { status: 201 });
   } catch (error) {
     console.error('Create meal error:', error);
-    return NextResponse.json(
-      createErrorResponse('INTERNAL_ERROR', '新增失敗'),
-      { status: 500 }
-    );
+    return NextResponse.json(createErrorResponse('INTERNAL_ERROR', '新增失敗'), { status: 500 });
   }
 }

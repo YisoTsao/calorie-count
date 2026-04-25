@@ -37,11 +37,13 @@ export async function POST(request: NextRequest) {
 
     const { weight, bodyFat, date, notes } = validation.data;
     // 使用 UTC 時間避免時區問題
-    const recordDate = date ? new Date(date + 'T00:00:00.000Z') : (() => {
-      const now = new Date();
-      now.setUTCHours(0, 0, 0, 0);
-      return now;
-    })();
+    const recordDate = date
+      ? new Date(date + 'T00:00:00.000Z')
+      : (() => {
+          const now = new Date();
+          now.setUTCHours(0, 0, 0, 0);
+          return now;
+        })();
 
     // Get user's height for BMI calculation
     const userProfile = await prisma.userProfile.findUnique({
@@ -93,10 +95,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Add weight record error:', error);
-    return NextResponse.json(
-      { error: '新增失敗' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: '新增失敗' }, { status: 500 });
   }
 }
 
@@ -137,10 +136,7 @@ export async function PUT(request: NextRequest) {
     });
 
     if (!existingRecord) {
-      return NextResponse.json(
-        { error: '找不到此記錄' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: '找不到此記錄' }, { status: 404 });
     }
 
     // Get user's height for BMI calculation
@@ -181,10 +177,7 @@ export async function PUT(request: NextRequest) {
     });
   } catch (error) {
     console.error('Update weight record error:', error);
-    return NextResponse.json(
-      { error: '更新失敗' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: '更新失敗' }, { status: 500 });
   }
 }
 
@@ -243,8 +236,8 @@ export async function GET(request: NextRequest) {
         current: latestWeight,
         change: weightChange,
         average: avgWeight,
-        highest: Math.max(...records.map(r => r.weight)),
-        lowest: Math.min(...records.map(r => r.weight)),
+        highest: Math.max(...records.map((r) => r.weight)),
+        lowest: Math.min(...records.map((r) => r.weight)),
       };
     }
 
@@ -257,10 +250,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Get weight records error:', error);
-    return NextResponse.json(
-      { error: '查詢失敗' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: '查詢失敗' }, { status: 500 });
   }
 }
 
@@ -276,10 +266,7 @@ export async function DELETE(request: NextRequest) {
     const dateParam = searchParams.get('date');
 
     if (!dateParam) {
-      return NextResponse.json(
-        { error: '缺少 date 參數' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: '缺少 date 參數' }, { status: 400 });
     }
 
     // 使用 UTC 時間避免時區問題
@@ -294,10 +281,7 @@ export async function DELETE(request: NextRequest) {
     });
 
     if (!record) {
-      return NextResponse.json(
-        { error: '找不到此記錄或無權限刪除' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: '找不到此記錄或無權限刪除' }, { status: 404 });
     }
 
     // Delete
@@ -311,9 +295,6 @@ export async function DELETE(request: NextRequest) {
     });
   } catch (error) {
     console.error('Delete weight record error:', error);
-    return NextResponse.json(
-      { error: '刪除失敗' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: '刪除失敗' }, { status: 500 });
   }
 }

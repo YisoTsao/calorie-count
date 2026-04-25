@@ -47,10 +47,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Add water intake error:', error);
-    return NextResponse.json(
-      { error: '新增失敗' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: '新增失敗' }, { status: 500 });
   }
 }
 
@@ -64,7 +61,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const dateParam = searchParams.get('date');
-    
+
     const now = new Date();
     const queryDate = dateParam
       ? new Date(dateParam + 'T00:00:00.000Z')
@@ -94,10 +91,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Get water intake error:', error);
-    return NextResponse.json(
-      { error: '查詢失敗' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: '查詢失敗' }, { status: 500 });
   }
 }
 
@@ -113,10 +107,7 @@ export async function DELETE(request: NextRequest) {
     const id = searchParams.get('id');
 
     if (!id) {
-      return NextResponse.json(
-        { error: '缺少 id 參數' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: '缺少 id 參數' }, { status: 400 });
     }
 
     // Find and verify ownership
@@ -128,10 +119,7 @@ export async function DELETE(request: NextRequest) {
     });
 
     if (!intake) {
-      return NextResponse.json(
-        { error: '找不到此記錄或無權限刪除' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: '找不到此記錄或無權限刪除' }, { status: 404 });
     }
 
     // Delete
@@ -145,9 +133,6 @@ export async function DELETE(request: NextRequest) {
     });
   } catch (error) {
     console.error('Delete water intake error:', error);
-    return NextResponse.json(
-      { error: '刪除失敗' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: '刪除失敗' }, { status: 500 });
   }
 }
