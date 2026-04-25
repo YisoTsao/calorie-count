@@ -41,12 +41,7 @@ const ACTIVITY_MULTIPLIERS = {
  * 計算 BMR (基礎代謝率) - 使用 Mifflin-St Jeor 公式
  * 這是目前最準確的 BMR 計算公式之一
  */
-export function calculateBMR(
-  weight: number,
-  height: number,
-  age: number,
-  gender: Gender
-): number {
+export function calculateBMR(weight: number, height: number, age: number, gender: Gender): number {
   // Mifflin-St Jeor 公式
   // 男性: (10 × 體重kg) + (6.25 × 身高cm) - (5 × 年齡) + 5
   // 女性: (10 × 體重kg) + (6.25 × 身高cm) - (5 × 年齡) - 161
@@ -145,7 +140,7 @@ function calculateMacros(
     default:
       // 維持: 均衡營養
       proteinGramsPerKg = 1.6; // 1.6g/kg 體重
-      fatPercentage = 0.30; // 30% 脂肪
+      fatPercentage = 0.3; // 30% 脂肪
       break;
   }
 

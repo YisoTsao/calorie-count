@@ -30,12 +30,8 @@ export default async function ProfilePage() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">
-            個人資料
-          </h1>
-          <p className="text-muted-foreground">
-            管理您的個人資訊和偏好設定
-          </p>
+          <h1 className="text-3xl font-bold tracking-tight">個人資料</h1>
+          <p className="text-muted-foreground">管理您的個人資訊和偏好設定</p>
         </div>
         <Link href="/profile/edit">
           <Button>
@@ -49,9 +45,7 @@ export default async function ProfilePage() {
         <Card>
           <CardHeader>
             <CardTitle>基本資訊</CardTitle>
-            <CardDescription>
-              您的帳號基本資料
-            </CardDescription>
+            <CardDescription>您的帳號基本資料</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
             <div>
@@ -74,9 +68,7 @@ export default async function ProfilePage() {
         <Card>
           <CardHeader>
             <CardTitle>身體數據</CardTitle>
-            <CardDescription>
-              您的身高、體重等資訊
-            </CardDescription>
+            <CardDescription>您的身高、體重等資訊</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
             <div>
@@ -109,9 +101,7 @@ export default async function ProfilePage() {
         <Card>
           <CardHeader>
             <CardTitle>每日目標</CardTitle>
-            <CardDescription>
-              您的營養攝取目標
-            </CardDescription>
+            <CardDescription>您的營養攝取目標</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
             <div>
@@ -122,21 +112,15 @@ export default async function ProfilePage() {
             </div>
             <div>
               <p className="text-sm font-medium">蛋白質</p>
-              <p className="text-sm text-muted-foreground">
-                {user.goals?.proteinGoal || 50} g
-              </p>
+              <p className="text-sm text-muted-foreground">{user.goals?.proteinGoal || 50} g</p>
             </div>
             <div>
               <p className="text-sm font-medium">碳水化合物</p>
-              <p className="text-sm text-muted-foreground">
-                {user.goals?.carbsGoal || 250} g
-              </p>
+              <p className="text-sm text-muted-foreground">{user.goals?.carbsGoal || 250} g</p>
             </div>
             <div>
               <p className="text-sm font-medium">脂肪</p>
-              <p className="text-sm text-muted-foreground">
-                {user.goals?.fatGoal || 65} g
-              </p>
+              <p className="text-sm text-muted-foreground">{user.goals?.fatGoal || 65} g</p>
             </div>
           </CardContent>
         </Card>
@@ -144,16 +128,12 @@ export default async function ProfilePage() {
         <Card>
           <CardHeader>
             <CardTitle>偏好設定</CardTitle>
-            <CardDescription>
-              應用程式設定
-            </CardDescription>
+            <CardDescription>應用程式設定</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
             <div>
               <p className="text-sm font-medium">主題</p>
-              <p className="text-sm text-muted-foreground">
-                {user.preferences?.theme || 'LIGHT'}
-              </p>
+              <p className="text-sm text-muted-foreground">{user.preferences?.theme || 'LIGHT'}</p>
             </div>
             <div>
               <p className="text-sm font-medium">語言</p>
@@ -163,9 +143,7 @@ export default async function ProfilePage() {
             </div>
             <div>
               <p className="text-sm font-medium">單位</p>
-              <p className="text-sm text-muted-foreground">
-                {user.preferences?.units || 'METRIC'}
-              </p>
+              <p className="text-sm text-muted-foreground">{user.preferences?.units || 'METRIC'}</p>
             </div>
           </CardContent>
         </Card>

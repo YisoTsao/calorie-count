@@ -4,18 +4,18 @@
  */
 
 export type Gender = 'MALE' | 'FEMALE' | 'OTHER';
-export type ActivityLevel = 
-  | 'SEDENTARY'           // 久坐 (很少運動)
-  | 'LIGHTLY_ACTIVE'      // 輕度活動 (每週運動 1-3 天)
-  | 'MODERATELY_ACTIVE'   // 中度活動 (每週運動 3-5 天)
-  | 'VERY_ACTIVE'         // 高度活動 (每週運動 6-7 天)
-  | 'EXTREMELY_ACTIVE';   // 極度活動 (每天運動,體力勞動工作)
+export type ActivityLevel =
+  | 'SEDENTARY' // 久坐 (很少運動)
+  | 'LIGHTLY_ACTIVE' // 輕度活動 (每週運動 1-3 天)
+  | 'MODERATELY_ACTIVE' // 中度活動 (每週運動 3-5 天)
+  | 'VERY_ACTIVE' // 高度活動 (每週運動 6-7 天)
+  | 'EXTREMELY_ACTIVE'; // 極度活動 (每天運動,體力勞動工作)
 
-export type GoalType = 
-  | 'LOSE_WEIGHT'    // 減重
-  | 'MAINTAIN'       // 維持
-  | 'GAIN_WEIGHT'    // 增重
-  | 'BUILD_MUSCLE';  // 增肌
+export type GoalType =
+  | 'LOSE_WEIGHT' // 減重
+  | 'MAINTAIN' // 維持
+  | 'GAIN_WEIGHT' // 增重
+  | 'BUILD_MUSCLE'; // 增肌
 
 /**
  * 計算 BMI (Body Mass Index - 身體質量指數)
@@ -28,7 +28,7 @@ export function calculateBMI(weight: number, height: number): number {
 
   const heightInMeters = height / 100; // 公分轉公尺
   const bmi = weight / (heightInMeters * heightInMeters);
-  
+
   return Math.round(bmi * 10) / 10; // 四捨五入到小數點後一位
 }
 
@@ -82,21 +82,16 @@ export function getBMICategory(bmi: number): {
 /**
  * 計算 BMR (Basal Metabolic Rate - 基礎代謝率)
  * 使用 Mifflin-St Jeor 公式 (較準確)
- * 
+ *
  * 男性: BMR = (10 × 體重kg) + (6.25 × 身高cm) - (5 × 年齡) + 5
  * 女性: BMR = (10 × 體重kg) + (6.25 × 身高cm) - (5 × 年齡) - 161
  */
-export function calculateBMR(
-  weight: number,
-  height: number,
-  age: number,
-  gender: Gender
-): number {
+export function calculateBMR(weight: number, height: number, age: number, gender: Gender): number {
   if (weight <= 0 || height <= 0 || age <= 0) {
     throw new Error('體重、身高和年齡必須大於 0');
   }
 
-  let bmr = (10 * weight) + (6.25 * height) - (5 * age);
+  let bmr = 10 * weight + 6.25 * height - 5 * age;
 
   if (gender === 'MALE') {
     bmr += 5;
@@ -114,30 +109,27 @@ export function calculateBMR(
  * 活動係數對應表
  */
 const ACTIVITY_MULTIPLIER: Record<ActivityLevel, number> = {
-  SEDENTARY: 1.2,           // 久坐
-  LIGHTLY_ACTIVE: 1.375,    // 輕度活動
-  MODERATELY_ACTIVE: 1.55,  // 中度活動
-  VERY_ACTIVE: 1.725,       // 高度活動
-  EXTREMELY_ACTIVE: 1.9,    // 極度活動
+  SEDENTARY: 1.2, // 久坐
+  LIGHTLY_ACTIVE: 1.375, // 輕度活動
+  MODERATELY_ACTIVE: 1.55, // 中度活動
+  VERY_ACTIVE: 1.725, // 高度活動
+  EXTREMELY_ACTIVE: 1.9, // 極度活動
 };
 
 /**
  * 計算 TDEE (Total Daily Energy Expenditure - 每日總消耗熱量)
  * 公式: TDEE = BMR × 活動係數
  */
-export function calculateTDEE(
-  bmr: number,
-  activityLevel: ActivityLevel
-): number {
+export function calculateTDEE(bmr: number, activityLevel: ActivityLevel): number {
   const multiplier = ACTIVITY_MULTIPLIER[activityLevel];
   const tdee = bmr * multiplier;
-  
+
   return Math.round(tdee);
 }
 
 /**
  * 根據目標計算建議的每日卡路里攝取量
- * 
+ *
  * @param tdee - 每日總消耗熱量
  * @param goalType - 目標類型
  * @param weeklyWeightChange - 每週預期體重變化 (kg)，正數為增重，負數為減重
@@ -184,14 +176,14 @@ export function calculateDailyCalorieGoal(
 export function calculateMacronutrients(
   dailyCalories: number,
   goalType: GoalType,
-  weight: number
+  _weight: number
 ): {
-  protein: number;    // 蛋白質 (克)
-  carbs: number;      // 碳水化合物 (克)
-  fat: number;        // 脂肪 (克)
+  protein: number; // 蛋白質 (克)
+  carbs: number; // 碳水化合物 (克)
+  fat: number; // 脂肪 (克)
   proteinCal: number; // 蛋白質卡路里
-  carbsCal: number;   // 碳水卡路里
-  fatCal: number;     // 脂肪卡路里
+  carbsCal: number; // 碳水卡路里
+  fatCal: number; // 脂肪卡路里
 } {
   let proteinRatio: number;
   let fatRatio: number;
@@ -200,12 +192,12 @@ export function calculateMacronutrients(
     case 'LOSE_WEIGHT':
       // 減重: 高蛋白 (35%), 中碳水 (35%), 低脂 (30%)
       proteinRatio = 0.35;
-      fatRatio = 0.30;
+      fatRatio = 0.3;
       break;
 
     case 'BUILD_MUSCLE':
       // 增肌: 高蛋白 (30%), 高碳水 (45%), 低脂 (25%)
-      proteinRatio = 0.30;
+      proteinRatio = 0.3;
       fatRatio = 0.25;
       break;
 
@@ -218,8 +210,8 @@ export function calculateMacronutrients(
     case 'MAINTAIN':
     default:
       // 維持: 均衡 (30%, 40%, 30%)
-      proteinRatio = 0.30;
-      fatRatio = 0.30;
+      proteinRatio = 0.3;
+      fatRatio = 0.3;
       break;
   }
 

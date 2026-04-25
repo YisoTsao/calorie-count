@@ -51,7 +51,7 @@ export function PhotoUploadDialog({
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: 'environment' },
       });
-      
+
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         streamRef.current = stream;
@@ -75,10 +75,10 @@ export function PhotoUploadDialog({
     if (videoRef.current && canvasRef.current) {
       const video = videoRef.current;
       const canvas = canvasRef.current;
-      
+
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
-      
+
       const ctx = canvas.getContext('2d');
       if (ctx) {
         ctx.drawImage(video, 0, 0);
@@ -97,7 +97,7 @@ export function PhotoUploadDialog({
       // Convert base64 to blob
       const response = await fetch(selectedImage);
       const blob = await response.blob();
-      
+
       // Create FormData
       const formData = new FormData();
       formData.append('image', blob, 'meal.jpg');
@@ -114,7 +114,7 @@ export function PhotoUploadDialog({
       }
 
       const data = await uploadResponse.json();
-      
+
       if (data.data?.recognition?.id) {
         onImageAnalyzed(data.data.recognition.id);
         handleClose();
@@ -147,38 +147,38 @@ export function PhotoUploadDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0">
-        <DialogHeader className="px-6 pt-6 pb-4">
+      <DialogContent className="flex max-h-[90vh] max-w-2xl flex-col p-0">
+        <DialogHeader className="px-6 pb-4 pt-6">
           <DialogTitle>拍照或上傳照片</DialogTitle>
-          <DialogDescription>
-            拍攝或上傳食物照片,AI 將自動辨識並計算營養成分
-          </DialogDescription>
+          <DialogDescription>拍攝或上傳食物照片,AI 將自動辨識並計算營養成分</DialogDescription>
         </DialogHeader>
 
-        <Tabs value={activeTab} onValueChange={handleTabChange} className="flex-1 flex flex-col px-6 pb-6">
+        <Tabs
+          value={activeTab}
+          onValueChange={handleTabChange}
+          className="flex flex-1 flex-col px-6 pb-6"
+        >
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="upload">
-              <Upload className="h-4 w-4 mr-2" />
+              <Upload className="mr-2 h-4 w-4" />
               上傳照片
             </TabsTrigger>
             <TabsTrigger value="camera">
-              <Camera className="h-4 w-4 mr-2" />
+              <Camera className="mr-2 h-4 w-4" />
               拍照
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="upload" className="flex-1 mt-4">
+          <TabsContent value="upload" className="mt-4 flex-1">
             <div className="space-y-4">
               {!selectedImage ? (
                 <div
                   onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-12 text-center cursor-pointer hover:border-primary/50 transition-colors"
+                  className="cursor-pointer rounded-lg border-2 border-dashed border-muted-foreground/25 p-12 text-center transition-colors hover:border-primary/50"
                 >
-                  <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <p className="text-lg font-medium mb-2">點擊上傳照片</p>
-                  <p className="text-sm text-muted-foreground">
-                    支援 JPG、PNG 格式,最大 10MB
-                  </p>
+                  <Upload className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+                  <p className="mb-2 text-lg font-medium">點擊上傳照片</p>
+                  <p className="text-sm text-muted-foreground">支援 JPG、PNG 格式,最大 10MB</p>
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -194,12 +194,12 @@ export function PhotoUploadDialog({
                     alt="Selected food"
                     width={800}
                     height={600}
-                    className="rounded-lg w-full h-auto max-h-[400px] object-contain"
+                    className="h-auto max-h-[400px] w-full rounded-lg object-contain"
                   />
                   <Button
                     variant="destructive"
                     size="icon"
-                    className="absolute top-2 right-2"
+                    className="absolute right-2 top-2"
                     onClick={() => setSelectedImage(null)}
                   >
                     <X className="h-4 w-4" />
@@ -209,30 +209,30 @@ export function PhotoUploadDialog({
             </div>
           </TabsContent>
 
-          <TabsContent value="camera" className="flex-1 mt-4">
+          <TabsContent value="camera" className="mt-4 flex-1">
             <div className="space-y-4">
               {!selectedImage ? (
-                <div className="relative bg-black rounded-lg overflow-hidden">
+                <div className="relative overflow-hidden rounded-lg bg-black">
                   <video
                     ref={videoRef}
                     autoPlay
                     playsInline
-                    className="w-full h-auto max-h-[400px]"
+                    className="h-auto max-h-[400px] w-full"
                   />
                   <canvas ref={canvasRef} className="hidden" />
-                  
+
                   {isCameraReady && (
                     <div className="absolute bottom-4 left-0 right-0 flex justify-center">
                       <Button
                         size="lg"
                         onClick={capturePhoto}
-                        className="rounded-full h-16 w-16 p-0"
+                        className="h-16 w-16 rounded-full p-0"
                       >
                         <Camera className="h-6 w-6" />
                       </Button>
                     </div>
                   )}
-                  
+
                   {!isCameraReady && (
                     <div className="absolute inset-0 flex items-center justify-center bg-black/50">
                       <p className="text-white">正在啟動相機...</p>
@@ -246,12 +246,12 @@ export function PhotoUploadDialog({
                     alt="Captured food"
                     width={800}
                     height={600}
-                    className="rounded-lg w-full h-auto max-h-[400px] object-contain"
+                    className="h-auto max-h-[400px] w-full rounded-lg object-contain"
                   />
                   <Button
                     variant="destructive"
                     size="icon"
-                    className="absolute top-2 right-2"
+                    className="absolute right-2 top-2"
                     onClick={() => {
                       setSelectedImage(null);
                       startCamera();
@@ -266,7 +266,7 @@ export function PhotoUploadDialog({
         </Tabs>
 
         {selectedImage && (
-          <div className="px-6 pb-6 pt-4 border-t">
+          <div className="border-t px-6 pb-6 pt-4">
             <div className="flex gap-2">
               <Button
                 variant="outline"
@@ -276,14 +276,10 @@ export function PhotoUploadDialog({
               >
                 取消
               </Button>
-              <Button
-                onClick={handleAnalyze}
-                className="flex-1"
-                disabled={isAnalyzing}
-              >
+              <Button onClick={handleAnalyze} className="flex-1" disabled={isAnalyzing}>
                 {isAnalyzing ? (
                   <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     分析中...
                   </>
                 ) : (

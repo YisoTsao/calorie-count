@@ -115,18 +115,16 @@ export function RecognitionResultDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
+      <DialogContent className="flex max-h-[90vh] max-w-3xl flex-col">
         <DialogHeader>
           <DialogTitle>辨識結果</DialogTitle>
-          <DialogDescription>
-            AI 已辨識出以下食物,請選擇要新增的項目
-          </DialogDescription>
+          <DialogDescription>AI 已辨識出以下食物,請選擇要新增的項目</DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto space-y-4">
+        <div className="flex-1 space-y-4 overflow-y-auto">
           {/* 圖片預覽 */}
           {recognition?.imageUrl && (
-            <div className="relative w-full h-48 rounded-lg overflow-hidden bg-muted">
+            <div className="relative h-48 w-full overflow-hidden rounded-lg bg-muted">
               <Image
                 src={recognition.imageUrl}
                 alt="Uploaded food"
@@ -138,7 +136,7 @@ export function RecognitionResultDialog({
 
           {/* 載入中 / 處理中 — 掃描特效 */}
           {(isLoading && !recognition) || recognition?.status === 'PROCESSING' ? (
-            <div className="flex flex-col items-center justify-center py-10 gap-6">
+            <div className="flex flex-col items-center justify-center gap-6 py-10">
               <style>{`
                 @keyframes scanMoveModal {
                   0%   { top: 0%; }
@@ -154,16 +152,16 @@ export function RecognitionResultDialog({
                 }
               `}</style>
               {/* 掃描角框（Modal 尺寸縮小版） */}
-              <div className="relative w-36 h-36 bg-black/5 rounded">
-                <div className="absolute top-0 left-0 w-7 h-7 border-t-[3px] border-l-[3px] border-green-500 rounded-tl" />
-                <div className="absolute top-0 right-0 w-7 h-7 border-t-[3px] border-r-[3px] border-green-500 rounded-tr" />
-                <div className="absolute bottom-0 left-0 w-7 h-7 border-b-[3px] border-l-[3px] border-green-500 rounded-bl" />
-                <div className="absolute bottom-0 right-0 w-7 h-7 border-b-[3px] border-r-[3px] border-green-500 rounded-br" />
-                <div className="absolute inset-0 border border-green-500/15 rounded" />
+              <div className="relative h-36 w-36 rounded bg-black/5">
+                <div className="absolute left-0 top-0 h-7 w-7 rounded-tl border-l-[3px] border-t-[3px] border-green-500" />
+                <div className="absolute right-0 top-0 h-7 w-7 rounded-tr border-r-[3px] border-t-[3px] border-green-500" />
+                <div className="absolute bottom-0 left-0 h-7 w-7 rounded-bl border-b-[3px] border-l-[3px] border-green-500" />
+                <div className="absolute bottom-0 right-0 h-7 w-7 rounded-br border-b-[3px] border-r-[3px] border-green-500" />
+                <div className="absolute inset-0 rounded border border-green-500/15" />
                 <div className="scan-line-modal" />
               </div>
-              <div className="text-center space-y-1">
-                <p className="text-green-600 font-semibold tracking-widest animate-pulse">
+              <div className="space-y-1 text-center">
+                <p className="animate-pulse font-semibold tracking-widest text-green-600">
                   AI 辨識中...
                 </p>
                 <p className="text-sm text-muted-foreground">正在分析食物照片，請稍候</p>
@@ -173,8 +171,8 @@ export function RecognitionResultDialog({
 
           {/* 失敗 */}
           {recognition?.status === 'FAILED' && (
-            <div className="text-center py-12">
-              <p className="text-destructive mb-2">辨識失敗</p>
+            <div className="py-12 text-center">
+              <p className="mb-2 text-destructive">辨識失敗</p>
               <p className="text-sm text-muted-foreground">
                 {recognition.errorMessage || '請稍後再試'}
               </p>
@@ -187,9 +185,7 @@ export function RecognitionResultDialog({
               {recognition.confidence !== null && (
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">辨識信心度</span>
-                  <Badge variant="secondary">
-                    {Math.round(recognition.confidence * 100)}%
-                  </Badge>
+                  <Badge variant="secondary">{Math.round(recognition.confidence * 100)}%</Badge>
                 </div>
               )}
 
@@ -197,7 +193,7 @@ export function RecognitionResultDialog({
                 {recognition.foods.map((food) => (
                   <Card
                     key={food.id}
-                    className={`p-4 cursor-pointer transition-colors ${
+                    className={`cursor-pointer p-4 transition-colors ${
                       selectedFoods.has(food.id)
                         ? 'border-primary bg-primary/5'
                         : 'hover:border-primary/50'
@@ -206,7 +202,7 @@ export function RecognitionResultDialog({
                   >
                     <div className="flex items-start gap-3">
                       <div
-                        className={`mt-1 h-5 w-5 rounded border-2 flex items-center justify-center ${
+                        className={`mt-1 flex h-5 w-5 items-center justify-center rounded border-2 ${
                           selectedFoods.has(food.id)
                             ? 'border-primary bg-primary'
                             : 'border-muted-foreground'
@@ -217,8 +213,8 @@ export function RecognitionResultDialog({
                         )}
                       </div>
 
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2 mb-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="mb-2 flex items-start justify-between gap-2">
                           <div>
                             <h4 className="font-medium">{food.name}</h4>
                             {food.nameEn && (
@@ -245,7 +241,7 @@ export function RecognitionResultDialog({
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                        <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
                           <span>蛋白質 {food.protein}g</span>
                           <span>碳水 {food.carbs}g</span>
                           <span>脂肪 {food.fat}g</span>
@@ -257,7 +253,7 @@ export function RecognitionResultDialog({
               </div>
 
               {recognition.foods.length === 0 && (
-                <div className="text-center py-8">
+                <div className="py-8 text-center">
                   <p className="text-muted-foreground">未辨識到任何食物</p>
                 </div>
               )}
@@ -270,11 +266,8 @@ export function RecognitionResultDialog({
             <Button variant="outline" onClick={handleClose}>
               取消
             </Button>
-            <Button
-              onClick={handleAddToMeal}
-              disabled={selectedFoods.size === 0}
-            >
-              <Plus className="h-4 w-4 mr-2" />
+            <Button onClick={handleAddToMeal} disabled={selectedFoods.size === 0}>
+              <Plus className="mr-2 h-4 w-4" />
               新增 {selectedFoods.size} 項食物
             </Button>
           </DialogFooter>

@@ -2,17 +2,17 @@
  * 使用者相關型別定義
  */
 
-import type { 
-  User, 
-  UserProfile, 
-  UserGoals, 
+import type {
+  User,
+  UserProfile,
+  UserGoals,
   UserPreferences,
   Gender,
   ActivityLevel,
   GoalType,
   Theme,
   Units,
-  ProfileVisibility
+  ProfileVisibility,
 } from '@prisma/client';
 
 // 完整使用者資料 (包含關聯資料)
@@ -73,11 +73,4 @@ export interface UpdateProfileRequest {
 }
 
 // 匯出 Prisma 的 enum 型別以便在其他地方使用
-export type {
-  Gender,
-  ActivityLevel,
-  GoalType,
-  Theme,
-  Units,
-  ProfileVisibility,
-};
+export type { Gender, ActivityLevel, GoalType, Theme, Units, ProfileVisibility };

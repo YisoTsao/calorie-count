@@ -38,7 +38,7 @@ export default function NutritionSummaryCard() {
       const [waterRes, exerciseRes, weightRes] = await Promise.all([
         fetch(`/api/water?date=${today}`),
         fetch(`/api/exercise?date=${today}`),
-        fetch('/api/weight')
+        fetch('/api/weight'),
       ]);
 
       const waterData = waterRes.ok ? await waterRes.json() : null;
@@ -48,18 +48,18 @@ export default function NutritionSummaryCard() {
       setData({
         water: {
           total: waterData?.data?.total ?? 0,
-          goal: 2000
+          goal: 2000,
         },
         exercise: {
           totalCalories: exerciseData?.data?.totals?.calories ?? 0,
           goal: 300,
-          count: exerciseData?.data?.exercises?.length ?? 0
+          count: exerciseData?.data?.exercises?.length ?? 0,
         },
         weight: {
           current: weightData?.data?.stats?.current ?? null,
           change: weightData?.data?.stats?.change ?? 0,
-          bmi: weightData?.data?.stats?.current ?? null
-        }
+          bmi: weightData?.data?.stats?.current ?? null,
+        },
       });
     } catch (error) {
       console.error('載入營養摘要失敗:', error);
@@ -75,7 +75,7 @@ export default function NutritionSummaryCard() {
           <CardTitle>營養追蹤</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground text-center py-4">載入中...</p>
+          <p className="py-4 text-center text-sm text-muted-foreground">載入中...</p>
         </CardContent>
       </Card>
     );
@@ -93,10 +93,7 @@ export default function NutritionSummaryCard() {
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>營養追蹤</CardTitle>
-          <Link 
-            href="/nutrition" 
-            className="text-sm text-primary hover:underline"
-          >
+          <Link href="/nutrition" className="text-sm text-primary hover:underline">
             查看詳情
           </Link>
         </div>
@@ -104,19 +101,19 @@ export default function NutritionSummaryCard() {
       <CardContent className="space-y-4">
         {/* 飲水量 */}
         <div className="flex items-center gap-3">
-          <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-blue-100">
             <Droplet className="text-blue-600" size={20} />
           </div>
           <div className="flex-1">
-            <div className="flex justify-between items-center mb-1">
+            <div className="mb-1 flex items-center justify-between">
               <span className="text-sm font-medium">飲水量</span>
               <span className="text-sm text-muted-foreground">
                 {data.water.total}ml / {data.water.goal}ml
               </span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="h-2 w-full rounded-full bg-gray-200">
               <div
-                className="bg-gradient-to-r from-blue-400 to-blue-600 h-full rounded-full transition-all duration-300"
+                className="h-full rounded-full bg-gradient-to-r from-blue-400 to-blue-600 transition-all duration-300"
                 style={{ width: `${waterProgress}%` }}
               />
             </div>
@@ -125,11 +122,11 @@ export default function NutritionSummaryCard() {
 
         {/* 運動消耗 */}
         <div className="flex items-center gap-3">
-          <div className="flex-shrink-0 w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-orange-100">
             <Activity className="text-orange-600" size={20} />
           </div>
           <div className="flex-1">
-            <div className="flex justify-between items-center mb-1">
+            <div className="mb-1 flex items-center justify-between">
               <span className="text-sm font-medium">
                 運動消耗 {data.exercise.count > 0 && `(${data.exercise.count}筆)`}
               </span>
@@ -137,9 +134,9 @@ export default function NutritionSummaryCard() {
                 {Math.round(data.exercise.totalCalories)} / {data.exercise.goal} 卡
               </span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="h-2 w-full rounded-full bg-gray-200">
               <div
-                className="bg-gradient-to-r from-orange-400 to-orange-600 h-full rounded-full transition-all duration-300"
+                className="h-full rounded-full bg-gradient-to-r from-orange-400 to-orange-600 transition-all duration-300"
                 style={{ width: `${exerciseProgress}%` }}
               />
             </div>
@@ -148,21 +145,21 @@ export default function NutritionSummaryCard() {
 
         {/* 體重 */}
         <div className="flex items-center gap-3">
-          <div className="flex-shrink-0 w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-purple-100">
             <Scale className="text-purple-600" size={20} />
           </div>
           <div className="flex-1">
-            <div className="flex justify-between items-center">
+            <div className="flex items-center justify-between">
               <span className="text-sm font-medium">體重</span>
               {data.weight.current !== null ? (
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold">
-                    {data.weight.current.toFixed(1)} kg
-                  </span>
+                  <span className="text-sm font-semibold">{data.weight.current.toFixed(1)} kg</span>
                   {data.weight.change !== 0 && (
-                    <span className={`text-xs flex items-center gap-0.5 ${
-                      data.weight.change > 0 ? 'text-red-600' : 'text-green-600'
-                    }`}>
+                    <span
+                      className={`flex items-center gap-0.5 text-xs ${
+                        data.weight.change > 0 ? 'text-red-600' : 'text-green-600'
+                      }`}
+                    >
                       {data.weight.change > 0 ? (
                         <TrendingUp size={12} />
                       ) : (
@@ -177,7 +174,7 @@ export default function NutritionSummaryCard() {
               )}
             </div>
             {data.weight.bmi !== null && (
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="mt-1 text-xs text-muted-foreground">
                 BMI: {data.weight.bmi.toFixed(1)}
               </p>
             )}
@@ -185,14 +182,14 @@ export default function NutritionSummaryCard() {
         </div>
 
         {/* 快速提示 */}
-        <div className="pt-3 border-t border-gray-100">
+        <div className="border-t border-gray-100 pt-3">
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span>
-              {waterProgress >= 100 ? '✅' : '💧'} 
+              {waterProgress >= 100 ? '✅' : '💧'}
               {waterProgress >= 100 ? ' 飲水目標達成' : ' 記得多喝水'}
             </span>
             <span>
-              {exerciseProgress >= 100 ? '🔥' : '🏃'} 
+              {exerciseProgress >= 100 ? '🔥' : '🏃'}
               {exerciseProgress >= 100 ? ' 運動目標達成' : ' 保持運動'}
             </span>
           </div>

@@ -13,11 +13,7 @@ interface AvatarUploadProps {
   onUploadSuccess?: (imageUrl: string) => void;
 }
 
-export function AvatarUpload({ 
-  currentImage, 
-  userName,
-  onUploadSuccess 
-}: AvatarUploadProps) {
+export function AvatarUpload({ currentImage, userName, onUploadSuccess }: AvatarUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
@@ -117,14 +113,10 @@ export function AvatarUpload({
         <div className="flex flex-col items-center space-y-4">
           <Avatar className="h-32 w-32">
             <AvatarImage src={displayImage || undefined} alt={userName || 'User'} />
-            <AvatarFallback className="text-3xl">
-              {getInitials(userName)}
-            </AvatarFallback>
+            <AvatarFallback className="text-3xl">{getInitials(userName)}</AvatarFallback>
           </Avatar>
 
-          {error && (
-            <p className="text-sm text-destructive">{error}</p>
-          )}
+          {error && <p className="text-sm text-destructive">{error}</p>}
 
           <div className="flex gap-2">
             <Button
@@ -136,12 +128,12 @@ export function AvatarUpload({
             >
               {isUploading ? (
                 <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   上傳中...
                 </>
               ) : (
                 <>
-                  <Upload className="h-4 w-4 mr-2" />
+                  <Upload className="mr-2 h-4 w-4" />
                   {displayImage ? '更換頭像' : '上傳頭像'}
                 </>
               )}
@@ -157,12 +149,12 @@ export function AvatarUpload({
               >
                 {isDeleting ? (
                   <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     刪除中...
                   </>
                 ) : (
                   <>
-                    <X className="h-4 w-4 mr-2" />
+                    <X className="mr-2 h-4 w-4" />
                     移除頭像
                   </>
                 )}
@@ -178,8 +170,9 @@ export function AvatarUpload({
             onChange={handleFileSelect}
           />
 
-          <p className="text-xs text-muted-foreground text-center">
-            支援 JPG, PNG, WebP<br />
+          <p className="text-center text-xs text-muted-foreground">
+            支援 JPG, PNG, WebP
+            <br />
             檔案大小限制 5MB
           </p>
         </div>

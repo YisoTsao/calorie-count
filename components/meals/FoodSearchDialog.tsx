@@ -173,56 +173,48 @@ export function FoodSearchDialog({
 
   const renderFoodItem = (food: Food, isFavorite = false) => {
     const isSelected = selectedFood?.id === food.id;
-    
+
     return (
       <div
         key={food.id}
-        className={`p-3 sm:p-4 border rounded-lg cursor-pointer transition-colors hover:bg-accent ${
+        className={`cursor-pointer rounded-lg border p-3 transition-colors hover:bg-accent sm:p-4 ${
           isSelected ? 'border-primary bg-accent' : 'border-border'
         }`}
         onClick={() => handleSelectFood(food)}
       >
         <div className="flex items-start justify-between gap-2">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
               {food.category.icon && (
-                <span className="text-base sm:text-lg flex-shrink-0">{food.category.icon}</span>
+                <span className="flex-shrink-0 text-base sm:text-lg">{food.category.icon}</span>
               )}
-              <h4 className="font-medium text-sm sm:text-base truncate">{food.name}</h4>
+              <h4 className="truncate text-sm font-medium sm:text-base">{food.name}</h4>
               {food.nameEn && (
-                <span className="text-xs sm:text-sm text-muted-foreground hidden sm:inline">
+                <span className="hidden text-xs text-muted-foreground sm:inline sm:text-sm">
                   {food.nameEn}
                 </span>
               )}
             </div>
-            
+
             {food.brand && (
-              <p className="text-xs sm:text-sm text-muted-foreground mt-1 truncate">
+              <p className="mt-1 truncate text-xs text-muted-foreground sm:text-sm">
                 {food.brand.name}
               </p>
             )}
 
-            <div className="flex items-center gap-2 sm:gap-3 mt-2 text-xs sm:text-sm flex-wrap">
-              <span className="font-medium text-primary">
-                {food.calories} kcal
-              </span>
-              <span className="text-muted-foreground">
-                蛋白質 {food.protein}g
-              </span>
-              <span className="text-muted-foreground">
-                碳水 {food.carbs}g
-              </span>
-              <span className="text-muted-foreground">
-                脂肪 {food.fat}g
-              </span>
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs sm:gap-3 sm:text-sm">
+              <span className="font-medium text-primary">{food.calories} kcal</span>
+              <span className="text-muted-foreground">蛋白質 {food.protein}g</span>
+              <span className="text-muted-foreground">碳水 {food.carbs}g</span>
+              <span className="text-muted-foreground">脂肪 {food.fat}g</span>
             </div>
 
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="mt-1 text-xs text-muted-foreground">
               每份 {food.servingSize} {food.servingUnit}
             </p>
 
             {isFavorite && food.favoriteInfo && (
-              <div className="flex items-center gap-2 mt-2">
+              <div className="mt-2 flex items-center gap-2">
                 <Badge variant="secondary" className="text-xs">
                   使用 {food.favoriteInfo.useCount} 次
                 </Badge>
@@ -242,37 +234,48 @@ export function FoodSearchDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-3xl w-[95vw] sm:w-full max-h-[90vh] h-auto flex flex-col p-0 gap-0">
-        <DialogHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 flex-shrink-0">
+      <DialogContent className="flex h-auto max-h-[90vh] w-[95vw] max-w-3xl flex-col gap-0 p-0 sm:w-full">
+        <DialogHeader className="flex-shrink-0 px-4 pb-3 pt-4 sm:px-6 sm:pb-4 sm:pt-6">
           <DialogTitle className="flex items-center gap-2">
             搜尋食物
             {mealType && (
-              <span className="text-sm font-normal text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                {({'BREAKFAST':'早餐','LUNCH':'午餐','DINNER':'晚餐','SNACK':'點心','OTHER':'其他'} as Record<string,string>)[mealType]}
+              <span className="rounded-full bg-muted px-2 py-0.5 text-sm font-normal text-muted-foreground">
+                {
+                  (
+                    {
+                      BREAKFAST: '早餐',
+                      LUNCH: '午餐',
+                      DINNER: '晚餐',
+                      SNACK: '點心',
+                      OTHER: '其他',
+                    } as Record<string, string>
+                  )[mealType]
+                }
               </span>
             )}
           </DialogTitle>
-          <DialogDescription>
-            搜尋並選擇要加入的食物,或從常用食物中快速選擇
-          </DialogDescription>
+          <DialogDescription>搜尋並選擇要加入的食物,或從常用食物中快速選擇</DialogDescription>
         </DialogHeader>
 
         <Tabs
           value={activeTab}
           onValueChange={(v: string) => setActiveTab(v as 'search' | 'favorites')}
-          className="flex-1 flex flex-col min-h-0"
+          className="flex min-h-0 flex-1 flex-col"
         >
-          <div className="px-4 sm:px-6 flex-shrink-0">
-            <TabsList className="w-full grid grid-cols-2">
+          <div className="flex-shrink-0 px-4 sm:px-6">
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="search">搜尋食物</TabsTrigger>
               <TabsTrigger value="favorites">常用食物</TabsTrigger>
             </TabsList>
           </div>
 
-          <TabsContent value="search" className="mt-4 px-4 sm:px-6 flex-1 flex flex-col min-h-0 overflow-hidden">
+          <TabsContent
+            value="search"
+            className="mt-4 flex min-h-0 flex-1 flex-col overflow-hidden px-4 sm:px-6"
+          >
             {/* Search Input */}
-            <div className="relative mb-3 sm:mb-4 flex-shrink-0">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <div className="relative mb-3 flex-shrink-0 sm:mb-4">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="搜尋食物名稱..."
                 value={searchQuery}
@@ -290,9 +293,9 @@ export function FoodSearchDialog({
             </div>
 
             {/* Category Filter */}
-            <div className="mb-3 sm:mb-4 flex-shrink-0">
+            <div className="mb-3 flex-shrink-0 sm:mb-4">
               <ScrollArea className="w-full">
-                <div className="flex gap-2 pb-2 w-[69vw] overflow-x-auto">
+                <div className="flex w-[69vw] gap-2 overflow-x-auto pb-2">
                   <Button
                     variant={selectedCategory === '' ? 'default' : 'outline'}
                     size="sm"
@@ -303,9 +306,7 @@ export function FoodSearchDialog({
                   {categories.map((category) => (
                     <Button
                       key={category.id}
-                      variant={
-                        selectedCategory === category.id ? 'default' : 'outline'
-                      }
+                      variant={selectedCategory === category.id ? 'default' : 'outline'}
                       size="sm"
                       onClick={() => setSelectedCategory(category.id)}
                     >
@@ -317,37 +318,38 @@ export function FoodSearchDialog({
             </div>
 
             {/* Search Results */}
-            <ScrollArea className="flex-1 -mr-2 pr-2 sm:-mr-4 sm:pr-4">
+            <ScrollArea className="-mr-2 flex-1 pr-2 sm:-mr-4 sm:pr-4">
               {isSearching ? (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                 </div>
               ) : foods.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground text-sm sm:text-base">
-                  {searchQuery || selectedCategory
-                    ? '找不到符合的食物'
-                    : '請輸入關鍵字或選擇分類'}
+                <div className="py-8 text-center text-sm text-muted-foreground sm:text-base">
+                  {searchQuery || selectedCategory ? '找不到符合的食物' : '請輸入關鍵字或選擇分類'}
                 </div>
               ) : (
-                <div className="space-y-2 pb-2 h-[424px]">
+                <div className="h-[424px] space-y-2 pb-2">
                   {foods.map((food) => renderFoodItem(food))}
                 </div>
               )}
             </ScrollArea>
           </TabsContent>
 
-          <TabsContent value="favorites" className="mt-4 px-4 sm:px-6 flex-1 flex flex-col min-h-0 overflow-hidden">
-            <ScrollArea className="flex-1 -mr-2 pr-2 sm:-mr-4 sm:pr-4">
+          <TabsContent
+            value="favorites"
+            className="mt-4 flex min-h-0 flex-1 flex-col overflow-hidden px-4 sm:px-6"
+          >
+            <ScrollArea className="-mr-2 flex-1 pr-2 sm:-mr-4 sm:pr-4">
               {isFetchingFavorites ? (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                 </div>
               ) : favoriteFoods.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground text-sm sm:text-base">
+                <div className="py-8 text-center text-sm text-muted-foreground sm:text-base">
                   尚無常用食物,多次使用的食物會自動加入常用清單
                 </div>
               ) : (
-                <div className="space-y-2 pb-2 h-[424px]">
+                <div className="h-[424px] space-y-2 pb-2">
                   {favoriteFoods.map((food) => renderFoodItem(food, true))}
                 </div>
               )}
@@ -357,24 +359,24 @@ export function FoodSearchDialog({
 
         {/* Selected Food Detail & Servings */}
         {selectedFood && (
-          <div className="border-t px-4 sm:px-6 py-4 sm:py-6 bg-muted/50 flex-shrink-0">
-            <div className="flex items-start justify-between mb-3 sm:mb-4">
-              <div className="flex-1 min-w-0">
-                <h4 className="font-medium truncate">已選擇: {selectedFood.name}</h4>
-                <p className="text-xs sm:text-sm text-muted-foreground">
+          <div className="flex-shrink-0 border-t bg-muted/50 px-4 py-4 sm:px-6 sm:py-6">
+            <div className="mb-3 flex items-start justify-between sm:mb-4">
+              <div className="min-w-0 flex-1">
+                <h4 className="truncate font-medium">已選擇: {selectedFood.name}</h4>
+                <p className="text-xs text-muted-foreground sm:text-sm">
                   每份 {selectedFood.servingSize} {selectedFood.servingUnit}
                 </p>
               </div>
               <button
                 onClick={() => setSelectedFood(null)}
-                className="text-muted-foreground hover:text-foreground flex-shrink-0 ml-2"
+                className="ml-2 flex-shrink-0 text-muted-foreground hover:text-foreground"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
-              <label className="text-sm font-medium flex-shrink-0">份數:</label>
+            <div className="mb-3 flex flex-col gap-3 sm:mb-4 sm:flex-row sm:items-center sm:gap-4">
+              <label className="flex-shrink-0 text-sm font-medium">份數:</label>
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
@@ -389,47 +391,40 @@ export function FoodSearchDialog({
                   step="0.5"
                   min="0.5"
                   value={servings}
-                  onChange={(e) =>
-                    setServings(Math.max(0.5, parseFloat(e.target.value) || 0.5))
-                  }
-                  className="w-16 sm:w-20 text-center"
+                  onChange={(e) => setServings(Math.max(0.5, parseFloat(e.target.value) || 0.5))}
+                  className="w-16 text-center sm:w-20"
                 />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setServings(servings + 0.5)}
-                >
+                <Button variant="outline" size="sm" onClick={() => setServings(servings + 0.5)}>
                   +
                 </Button>
               </div>
-              <span className="text-xs sm:text-sm text-muted-foreground">
-                = {(selectedFood.servingSize * servings).toFixed(0)}{' '}
-                {selectedFood.servingUnit}
+              <span className="text-xs text-muted-foreground sm:text-sm">
+                = {(selectedFood.servingSize * servings).toFixed(0)} {selectedFood.servingUnit}
               </span>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-4 p-3 sm:p-4 bg-background rounded-lg">
+            <div className="mb-4 grid grid-cols-2 gap-3 rounded-lg bg-background p-3 sm:grid-cols-4 sm:gap-4 sm:p-4">
               <div>
-                <p className="text-xs text-muted-foreground mb-1">熱量</p>
-                <p className="text-sm sm:text-base font-medium">
+                <p className="mb-1 text-xs text-muted-foreground">熱量</p>
+                <p className="text-sm font-medium sm:text-base">
                   {(selectedFood.calories * servings).toFixed(0)} kcal
                 </p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground mb-1">蛋白質</p>
-                <p className="text-sm sm:text-base font-medium">
+                <p className="mb-1 text-xs text-muted-foreground">蛋白質</p>
+                <p className="text-sm font-medium sm:text-base">
                   {(selectedFood.protein * servings).toFixed(1)} g
                 </p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground mb-1">碳水化合物</p>
-                <p className="text-sm sm:text-base font-medium">
+                <p className="mb-1 text-xs text-muted-foreground">碳水化合物</p>
+                <p className="text-sm font-medium sm:text-base">
                   {(selectedFood.carbs * servings).toFixed(1)} g
                 </p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground mb-1">脂肪</p>
-                <p className="text-sm sm:text-base font-medium">
+                <p className="mb-1 text-xs text-muted-foreground">脂肪</p>
+                <p className="text-sm font-medium sm:text-base">
                   {(selectedFood.fat * servings).toFixed(1)} g
                 </p>
               </div>
@@ -437,38 +432,31 @@ export function FoodSearchDialog({
 
             <div className="flex flex-col gap-2">
               <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
-                  onClick={() => setSelectedFood(null)} 
-                  className="flex-1"
-                >
+                <Button variant="outline" onClick={() => setSelectedFood(null)} className="flex-1">
                   重新選擇
                 </Button>
-                <Button 
-                  onClick={handleConfirm} 
-                  className="flex-1"
-                >
+                <Button onClick={handleConfirm} className="flex-1">
                   加入並繼續
                 </Button>
               </div>
               <div className="flex gap-2">
-                <Button 
+                <Button
                   onClick={() => {
                     handleConfirm();
                     setTimeout(() => handleClose(), 100);
-                  }} 
+                  }}
                   variant="default"
                   className="flex-1"
                 >
                   加入並完成
                 </Button>
                 {onSelectFoodAndEdit && (
-                  <Button 
+                  <Button
                     onClick={() => {
                       if (selectedFood) {
                         onSelectFoodAndEdit(selectedFood, servings);
                       }
-                    }} 
+                    }}
                     variant="secondary"
                     className="flex-1"
                   >

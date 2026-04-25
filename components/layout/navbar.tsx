@@ -26,7 +26,7 @@ interface NavbarProps {
 
 export function Navbar({ user, isSidebarOpen = false, onToggleSidebar }: NavbarProps) {
   return (
-    <nav className="sticky top-0 z-50 w-full border-b bg-white dark:bg-gray-900 dark:border-gray-800">
+    <nav className="sticky top-0 z-50 w-full border-b bg-white dark:border-gray-800 dark:bg-gray-900">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
@@ -52,10 +52,10 @@ export function Navbar({ user, isSidebarOpen = false, onToggleSidebar }: NavbarP
                       alt={user.name || 'User'}
                       width={40}
                       height={40}
-                      className="rounded-full min-w-8 min-h-8 object-cover"
+                      className="min-h-8 min-w-8 rounded-full object-cover"
                     />
                   ) : (
-                    <div className="flex px-4 h-8 w-8 items-center justify-center rounded-full bg-primary text-white">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary px-4 text-white">
                       {user.name?.charAt(0).toUpperCase() || 'U'}
                     </div>
                   )}
@@ -65,9 +65,7 @@ export function Navbar({ user, isSidebarOpen = false, onToggleSidebar }: NavbarP
                 <DropdownMenuLabel>
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">{user.name}</p>
-                    <p className="text-xs leading-none text-muted-foreground">
-                      {user.email}
-                    </p>
+                    <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
@@ -92,7 +90,7 @@ export function Navbar({ user, isSidebarOpen = false, onToggleSidebar }: NavbarP
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <button
-                    className="flex w-full items-center cursor-pointer"
+                    className="flex w-full cursor-pointer items-center"
                     onClick={() => signOut({ callbackUrl: '/login' })}
                   >
                     <Icon icon="lucide:log-out" className="mr-2 h-4 w-4" />
@@ -110,10 +108,7 @@ export function Navbar({ user, isSidebarOpen = false, onToggleSidebar }: NavbarP
               onClick={onToggleSidebar}
               aria-label={isSidebarOpen ? '關閉選單' : '開啟選單'}
             >
-              <Icon
-                icon={isSidebarOpen ? 'lucide:x' : 'lucide:menu'}
-                className="h-6 w-6"
-              />
+              <Icon icon={isSidebarOpen ? 'lucide:x' : 'lucide:menu'} className="h-6 w-6" />
             </Button>
           </div>
         </div>

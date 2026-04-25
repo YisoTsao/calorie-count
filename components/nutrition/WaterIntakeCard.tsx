@@ -13,9 +13,7 @@ interface WaterIntakeCardProps {
   dailyGoal?: number; // ml
 }
 
-export default function WaterIntakeCard({ 
-  dailyGoal = 2000
-}: WaterIntakeCardProps) {
+export default function WaterIntakeCard({ dailyGoal = 2000 }: WaterIntakeCardProps) {
   const [records, setRecords] = useState<WaterIntakeRecord[]>([]);
   const [totalAmount, setTotalAmount] = useState(0);
   const [customAmount, setCustomAmount] = useState('');
@@ -34,9 +32,9 @@ export default function WaterIntakeCard({
       setLoading(true);
       const today = new Date().toISOString().split('T')[0];
       const response = await fetch(`/api/water?date=${today}`);
-      
+
       if (!response.ok) throw new Error('載入失敗');
-      
+
       const result = await response.json();
       // API 回傳格式: { success: true, data: { intakes, total, date } }
       const data = result.data || {};
@@ -63,7 +61,7 @@ export default function WaterIntakeCard({
       const response = await fetch('/api/water', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount })
+        body: JSON.stringify({ amount }),
       });
 
       if (!response.ok) throw new Error('新增失敗');
@@ -71,8 +69,8 @@ export default function WaterIntakeCard({
       const result = await response.json();
       const newRecord = result.data?.waterIntake;
       if (newRecord) {
-        setRecords(prev => [newRecord, ...prev]);
-        setTotalAmount(prev => prev + amount);
+        setRecords((prev) => [newRecord, ...prev]);
+        setTotalAmount((prev) => prev + amount);
       }
       setCustomAmount('');
       await loadTodayRecords(); // 重新載入確保資料同步
@@ -91,13 +89,13 @@ export default function WaterIntakeCard({
     try {
       setLoading(true);
       const response = await fetch(`/api/water?id=${recordId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
       });
 
       if (!response.ok) throw new Error('刪除失敗');
 
-      setRecords(prev => prev.filter(r => r.id !== recordId));
-      setTotalAmount(prev => prev - amount);
+      setRecords((prev) => prev.filter((r) => r.id !== recordId));
+      setTotalAmount((prev) => prev - amount);
     } catch (error) {
       console.error('刪除記錄失敗:', error);
       alert('刪除失敗,請稍後再試');
@@ -110,9 +108,9 @@ export default function WaterIntakeCard({
   const remaining = Math.max(dailyGoal - totalAmount, 0);
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
+    <div className="rounded-lg bg-white p-6 shadow-md">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Droplet className="text-blue-500" size={24} />
           <h3 className="text-lg font-semibold">飲水追蹤</h3>
@@ -127,7 +125,7 @@ export default function WaterIntakeCard({
 
       {/* Progress Bar */}
       <div className="mb-6">
-        <div className="flex justify-between text-sm mb-2">
+        <div className="mb-2 flex justify-between text-sm">
           <span className="text-gray-600">
             已喝: <span className="font-semibold text-blue-600">{totalAmount}ml</span>
           </span>
@@ -135,15 +133,15 @@ export default function WaterIntakeCard({
             目標: <span className="font-semibold">{dailyGoal}ml</span>
           </span>
         </div>
-        
-        <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+
+        <div className="h-3 w-full overflow-hidden rounded-full bg-gray-200">
           <div
-            className="bg-gradient-to-r from-blue-400 to-blue-600 h-full transition-all duration-500 rounded-full"
+            className="h-full rounded-full bg-gradient-to-r from-blue-400 to-blue-600 transition-all duration-500"
             style={{ width: `${progressPercentage}%` }}
           />
         </div>
-        
-        <p className="text-xs text-gray-500 mt-2 text-center">
+
+        <p className="mt-2 text-center text-xs text-gray-500">
           {remaining > 0 ? `還需 ${remaining}ml 達成目標` : '🎉 已完成今日目標!'}
         </p>
       </div>
@@ -152,14 +150,14 @@ export default function WaterIntakeCard({
         <>
           {/* Quick Add Buttons */}
           <div className="mb-4">
-            <p className="text-sm text-gray-600 mb-2">快速新增</p>
+            <p className="mb-2 text-sm text-gray-600">快速新增</p>
             <div className="grid grid-cols-4 gap-2">
-              {quickAmounts.map(amount => (
+              {quickAmounts.map((amount) => (
                 <button
                   key={amount}
                   onClick={() => addWater(amount)}
                   disabled={loading}
-                  className="bg-blue-50 hover:bg-blue-100 text-blue-700 py-2 px-3 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                  className="rounded-lg bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 transition-colors hover:bg-blue-100 disabled:opacity-50"
                 >
                   {amount}ml
                 </button>
@@ -169,7 +167,7 @@ export default function WaterIntakeCard({
 
           {/* Custom Amount Input */}
           <div className="mb-6">
-            <p className="text-sm text-gray-600 mb-2">自訂數量</p>
+            <p className="mb-2 text-sm text-gray-600">自訂數量</p>
             <div className="flex gap-2">
               <input
                 type="number"
@@ -178,7 +176,7 @@ export default function WaterIntakeCard({
                 placeholder="輸入毫升數"
                 min="1"
                 max="5000"
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex-1 rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 disabled={loading}
               />
               <button
@@ -187,7 +185,7 @@ export default function WaterIntakeCard({
                   if (!isNaN(amount)) addWater(amount);
                 }}
                 disabled={loading || !customAmount}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-1 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-1 rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Plus size={16} />
                 新增
@@ -197,21 +195,21 @@ export default function WaterIntakeCard({
 
           {/* Records List */}
           <div>
-            <div className="flex justify-between items-center mb-2">
+            <div className="mb-2 flex items-center justify-between">
               <p className="text-sm text-gray-600">今日記錄</p>
               <span className="text-xs text-gray-500">{records.length} 筆</span>
             </div>
-            
-            <div className="max-h-64 overflow-y-auto space-y-2">
+
+            <div className="max-h-64 space-y-2 overflow-y-auto">
               {loading && records.length === 0 ? (
-                <p className="text-center text-gray-400 py-4">載入中...</p>
+                <p className="py-4 text-center text-gray-400">載入中...</p>
               ) : records.length === 0 ? (
-                <p className="text-center text-gray-400 py-4">尚無記錄</p>
+                <p className="py-4 text-center text-gray-400">尚無記錄</p>
               ) : (
-                records.map(record => (
+                records.map((record) => (
                   <div
                     key={record.id}
-                    className="flex justify-between items-center bg-gray-50 p-3 rounded-lg hover:bg-gray-100 transition-colors"
+                    className="flex items-center justify-between rounded-lg bg-gray-50 p-3 transition-colors hover:bg-gray-100"
                   >
                     <div className="flex items-center gap-3">
                       <Droplet size={16} className="text-blue-500" />
@@ -220,7 +218,7 @@ export default function WaterIntakeCard({
                         <p className="text-xs text-gray-500">
                           {new Date(record.time).toLocaleTimeString('zh-TW', {
                             hour: '2-digit',
-                            minute: '2-digit'
+                            minute: '2-digit',
                           })}
                         </p>
                       </div>
@@ -228,7 +226,7 @@ export default function WaterIntakeCard({
                     <button
                       onClick={() => deleteRecord(record.id, record.amount)}
                       disabled={loading}
-                      className="text-red-500 hover:text-red-700 p-1 rounded transition-colors disabled:opacity-50"
+                      className="rounded p-1 text-red-500 transition-colors hover:text-red-700 disabled:opacity-50"
                     >
                       <Trash2 size={16} />
                     </button>

@@ -85,12 +85,9 @@ export function EditMealFoodDialog({
 
     setIsDeleting(true);
     try {
-      const response = await fetch(
-        `/api/meals/${mealId}/foods?mealFoodId=${mealFood.id}`,
-        {
-          method: 'DELETE',
-        }
-      );
+      const response = await fetch(`/api/meals/${mealId}/foods?mealFoodId=${mealFood.id}`, {
+        method: 'DELETE',
+      });
 
       if (!response.ok) {
         throw new Error('刪除失敗');
@@ -116,16 +113,14 @@ export function EditMealFoodDialog({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>編輯食物</DialogTitle>
-          <DialogDescription>
-            調整份數或刪除這個食物
-          </DialogDescription>
+          <DialogDescription>調整份數或刪除這個食物</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           {/* 食物資訊 */}
           <div className="space-y-2">
             <div>
-              <p className="font-medium text-lg">{mealFood.name}</p>
+              <p className="text-lg font-medium">{mealFood.name}</p>
               <p className="text-sm text-muted-foreground">
                 每份 {mealFood.portionSize / mealFood.servings} {mealFood.portionUnit}
               </p>
@@ -150,9 +145,7 @@ export function EditMealFoodDialog({
                 step="0.5"
                 min="0.5"
                 value={servings}
-                onChange={(e) =>
-                  setServings(Math.max(0.5, parseFloat(e.target.value) || 0.5))
-                }
+                onChange={(e) => setServings(Math.max(0.5, parseFloat(e.target.value) || 0.5))}
                 className="w-24 text-center"
                 disabled={isUpdating}
               />
@@ -164,7 +157,7 @@ export function EditMealFoodDialog({
               >
                 +
               </Button>
-              <span className="text-sm text-muted-foreground ml-2">
+              <span className="ml-2 text-sm text-muted-foreground">
                 = {((mealFood.portionSize / mealFood.servings) * servings).toFixed(0)}{' '}
                 {mealFood.portionUnit}
               </span>
@@ -172,39 +165,37 @@ export function EditMealFoodDialog({
           </div>
 
           {/* 營養資訊預覽 */}
-          <div className="grid grid-cols-2 gap-3 p-4 bg-muted rounded-lg">
+          <div className="grid grid-cols-2 gap-3 rounded-lg bg-muted p-4">
             <div>
-              <p className="text-xs text-muted-foreground mb-1">熱量</p>
-              <p className="font-medium">
-                {(baseCalories * servings).toFixed(0)} kcal
-              </p>
+              <p className="mb-1 text-xs text-muted-foreground">熱量</p>
+              <p className="font-medium">{(baseCalories * servings).toFixed(0)} kcal</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground mb-1">蛋白質</p>
+              <p className="mb-1 text-xs text-muted-foreground">蛋白質</p>
               <p className="font-medium">{(baseProtein * servings).toFixed(1)} g</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground mb-1">碳水化合物</p>
+              <p className="mb-1 text-xs text-muted-foreground">碳水化合物</p>
               <p className="font-medium">{(baseCarbs * servings).toFixed(1)} g</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground mb-1">脂肪</p>
+              <p className="mb-1 text-xs text-muted-foreground">脂肪</p>
               <p className="font-medium">{(baseFat * servings).toFixed(1)} g</p>
             </div>
           </div>
         </div>
 
-        <DialogFooter className="flex flex-col sm:flex-row gap-2">
+        <DialogFooter className="flex flex-col gap-2 sm:flex-row">
           <Button
             variant="destructive"
             onClick={handleDelete}
             disabled={isDeleting || isUpdating}
             className="sm:mr-auto"
           >
-            <Trash2 className="h-4 w-4 mr-2" />
+            <Trash2 className="mr-2 h-4 w-4" />
             刪除
           </Button>
-          <div className="flex gap-2 flex-1 sm:flex-initial">
+          <div className="flex flex-1 gap-2 sm:flex-initial">
             <Button
               variant="outline"
               onClick={() => onOpenChange(false)}
@@ -213,11 +204,7 @@ export function EditMealFoodDialog({
             >
               取消
             </Button>
-            <Button
-              onClick={handleUpdate}
-              disabled={isUpdating || isDeleting}
-              className="flex-1"
-            >
+            <Button onClick={handleUpdate} disabled={isUpdating || isDeleting} className="flex-1">
               {isUpdating ? '更新中...' : '更新'}
             </Button>
           </div>

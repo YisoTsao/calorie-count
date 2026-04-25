@@ -76,9 +76,7 @@ export default function MealsPage() {
   });
   const [goals, setGoals] = useState<UserGoals | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split('T')[0]
-  );
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [isSearchDialogOpen, setIsSearchDialogOpen] = useState(false);
   const [selectedMealType, setSelectedMealType] = useState<Meal['mealType']>('BREAKFAST');
   const [isAddingFood, setIsAddingFood] = useState(false);
@@ -217,14 +215,14 @@ export default function MealsPage() {
     await handleAddFood(food, servings);
     // 關閉搜尋對話框
     setIsSearchDialogOpen(false);
-    
+
     // 等待資料更新後開啟編輯對話框
     setTimeout(() => {
       if (lastAddedFoodId) {
         // 找到剛剛新增的食物
-        const meal = meals.find(m => m.id === editingMealId);
+        const meal = meals.find((m) => m.id === editingMealId);
         if (meal) {
-          const mealFood = meal.foods.find(f => f.id === lastAddedFoodId);
+          const mealFood = meal.foods.find((f) => f.id === lastAddedFoodId);
           if (mealFood) {
             setEditingMealFood(mealFood);
             setIsEditDialogOpen(true);
@@ -246,12 +244,9 @@ export default function MealsPage() {
     }
 
     try {
-      const response = await fetch(
-        `/api/meals/${mealId}/foods?mealFoodId=${mealFoodId}`,
-        {
-          method: 'DELETE',
-        }
-      );
+      const response = await fetch(`/api/meals/${mealId}/foods?mealFoodId=${mealFoodId}`, {
+        method: 'DELETE',
+      });
 
       if (!response.ok) {
         throw new Error('刪除失敗');
@@ -282,7 +277,7 @@ export default function MealsPage() {
     // 確保有選擇的餐點類型
     let targetMealId = '';
     const mealsOfType = getMealsByType(selectedMealType);
-    
+
     if (mealsOfType.length > 0) {
       targetMealId = mealsOfType[0].id;
     } else {
@@ -343,22 +338,22 @@ export default function MealsPage() {
 
   if (isLoading) {
     return (
-      <div className="container max-w-6xl mx-auto p-6">
+      <div className="container mx-auto max-w-6xl p-6">
         <p className="text-center">載入中...</p>
       </div>
     );
   }
 
   return (
-    <div className="container max-w-6xl mx-auto p-6 space-y-6">
+    <div className="container mx-auto max-w-6xl space-y-6 p-6">
       {/* 頁首 */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">飲食記錄</h1>
-          <p className="text-muted-foreground mt-1">追蹤您的每日營養攝取</p>
+          <p className="mt-1 text-muted-foreground">追蹤您的每日營養攝取</p>
         </div>
         <Button onClick={() => router.push('/scan')}>
-          <Plus className="h-4 w-4 mr-2" />
+          <Plus className="mr-2 h-4 w-4" />
           新增食物
         </Button>
       </div>
@@ -375,7 +370,7 @@ export default function MealsPage() {
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="px-3 py-2 border rounded-md"
+              className="rounded-md border px-3 py-2"
             />
           </div>
         </CardContent>
@@ -387,29 +382,21 @@ export default function MealsPage() {
           <div className="flex items-center justify-between">
             <CardTitle>今日總計</CardTitle>
             {!goals && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => router.push('/goals')}
-              >
-                <Target className="h-4 w-4 mr-2" />
+              <Button variant="outline" size="sm" onClick={() => router.push('/goals')}>
+                <Target className="mr-2 h-4 w-4" />
                 設定目標
               </Button>
             )}
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             {/* 卡路里 */}
             <div className="space-y-2">
               <div className="text-center">
-                <p className="text-3xl font-bold text-primary">
-                  {Math.round(totals.calories)}
-                </p>
+                <p className="text-3xl font-bold text-primary">{Math.round(totals.calories)}</p>
                 {goals && (
-                  <p className="text-xs text-muted-foreground">
-                    / {goals.dailyCalorieGoal} kcal
-                  </p>
+                  <p className="text-xs text-muted-foreground">/ {goals.dailyCalorieGoal} kcal</p>
                 )}
                 <p className="text-sm text-muted-foreground">卡路里</p>
               </div>
@@ -447,9 +434,7 @@ export default function MealsPage() {
               <div className="text-center">
                 <p className="text-3xl font-bold">{Math.round(totals.carbs)}</p>
                 {goals && (
-                  <p className="text-xs text-muted-foreground">
-                    / {Math.round(goals.carbsGoal)} g
-                  </p>
+                  <p className="text-xs text-muted-foreground">/ {Math.round(goals.carbsGoal)} g</p>
                 )}
                 <p className="text-sm text-muted-foreground">碳水化合物</p>
               </div>
@@ -467,9 +452,7 @@ export default function MealsPage() {
               <div className="text-center">
                 <p className="text-3xl font-bold">{Math.round(totals.fat)}</p>
                 {goals && (
-                  <p className="text-xs text-muted-foreground">
-                    / {Math.round(goals.fatGoal)} g
-                  </p>
+                  <p className="text-xs text-muted-foreground">/ {Math.round(goals.fatGoal)} g</p>
                 )}
                 <p className="text-sm text-muted-foreground">脂肪</p>
               </div>
@@ -488,12 +471,14 @@ export default function MealsPage() {
             <div className="text-center text-sm">
               {totals.calories >= goals.dailyCalorieGoal * 0.9 &&
               totals.calories <= goals.dailyCalorieGoal * 1.1 ? (
-                <p className="text-green-600 dark:text-green-400">
-                  ✅ 太棒了！您的攝取接近目標
-                </p>
+                <p className="text-green-600 dark:text-green-400">✅ 太棒了！您的攝取接近目標</p>
               ) : totals.calories > goals.dailyCalorieGoal * 1.1 ? (
                 <p className="text-orange-600 dark:text-orange-400">
-                  ⚠️ 今日攝取已超過目標 {Math.round(((totals.calories - goals.dailyCalorieGoal) / goals.dailyCalorieGoal) * 100)}%
+                  ⚠️ 今日攝取已超過目標{' '}
+                  {Math.round(
+                    ((totals.calories - goals.dailyCalorieGoal) / goals.dailyCalorieGoal) * 100
+                  )}
+                  %
                 </p>
               ) : (
                 <p className="text-muted-foreground">
@@ -528,7 +513,7 @@ export default function MealsPage() {
                     onClick={() => handleOpenPhotoUpload(mealType)}
                     disabled={isAddingFood}
                   >
-                    <Plus className="h-4 w-4 mr-1" />
+                    <Plus className="mr-1 h-4 w-4" />
                     拍照
                   </Button>
                   <Button
@@ -537,7 +522,7 @@ export default function MealsPage() {
                     onClick={() => handleOpenSearch(mealType)}
                     disabled={isAddingFood}
                   >
-                    <Plus className="h-4 w-4 mr-1" />
+                    <Plus className="mr-1 h-4 w-4" />
                     手動新增
                   </Button>
                 </div>
@@ -545,9 +530,7 @@ export default function MealsPage() {
             </CardHeader>
             <CardContent>
               {typeMeals.length === 0 ? (
-                <p className="text-center text-muted-foreground py-4">
-                  尚無記錄
-                </p>
+                <p className="py-4 text-center text-muted-foreground">尚無記錄</p>
               ) : (
                 <div className="space-y-4">
                   {typeMeals.map((meal) => (
@@ -555,7 +538,7 @@ export default function MealsPage() {
                       {meal.foods.map((food) => (
                         <div
                           key={food.id}
-                          className="flex items-center justify-between p-3 bg-muted/50 rounded-lg hover:bg-muted/70 transition-colors group"
+                          className="group flex items-center justify-between rounded-lg bg-muted/50 p-3 transition-colors hover:bg-muted/70"
                         >
                           <div className="flex-1">
                             <p className="font-medium">{food.name}</p>
@@ -566,16 +549,13 @@ export default function MealsPage() {
                           </div>
                           <div className="flex items-center gap-3">
                             <div className="text-right">
-                              <p className="font-semibold">
-                                {Math.round(food.calories)} kcal
-                              </p>
+                              <p className="font-semibold">{Math.round(food.calories)} kcal</p>
                               <p className="text-xs text-muted-foreground">
-                                P: {Math.round(food.protein)}g | C:{' '}
-                                {Math.round(food.carbs)}g | F:{' '}
+                                P: {Math.round(food.protein)}g | C: {Math.round(food.carbs)}g | F:{' '}
                                 {Math.round(food.fat)}g
                               </p>
                             </div>
-                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                               <Button
                                 variant="ghost"
                                 size="sm"

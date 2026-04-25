@@ -16,25 +16,23 @@ interface ExerciseLoggerProps {
 }
 
 const EXERCISE_TYPES = {
-  '慢跑': 7.0,
-  '快跑': 11.0,
-  '步行': 3.5,
-  '游泳': 8.0,
-  '騎自行車': 6.8,
-  '重量訓練': 6.0,
-  '瑜伽': 3.0,
-  '有氧運動': 7.3,
-  '爬樓梯': 8.8,
-  '跳繩': 12.3,
-  '籃球': 6.5,
-  '羽毛球': 5.5,
-  '網球': 7.3,
-  '其他': 5.0
+  慢跑: 7.0,
+  快跑: 11.0,
+  步行: 3.5,
+  游泳: 8.0,
+  騎自行車: 6.8,
+  重量訓練: 6.0,
+  瑜伽: 3.0,
+  有氧運動: 7.3,
+  爬樓梯: 8.8,
+  跳繩: 12.3,
+  籃球: 6.5,
+  羽毛球: 5.5,
+  網球: 7.3,
+  其他: 5.0,
 } as const;
 
-export default function ExerciseLogger({ 
-  dailyCalorieGoal = 300 
-}: ExerciseLoggerProps) {
+export default function ExerciseLogger({ dailyCalorieGoal = 300 }: ExerciseLoggerProps) {
   const [records, setRecords] = useState<ExerciseRecord[]>([]);
   const [totalCalories, setTotalCalories] = useState(0);
   const [selectedType, setSelectedType] = useState<string>('慢跑');
@@ -52,9 +50,9 @@ export default function ExerciseLogger({
       setLoading(true);
       const today = new Date().toISOString().split('T')[0];
       const response = await fetch(`/api/exercise?date=${today}`);
-      
+
       if (!response.ok) throw new Error('載入失敗');
-      
+
       const result = await response.json();
       // API 回傳格式: { success: true, data: { exercises, totals } }
       const data = result.data || {};
@@ -72,7 +70,7 @@ export default function ExerciseLogger({
   // 新增運動記錄
   const addExercise = async () => {
     const durationNum = parseInt(duration);
-    
+
     if (!selectedType || !duration || durationNum <= 0) {
       alert('請選擇運動類型並輸入有效時間');
       return;
@@ -85,8 +83,8 @@ export default function ExerciseLogger({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           type: selectedType,
-          duration: durationNum
-        })
+          duration: durationNum,
+        }),
       });
 
       if (!response.ok) throw new Error('新增失敗');
@@ -94,8 +92,8 @@ export default function ExerciseLogger({
       const result = await response.json();
       const newRecord = result.data?.exercise;
       if (newRecord) {
-        setRecords(prev => [newRecord, ...prev]);
-        setTotalCalories(prev => prev + (newRecord.calories || 0));
+        setRecords((prev) => [newRecord, ...prev]);
+        setTotalCalories((prev) => prev + (newRecord.calories || 0));
       }
       setDuration('');
       await loadTodayRecords(); // 重新載入確保資料同步
@@ -114,13 +112,13 @@ export default function ExerciseLogger({
     try {
       setLoading(true);
       const response = await fetch(`/api/exercise?id=${recordId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
       });
 
       if (!response.ok) throw new Error('刪除失敗');
 
-      setRecords(prev => prev.filter(r => r.id !== recordId));
-      setTotalCalories(prev => prev - calories);
+      setRecords((prev) => prev.filter((r) => r.id !== recordId));
+      setTotalCalories((prev) => prev - calories);
     } catch (error) {
       console.error('刪除記錄失敗:', error);
       alert('刪除失敗,請稍後再試');
@@ -140,9 +138,9 @@ export default function ExerciseLogger({
   const progressPercentage = Math.min((totalCalories / dailyCalorieGoal) * 100, 100);
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
+    <div className="rounded-lg bg-white p-6 shadow-md">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Activity className="text-orange-500" size={24} />
           <h3 className="text-lg font-semibold">運動記錄</h3>
@@ -157,18 +155,19 @@ export default function ExerciseLogger({
 
       {/* Progress Summary */}
       <div className="mb-6">
-        <div className="flex justify-between text-sm mb-2">
+        <div className="mb-2 flex justify-between text-sm">
           <span className="text-gray-600">
-            已消耗: <span className="font-semibold text-orange-600">{Math.round(totalCalories)} 卡</span>
+            已消耗:{' '}
+            <span className="font-semibold text-orange-600">{Math.round(totalCalories)} 卡</span>
           </span>
           <span className="text-gray-600">
             目標: <span className="font-semibold">{dailyCalorieGoal} 卡</span>
           </span>
         </div>
-        
-        <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+
+        <div className="h-3 w-full overflow-hidden rounded-full bg-gray-200">
           <div
-            className="bg-gradient-to-r from-orange-400 to-orange-600 h-full transition-all duration-500 rounded-full"
+            className="h-full rounded-full bg-gradient-to-r from-orange-400 to-orange-600 transition-all duration-500"
             style={{ width: `${progressPercentage}%` }}
           />
         </div>
@@ -177,22 +176,20 @@ export default function ExerciseLogger({
       {isExpanded && (
         <>
           {/* Add Exercise Form */}
-          <div className="mb-6 bg-gray-50 p-4 rounded-lg">
-            <p className="text-sm text-gray-600 mb-3">新增運動</p>
-            
+          <div className="mb-6 rounded-lg bg-gray-50 p-4">
+            <p className="mb-3 text-sm text-gray-600">新增運動</p>
+
             <div className="space-y-3">
               {/* Exercise Type Selector */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  運動類型
-                </label>
+                <label className="mb-1 block text-sm font-medium text-gray-700">運動類型</label>
                 <select
                   value={selectedType}
                   onChange={(e) => setSelectedType(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
                   disabled={loading}
                 >
-                  {Object.keys(EXERCISE_TYPES).map(type => (
+                  {Object.keys(EXERCISE_TYPES).map((type) => (
                     <option key={type} value={type}>
                       {type} (MET: {EXERCISE_TYPES[type as keyof typeof EXERCISE_TYPES]})
                     </option>
@@ -202,7 +199,7 @@ export default function ExerciseLogger({
 
               {/* Duration Input */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="mb-1 block text-sm font-medium text-gray-700">
                   運動時間 (分鐘)
                 </label>
                 <input
@@ -211,19 +208,18 @@ export default function ExerciseLogger({
                   onChange={(e) => setDuration(e.target.value)}
                   placeholder="輸入運動時間"
                   min="1"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
                   disabled={loading}
                 />
               </div>
 
               {/* Estimated Calories */}
               {duration && (
-                <div className="flex items-center gap-2 text-sm bg-orange-50 p-2 rounded">
+                <div className="flex items-center gap-2 rounded bg-orange-50 p-2 text-sm">
                   <Flame size={16} className="text-orange-500" />
                   <span className="text-gray-600">
-                    預估消耗: <span className="font-semibold text-orange-600">
-                      {estimatedCalories()} 卡
-                    </span>
+                    預估消耗:{' '}
+                    <span className="font-semibold text-orange-600">{estimatedCalories()} 卡</span>
                   </span>
                 </div>
               )}
@@ -232,7 +228,7 @@ export default function ExerciseLogger({
               <button
                 onClick={addExercise}
                 disabled={loading || !duration}
-                className="w-full bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-orange-600 px-4 py-2 text-white transition-colors hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Plus size={16} />
                 新增運動記錄
@@ -242,21 +238,21 @@ export default function ExerciseLogger({
 
           {/* Records List */}
           <div>
-            <div className="flex justify-between items-center mb-2">
+            <div className="mb-2 flex items-center justify-between">
               <p className="text-sm text-gray-600">今日記錄</p>
               <span className="text-xs text-gray-500">{records.length} 筆</span>
             </div>
-            
-            <div className="max-h-64 overflow-y-auto space-y-2">
+
+            <div className="max-h-64 space-y-2 overflow-y-auto">
               {loading && records.length === 0 ? (
-                <p className="text-center text-gray-400 py-4">載入中...</p>
+                <p className="py-4 text-center text-gray-400">載入中...</p>
               ) : records.length === 0 ? (
-                <p className="text-center text-gray-400 py-4">尚無記錄</p>
+                <p className="py-4 text-center text-gray-400">尚無記錄</p>
               ) : (
-                records.map(record => (
+                records.map((record) => (
                   <div
                     key={record.id}
-                    className="flex justify-between items-center bg-gray-50 p-3 rounded-lg hover:bg-gray-100 transition-colors"
+                    className="flex items-center justify-between rounded-lg bg-gray-50 p-3 transition-colors hover:bg-gray-100"
                   >
                     <div className="flex items-center gap-3">
                       <Activity size={16} className="text-orange-500" />
@@ -271,7 +267,7 @@ export default function ExerciseLogger({
                           <span>
                             {new Date(record.time).toLocaleTimeString('zh-TW', {
                               hour: '2-digit',
-                              minute: '2-digit'
+                              minute: '2-digit',
                             })}
                           </span>
                         </div>
@@ -280,7 +276,7 @@ export default function ExerciseLogger({
                     <button
                       onClick={() => deleteRecord(record.id, record.calories)}
                       disabled={loading}
-                      className="text-red-500 hover:text-red-700 p-1 rounded transition-colors disabled:opacity-50"
+                      className="rounded p-1 text-red-500 transition-colors hover:text-red-700 disabled:opacity-50"
                     >
                       <Trash2 size={16} />
                     </button>

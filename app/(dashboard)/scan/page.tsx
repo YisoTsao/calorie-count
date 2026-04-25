@@ -1,24 +1,21 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Camera } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { CameraCapture } from "@/components/scan/camera-capture";
-import { ImageUpload } from "@/components/scan/image-upload";
-import { compressImageFromSrc } from "@/lib/client-image-compress";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Camera, Loader2, Sparkles } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { CameraCapture } from '@/components/scan/camera-capture';
+import { ImageUpload } from '@/components/scan/image-upload';
+import { compressImageFromSrc } from '@/lib/client-image-compress';
 
 export default function ScanPage() {
   const router = useRouter();
   const [showCamera, setShowCamera] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadStep, setUploadStep] = useState<'idle' | 'compressing' | 'uploading' | 'analyzing'>(
+    'idle'
+  );
 
   const handleCapture = async (imageSrc: string) => {
     setShowCamera(false);
@@ -37,57 +34,97 @@ export default function ScanPage() {
   const uploadImage = async (imageSrc: string) => {
     try {
       setIsUploading(true);
+      setUploadStep('compressing');
 
       // 壓縮圖片
       const compressedBlob = await compressImageFromSrc(imageSrc, {
         maxWidth: 1920,
         maxHeight: 1920,
         quality: 0.85,
-        format: "image/webp",
+        format: 'image/webp',
       });
+
+      setUploadStep('uploading');
 
       // 建立 FormData
       const formData = new FormData();
-      formData.append("image", compressedBlob, "food.webp");
+      formData.append('image', compressedBlob, 'food.webp');
 
       // 上傳圖片
-      const uploadResponse = await fetch("/api/recognition/upload", {
-        method: "POST",
+      const uploadResponse = await fetch('/api/recognition/upload', {
+        method: 'POST',
         body: formData,
       });
 
       if (!uploadResponse.ok) {
-        throw new Error("上傳失敗");
+        throw new Error('上傳失敗');
       }
 
+      setUploadStep('analyzing');
       const data = await uploadResponse.json();
 
       // 跳轉到結果頁面
       router.push(`/scan/result/${data.data.recognition.id}`);
     } catch (error) {
-      console.error("Upload error:", error);
-      alert("上傳失敗，請重試");
+      console.error('Upload error:', error);
+      alert('上傳失敗，請重試');
+      setUploadStep('idle');
     } finally {
       setIsUploading(false);
     }
   };
 
   if (showCamera) {
+    return <CameraCapture onCapture={handleCapture} onClose={() => setShowCamera(false)} />;
+  }
+
+  // Loading overlay
+  if (isUploading) {
+    const stepLabels = {
+      compressing: '正在壓縮圖片...',
+      uploading: '正在上傳圖片...',
+      analyzing: 'AI 正在分析食物...',
+      idle: '',
+    };
     return (
-      <CameraCapture
-        onCapture={handleCapture}
-        onClose={() => setShowCamera(false)}
-      />
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/90 backdrop-blur-sm">
+        <div className="flex flex-col items-center gap-6 p-8 text-center">
+          <div className="relative">
+            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-primary/10">
+              <Sparkles className="h-10 w-10 animate-pulse text-primary" />
+            </div>
+            <Loader2 className="absolute inset-0 m-auto h-24 w-24 animate-spin text-primary/30" />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-xl font-semibold">{stepLabels[uploadStep]}</h2>
+            <p className="max-w-xs text-sm text-muted-foreground">
+              {uploadStep === 'analyzing'
+                ? 'AI 正在辨識食物種類與計算營養資訊，請稍候...'
+                : '請稍候，即將為您分析食物'}
+            </p>
+          </div>
+          <div className="flex gap-2">
+            {(['compressing', 'uploading', 'analyzing'] as const).map((step, i) => (
+              <div
+                key={step}
+                className={`h-2 w-2 rounded-full transition-all duration-500 ${
+                  ['compressing', 'uploading', 'analyzing'].indexOf(uploadStep) >= i
+                    ? 'scale-125 bg-primary'
+                    : 'bg-muted'
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
     );
   }
 
   return (
-    <div className="container max-w-2xl mx-auto p-6 space-y-6">
+    <div className="container mx-auto max-w-2xl space-y-6 p-6">
       <div>
-        <h1 className="text-3xl font-bold mb-2">掃描食物</h1>
-        <p className="text-muted-foreground">
-          拍照或上傳食物圖片，AI 將自動辨識營養資訊
-        </p>
+        <h1 className="mb-2 text-3xl font-bold">掃描食物</h1>
+        <p className="text-muted-foreground">拍照或上傳食物圖片，AI 將自動辨識營養資訊</p>
       </div>
 
       <Card>
@@ -102,7 +139,7 @@ export default function ScanPage() {
             onClick={() => setShowCamera(true)}
             disabled={isUploading}
           >
-            <Camera className="h-5 w-5 mr-2" />
+            <Camera className="mr-2 h-5 w-5" />
             使用相機拍照
           </Button>
 

@@ -23,7 +23,11 @@ export function ProfileEditForm({ defaultValues }: ProfileEditFormProps) {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  const { register, handleSubmit, formState: { errors } } = useForm<ProfileFormData>({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<ProfileFormData>({
     resolver: zodResolver(profileUpdateSchema),
     defaultValues,
   });
@@ -63,17 +67,13 @@ export function ProfileEditForm({ defaultValues }: ProfileEditFormProps) {
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {error && (
-            <div className="bg-destructive/15 text-destructive px-4 py-3 rounded">
-              {error}
-            </div>
+            <div className="rounded bg-destructive/15 px-4 py-3 text-destructive">{error}</div>
           )}
 
           <div className="space-y-2">
             <Label htmlFor="name">姓名</Label>
             <Input id="name" {...register('name')} />
-            {errors.name && (
-              <p className="text-sm text-destructive">{errors.name.message}</p>
-            )}
+            {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -84,12 +84,11 @@ export function ProfileEditForm({ defaultValues }: ProfileEditFormProps) {
                 type="number"
                 step="0.1"
                 {...register('height', {
-                  setValueAs: (v) => (v === '' || v === null || v === undefined ? undefined : Number(v)),
+                  setValueAs: (v) =>
+                    v === '' || v === null || v === undefined ? undefined : Number(v),
                 })}
               />
-              {errors.height && (
-                <p className="text-sm text-destructive">{errors.height.message}</p>
-              )}
+              {errors.height && <p className="text-sm text-destructive">{errors.height.message}</p>}
             </div>
 
             <div className="space-y-2">
@@ -99,12 +98,11 @@ export function ProfileEditForm({ defaultValues }: ProfileEditFormProps) {
                 type="number"
                 step="0.1"
                 {...register('weight', {
-                  setValueAs: (v) => (v === '' || v === null || v === undefined ? undefined : Number(v)),
+                  setValueAs: (v) =>
+                    v === '' || v === null || v === undefined ? undefined : Number(v),
                 })}
               />
-              {errors.weight && (
-                <p className="text-sm text-destructive">{errors.weight.message}</p>
-              )}
+              {errors.weight && <p className="text-sm text-destructive">{errors.weight.message}</p>}
             </div>
           </div>
 
@@ -130,9 +128,7 @@ export function ProfileEditForm({ defaultValues }: ProfileEditFormProps) {
               <option value="FEMALE">女性</option>
               <option value="OTHER">其他</option>
             </select>
-            {errors.gender && (
-              <p className="text-sm text-destructive">{errors.gender.message}</p>
-            )}
+            {errors.gender && <p className="text-sm text-destructive">{errors.gender.message}</p>}
           </div>
 
           <div className="space-y-2">

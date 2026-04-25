@@ -13,7 +13,10 @@ export interface CheckResult {
  */
 export async function checkAchievements(userId: string): Promise<CheckResult> {
   const [definitions, userStats, goalHitDays] = await Promise.all([
-    prisma.achievementDefinition.findMany({ where: { isActive: true }, orderBy: { sortOrder: 'asc' } }),
+    prisma.achievementDefinition.findMany({
+      where: { isActive: true },
+      orderBy: { sortOrder: 'asc' },
+    }),
     getUserStats(userId),
     getGoalHitCount(userId),
   ]);
@@ -49,7 +52,9 @@ export async function checkAchievements(userId: string): Promise<CheckResult> {
 function isConditionMet(
   triggerType: TriggerType,
   triggerValue: number | null,
-  stats: ReturnType<typeof getUserStats> extends Promise<infer T> ? T & { goalHitDays: number } : never,
+  stats: ReturnType<typeof getUserStats> extends Promise<infer T>
+    ? T & { goalHitDays: number }
+    : never
 ): boolean {
   switch (triggerType) {
     case 'FIRST_MEAL':
@@ -153,7 +158,10 @@ async function getGoalHitCount(userId: string): Promise<number> {
   const dailyCalories = new Map<string, number>();
   for (const meal of mealsByDate) {
     const dateStr = meal.mealDate.toISOString().split('T')[0];
-    const mealCalories = meal.foods.reduce((sum: number, f: { calories: number }) => sum + f.calories, 0);
+    const mealCalories = meal.foods.reduce(
+      (sum: number, f: { calories: number }) => sum + f.calories,
+      0
+    );
     dailyCalories.set(dateStr, (dailyCalories.get(dateStr) ?? 0) + mealCalories);
   }
 
@@ -172,7 +180,10 @@ async function getGoalHitCount(userId: string): Promise<number> {
  */
 export async function getAchievementsWithProgress(userId: string) {
   const [definitions, earned, userStats, goalHitDays] = await Promise.all([
-    prisma.achievementDefinition.findMany({ where: { isActive: true }, orderBy: { sortOrder: 'asc' } }),
+    prisma.achievementDefinition.findMany({
+      where: { isActive: true },
+      orderBy: { sortOrder: 'asc' },
+    }),
     prisma.userAchievement.findMany({
       where: { userId },
       include: { definition: true },
@@ -186,7 +197,10 @@ export async function getAchievementsWithProgress(userId: string) {
 
   const result = definitions.map((def: (typeof definitions)[number]) => {
     const userAchievement = earnedMap.get(def.id);
-    const progress = getProgressValue(def.triggerType, def.triggerValue, { ...userStats, goalHitDays });
+    const progress = getProgressValue(def.triggerType, def.triggerValue, {
+      ...userStats,
+      goalHitDays,
+    });
 
     return {
       id: def.id,
@@ -215,7 +229,7 @@ export async function getAchievementsWithProgress(userId: string) {
 function getProgressValue(
   triggerType: TriggerType,
   triggerValue: number | null,
-  stats: { totalMeals: number; appDays: number; currentStreak: number; goalHitDays: number },
+  stats: { totalMeals: number; appDays: number; currentStreak: number; goalHitDays: number }
 ): { current: number; max: number } {
   const max = triggerValue ?? 1;
   switch (triggerType) {
