@@ -282,7 +282,7 @@ paths:
                     $ref: '#/components/schemas/User'
         '401':
           $ref: '#/components/responses/Unauthorized'
-    
+
     patch:
       tags:
         - User
@@ -383,7 +383,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserGoals'
-    
+
     put:
       tags:
         - User
@@ -414,7 +414,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserPreferences'
-    
+
     put:
       tags:
         - User
@@ -513,7 +513,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RecognitionResult'
-    
+
     patch:
       tags:
         - Food Recognition
@@ -653,7 +653,7 @@ paths:
                           $ref: '#/components/schemas/MealRecord'
                       pagination:
                         $ref: '#/components/schemas/Pagination'
-    
+
     post:
       tags:
         - Meal Records
@@ -732,7 +732,7 @@ paths:
                     type: boolean
                   data:
                     $ref: '#/components/schemas/MealRecord'
-    
+
     patch:
       tags:
         - Meal Records
@@ -767,7 +767,7 @@ paths:
       responses:
         '200':
           description: 更新成功
-    
+
     delete:
       tags:
         - Meal Records
@@ -832,7 +832,7 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/FoodItem'
-    
+
     post:
       tags:
         - Meal Records
@@ -899,7 +899,7 @@ paths:
                               format: date-time
                             amount:
                               type: number
-    
+
     post:
       tags:
         - Nutrition
@@ -957,7 +957,7 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/ExerciseRecord'
-    
+
     post:
       tags:
         - Nutrition
@@ -1036,7 +1036,7 @@ paths:
                           type: number
                         bodyFat:
                           type: number
-    
+
     post:
       tags:
         - Nutrition
@@ -1536,7 +1536,7 @@ paths:
                           $ref: '#/components/schemas/Post'
                       pagination:
                         $ref: '#/components/schemas/Pagination'
-    
+
     post:
       tags:
         - Social
@@ -1585,7 +1585,7 @@ paths:
       responses:
         '200':
           description: 按讚成功
-    
+
     delete:
       tags:
         - Social
@@ -1629,7 +1629,7 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Comment'
-    
+
     post:
       tags:
         - Social
@@ -1678,7 +1678,7 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Friend'
-    
+
     post:
       tags:
         - Social
@@ -2210,21 +2210,21 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
-    
+
     Unauthorized:
       description: 未授權或 Token 無效
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
-    
+
     NotFound:
       description: 資源不存在
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
-    
+
     ServerError:
       description: 伺服器錯誤
       content:
