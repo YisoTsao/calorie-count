@@ -93,6 +93,7 @@ export default function TrendChart({ data, type, title }: TrendChartProps) {
       style={{ fontSize: '11px' }}
       interval={tickInterval}
       tick={{ fontSize: 11 }}
+      padding={{ right: 30, left: 10 }}
     />
   );
 
