@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -27,6 +28,9 @@ interface FoodItemCardProps {
 }
 
 export function FoodItemCard({ food, onEdit, onDelete, showActions = true }: FoodItemCardProps) {
+  const t = useTranslations('scan');
+  const tf = useTranslations('foods');
+  const tc = useTranslations('common');
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -39,7 +43,7 @@ export function FoodItemCard({ food, onEdit, onDelete, showActions = true }: Foo
           <div className="flex items-center gap-2">
             {food.isEdited && (
               <Badge variant="outline" className="text-xs">
-                已編輯
+                {t('edited')}
               </Badge>
             )}
             {food.confidence !== null && food.confidence !== undefined && (
@@ -53,36 +57,36 @@ export function FoodItemCard({ food, onEdit, onDelete, showActions = true }: Foo
       <CardContent>
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">熱量</span>
-            <span className="font-semibold">{food.calories} 大卡</span>
+            <span className="text-muted-foreground">{tf('caloriesShort')}</span>
+            <span className="font-semibold">{food.calories} kcal</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">蛋白質</span>
+            <span className="text-muted-foreground">{tf('proteinShort')}</span>
             <span>{food.protein}g</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">碳水化合物</span>
+            <span className="text-muted-foreground">{tf('carbsShort')}</span>
             <span>{food.carbs}g</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">脂肪</span>
+            <span className="text-muted-foreground">{tf('fatShort')}</span>
             <span>{food.fat}g</span>
           </div>
           {food.fiber !== null && food.fiber !== undefined && (
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">膳食纖維</span>
+              <span className="text-muted-foreground">{tf('fiber')}</span>
               <span>{food.fiber}g</span>
             </div>
           )}
           {food.sugar !== null && food.sugar !== undefined && (
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">糖分</span>
+              <span className="text-muted-foreground">{tf('sugar')}</span>
               <span>{food.sugar}g</span>
             </div>
           )}
           {food.sodium !== null && food.sodium !== undefined && (
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">鈉</span>
+              <span className="text-muted-foreground">{tf('sodium')}</span>
               <span>{food.sodium}mg</span>
             </div>
           )}
@@ -98,7 +102,7 @@ export function FoodItemCard({ food, onEdit, onDelete, showActions = true }: Foo
                 className="flex-1"
               >
                 <Edit2 className="mr-1 h-4 w-4" />
-                編輯
+                {tc('edit')}
               </Button>
             )}
             {onDelete && (
@@ -109,7 +113,7 @@ export function FoodItemCard({ food, onEdit, onDelete, showActions = true }: Foo
                 className="flex-1"
               >
                 <Trash2 className="mr-1 h-4 w-4" />
-                刪除
+                {tc('delete')}
               </Button>
             )}
           </div>

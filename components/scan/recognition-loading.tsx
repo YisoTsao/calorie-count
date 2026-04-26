@@ -1,6 +1,9 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 export function RecognitionLoading() {
+  const t = useTranslations('scan');
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-8 bg-black">
       <style>{`
@@ -32,9 +35,9 @@ export function RecognitionLoading() {
 
       <div className="space-y-2 text-center">
         <p className="animate-pulse text-xl font-semibold tracking-widest text-green-400">
-          AI 辨識中...
+          {t('analyzing')}
         </p>
-        <p className="text-sm text-white/50">正在分析食物照片，請稍候</p>
+        <p className="text-sm text-white/50">{t('analyzingDesc')}</p>
       </div>
     </div>
   );

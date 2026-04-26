@@ -25,6 +25,7 @@ export async function GET() {
                 id: true,
                 name: true,
                 nameEn: true,
+                nameJa: true,
                 icon: true,
               },
             },

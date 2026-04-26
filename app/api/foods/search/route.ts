@@ -69,6 +69,7 @@ export async function GET(request: NextRequest) {
               id: true,
               name: true,
               nameEn: true,
+              nameJa: true,
               icon: true,
             },
           },

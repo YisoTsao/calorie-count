@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 
@@ -19,6 +20,7 @@ interface NutritionSummaryProps {
 }
 
 export function NutritionSummary({ foods, dailyGoals }: NutritionSummaryProps) {
+  const t = useTranslations('foods');
   const totals = foods.reduce(
     (acc, food) => ({
       calories: acc.calories + food.calories,
@@ -37,14 +39,14 @@ export function NutritionSummary({ foods, dailyGoals }: NutritionSummaryProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>營養總計</CardTitle>
+        <CardTitle>{t('calories')}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
           <div className="mb-2 flex justify-between">
-            <span className="text-sm font-medium">熱量</span>
+            <span className="text-sm font-medium">{t('caloriesShort')}</span>
             <span className="text-sm">
-              {totals.calories.toFixed(0)} {dailyGoals?.calories && `/ ${dailyGoals.calories}`} 大卡
+              {totals.calories.toFixed(0)} {dailyGoals?.calories && `/ ${dailyGoals.calories}`} kcal
             </span>
           </div>
           {dailyGoals?.calories && (
@@ -54,7 +56,7 @@ export function NutritionSummary({ foods, dailyGoals }: NutritionSummaryProps) {
 
         <div>
           <div className="mb-2 flex justify-between">
-            <span className="text-sm font-medium">蛋白質</span>
+            <span className="text-sm font-medium">{t('proteinShort')}</span>
             <span className="text-sm">
               {totals.protein.toFixed(1)} {dailyGoals?.protein && `/ ${dailyGoals.protein}`}g
             </span>
@@ -69,7 +71,7 @@ export function NutritionSummary({ foods, dailyGoals }: NutritionSummaryProps) {
 
         <div>
           <div className="mb-2 flex justify-between">
-            <span className="text-sm font-medium">碳水化合物</span>
+            <span className="text-sm font-medium">{t('carbsShort')}</span>
             <span className="text-sm">
               {totals.carbs.toFixed(1)} {dailyGoals?.carbs && `/ ${dailyGoals.carbs}`}g
             </span>
@@ -84,7 +86,7 @@ export function NutritionSummary({ foods, dailyGoals }: NutritionSummaryProps) {
 
         <div>
           <div className="mb-2 flex justify-between">
-            <span className="text-sm font-medium">脂肪</span>
+            <span className="text-sm font-medium">{t('fatShort')}</span>
             <span className="text-sm">
               {totals.fat.toFixed(1)} {dailyGoals?.fat && `/ ${dailyGoals.fat}`}g
             </span>
