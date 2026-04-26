@@ -80,12 +80,12 @@ export default function DashboardPage() {
     const fetchData = async () => {
       try {
         const today = new Date();
-        const todayStr = today.toISOString().split('T')[0];
+        const todayStr = today.toLocaleDateString('en-CA');
 
         // 計算過去 7 天範圍
         const startDate = new Date(today);
         startDate.setDate(startDate.getDate() - 6);
-        const startDateStr = startDate.toISOString().split('T')[0];
+        const startDateStr = startDate.toLocaleDateString('en-CA');
 
         // ── 由原本 9 次 API 呼叫（7 天 + 今日 + 目標）合併為 2 次 ──
         // 1. 一次拿到 7 天所有飲食資料（meals API 支援 startDate/endDate）
@@ -116,7 +116,7 @@ export default function DashboardPage() {
           for (let i = 6; i >= 0; i--) {
             const d = new Date(today);
             d.setDate(d.getDate() - i);
-            dailyMap[d.toISOString().split('T')[0]] = {
+            dailyMap[d.toLocaleDateString('en-CA')] = {
               calories: 0,
               protein: 0,
               carbs: 0,

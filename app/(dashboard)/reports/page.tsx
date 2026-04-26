@@ -50,9 +50,9 @@ export default function ReportsPage() {
   const [customStartDate, setCustomStartDate] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() - 29);
-    return d.toISOString().split('T')[0];
+    return d.toLocaleDateString('en-CA');
   });
-  const [customEndDate, setCustomEndDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [customEndDate, setCustomEndDate] = useState(() => new Date().toLocaleDateString('en-CA'));
 
   const loadReport = async () => {
     setLoading(true);
@@ -66,7 +66,9 @@ export default function ReportsPage() {
         url = `/api/stats?startDate=${customStartDate}&endDate=${customEndDate}`;
       } else {
         const days = reportType === 'month' ? 30 : 7;
-        url = `/api/stats?days=${days}`;
+        const endDate = new Date().toLocaleDateString('en-CA');
+        const startDate = new Date(Date.now() - (days - 1) * 86400000).toLocaleDateString('en-CA');
+        url = `/api/stats?startDate=${startDate}&endDate=${endDate}`;
       }
 
       const res = await fetch(url);

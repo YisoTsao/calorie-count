@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { signOut } from 'next-auth/react';
 import { Icon } from '@iconify/react';
+import { LocaleSwitcher } from '@/components/ui/LocaleSwitcher';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -37,6 +38,7 @@ export function Navbar({ user, isSidebarOpen = false, onToggleSidebar }: NavbarP
 
           {/* User Menu */}
           <div className="flex items-center gap-4">
+            <LocaleSwitcher />
             {/* Notifications */}
             {/* <Button variant="ghost" size="icon" className="hidden md:flex">
               <Icon icon="lucide:bell" className="h-5 w-5" />

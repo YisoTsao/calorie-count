@@ -30,7 +30,7 @@ export default function WaterIntakeCard({ dailyGoal = 2000 }: WaterIntakeCardPro
   const loadTodayRecords = async () => {
     try {
       setLoading(true);
-      const today = new Date().toISOString().split('T')[0];
+      const today = new Date().toLocaleDateString('en-CA');
       const response = await fetch(`/api/water?date=${today}`);
 
       if (!response.ok) throw new Error('載入失敗');
@@ -61,7 +61,7 @@ export default function WaterIntakeCard({ dailyGoal = 2000 }: WaterIntakeCardPro
       const response = await fetch('/api/water', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount }),
+        body: JSON.stringify({ amount, date: new Date().toLocaleDateString('en-CA') }),
       });
 
       if (!response.ok) throw new Error('新增失敗');

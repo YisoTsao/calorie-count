@@ -26,6 +26,7 @@ interface RecognizedFood {
 interface MealFood {
   id: string;
   name: string;
+  nameEn?: string | null;
   calories: number;
   protein: number;
   carbs: number;

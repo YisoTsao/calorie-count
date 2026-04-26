@@ -439,7 +439,7 @@ export default function WeightPage() {
         {chartData.length > 0 ? (
           <>
             <ResponsiveContainer width="100%" height={350}>
-              <LineChart data={chartData}>
+              <LineChart data={chartData} margin={{ right: 50, left: 0, top: 5, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis dataKey="date" tick={{ fontSize: 12 }} stroke="#9ca3af" />
                 <YAxis

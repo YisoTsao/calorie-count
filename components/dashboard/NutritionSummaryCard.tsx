@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Droplet, Activity, Scale, TrendingUp, TrendingDown } from 'lucide-react';
 import Link from 'next/link';
@@ -23,6 +24,7 @@ interface NutritionSummary {
 }
 
 export default function NutritionSummaryCard() {
+  const t = useTranslations('nutrition');
   const [data, setData] = useState<NutritionSummary | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -62,7 +64,7 @@ export default function NutritionSummaryCard() {
         },
       });
     } catch (error) {
-      console.error('載入營養摘要失敗:', error);
+      console.error('Failed to load summary:', error);
     } finally {
       setLoading(false);
     }
@@ -72,10 +74,10 @@ export default function NutritionSummaryCard() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>營養追蹤</CardTitle>
+          <CardTitle>{t('title')}</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="py-4 text-center text-sm text-muted-foreground">載入中...</p>
+          <p className="py-4 text-center text-sm text-muted-foreground">{t('loading')}</p>
         </CardContent>
       </Card>
     );
@@ -92,21 +94,21 @@ export default function NutritionSummaryCard() {
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>營養追蹤</CardTitle>
+          <CardTitle>{t('title')}</CardTitle>
           <Link href="/nutrition" className="text-sm text-primary hover:underline">
-            查看詳情
+            {t('viewDetails')}
           </Link>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* 飲水量 */}
+        {/* Water */}
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-blue-100">
             <Droplet className="text-blue-600" size={20} />
           </div>
           <div className="flex-1">
             <div className="mb-1 flex items-center justify-between">
-              <span className="text-sm font-medium">飲水量</span>
+              <span className="text-sm font-medium">{t('water')}</span>
               <span className="text-sm text-muted-foreground">
                 {data.water.total}ml / {data.water.goal}ml
               </span>
@@ -120,7 +122,7 @@ export default function NutritionSummaryCard() {
           </div>
         </div>
 
-        {/* 運動消耗 */}
+        {/* Exercise */}
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-orange-100">
             <Activity className="text-orange-600" size={20} />
@@ -128,10 +130,10 @@ export default function NutritionSummaryCard() {
           <div className="flex-1">
             <div className="mb-1 flex items-center justify-between">
               <span className="text-sm font-medium">
-                運動消耗 {data.exercise.count > 0 && `(${data.exercise.count}筆)`}
+                {t('exerciseBurn')} {data.exercise.count > 0 && t('exerciseCount', { count: data.exercise.count })}
               </span>
               <span className="text-sm text-muted-foreground">
-                {Math.round(data.exercise.totalCalories)} / {data.exercise.goal} 卡
+                {Math.round(data.exercise.totalCalories)} / {data.exercise.goal} kcal
               </span>
             </div>
             <div className="h-2 w-full rounded-full bg-gray-200">
@@ -143,14 +145,14 @@ export default function NutritionSummaryCard() {
           </div>
         </div>
 
-        {/* 體重 */}
+        {/* Weight */}
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-purple-100">
             <Scale className="text-purple-600" size={20} />
           </div>
           <div className="flex-1">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">體重</span>
+              <span className="text-sm font-medium">{t('weightLabel')}</span>
               {data.weight.current !== null ? (
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-semibold">{data.weight.current.toFixed(1)} kg</span>
@@ -170,7 +172,7 @@ export default function NutritionSummaryCard() {
                   )}
                 </div>
               ) : (
-                <span className="text-sm text-muted-foreground">尚未記錄</span>
+                <span className="text-sm text-muted-foreground">{t('noRecord')}</span>
               )}
             </div>
             {data.weight.bmi !== null && (
@@ -181,16 +183,16 @@ export default function NutritionSummaryCard() {
           </div>
         </div>
 
-        {/* 快速提示 */}
+        {/* Tips */}
         <div className="border-t border-gray-100 pt-3">
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span>
               {waterProgress >= 100 ? '✅' : '💧'}
-              {waterProgress >= 100 ? ' 飲水目標達成' : ' 記得多喝水'}
+              {waterProgress >= 100 ? ` ${t('waterGoalMet')}` : ` ${t('rememberToHydrate')}`}
             </span>
             <span>
               {exerciseProgress >= 100 ? '🔥' : '🏃'}
-              {exerciseProgress >= 100 ? ' 運動目標達成' : ' 保持運動'}
+              {exerciseProgress >= 100 ? ` ${t('exerciseGoalMet')}` : ` ${t('keepExercising')}`}
             </span>
           </div>
         </div>

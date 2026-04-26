@@ -70,3 +70,140 @@
       'calt' 1;
   }
 }
+
+/* ============================================================
+   Admin Console — Light Theme Overrides
+   Activated by html[data-admin-theme="light"]
+   ============================================================ */
+
+html[data-admin-theme="light"] {
+  color-scheme: light;
+}
+
+/* Page background */
+html[data-admin-theme="light"] .bg-slate-950 {
+  background-color: #f1f5f9 !important;
+}
+
+/* Sidebar + top bar */
+html[data-admin-theme="light"] .bg-slate-900\/70 {
+  background-color: #ffffff !important;
+  border-right-color: #e2e8f0 !important;
+}
+html[data-admin-theme="light"] .bg-slate-900\/40 {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  border-bottom-color: #e2e8f0 !important;
+}
+html[data-admin-theme="light"] .bg-slate-900 {
+  background-color: #f8fafc !important;
+}
+
+/* Cards / panels / modals */
+html[data-admin-theme="light"] .bg-slate-900\/60 {
+  background-color: #ffffff !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+html[data-admin-theme="light"] .bg-slate-900\/90,
+html[data-admin-theme="light"] .bg-slate-900\/95 {
+  background-color: #ffffff !important;
+}
+
+/* Table / skeleton hover states */
+html[data-admin-theme="light"] .bg-slate-800\/50 {
+  background-color: #f1f5f9 !important;
+}
+html[data-admin-theme="light"] .hover\:bg-slate-800\/30:hover,
+html[data-admin-theme="light"] .bg-slate-800\/30 {
+  background-color: #f8fafc !important;
+}
+html[data-admin-theme="light"] .bg-slate-800\/60 {
+  background-color: #f1f5f9 !important;
+}
+
+/* Inputs, selects, bg-slate-800 elements */
+html[data-admin-theme="light"] .bg-slate-800 {
+  background-color: #f1f5f9 !important;
+  border: 1px solid #e2e8f0;
+}
+html[data-admin-theme="light"] .hover\:bg-slate-800:hover {
+  background-color: #e2e8f0 !important;
+}
+html[data-admin-theme="light"] .hover\:bg-slate-700:hover,
+html[data-admin-theme="light"] .bg-slate-700 {
+  background-color: #e2e8f0 !important;
+}
+
+/* Borders & dividers */
+html[data-admin-theme="light"] .border-slate-800\/60,
+html[data-admin-theme="light"] .border-slate-800 {
+  border-color: #e2e8f0 !important;
+}
+html[data-admin-theme="light"] .border-slate-800\/40 {
+  border-color: #e2e8f0 !important;
+}
+html[data-admin-theme="light"] .divide-slate-800\/40 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #e2e8f0 !important;
+}
+
+/* Text colors — generic overrides (low specificity) */
+html[data-admin-theme="light"] .text-white {
+  color: #0f172a !important;
+}
+html[data-admin-theme="light"] .text-slate-200 {
+  color: #334155 !important;
+}
+html[data-admin-theme="light"] .text-slate-300 {
+  color: #475569 !important;
+}
+html[data-admin-theme="light"] .hover\:text-white:hover {
+  color: #0f172a !important;
+}
+html[data-admin-theme="light"] .hover\:text-slate-200:hover {
+  color: #334155 !important;
+}
+
+/* ── Restore white text on coloured / gradient buttons ── */
+/* Gradient buttons (from-[#4648d4]) */
+html[data-admin-theme="light"] [class*="from-[#4648d4]"].text-white,
+html[data-admin-theme="light"] [class*="bg-gradient"].text-white {
+  color: #ffffff !important;
+}
+/* Solid brand-colour backgrounds */
+/* html[data-admin-theme="light"] .bg-\[#4648d4\] .text-white,
+html[data-admin-theme="light"] .bg-\[#4648d4\] {
+  color: #ffffff !important;
+} */
+/* Active tab button (bg-[#4648d4] text-white) */
+/* html[data-admin-theme="light"] button.bg-\[#4648d4\], */
+html[data-admin-theme="light"] button[class*="bg-[#4648d4]"] {
+  color: #ffffff !important;
+}
+/* Red delete buttons */
+html[data-admin-theme="light"] .bg-red-500 {
+  color: #ffffff !important;
+}
+
+/* Input placeholder text */
+html[data-admin-theme="light"] input::placeholder,
+html[data-admin-theme="light"] textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* Input / select text color */
+html[data-admin-theme="light"] input,
+html[data-admin-theme="light"] select,
+html[data-admin-theme="light"] textarea {
+  color: #0f172a !important;
+}
+
+/* Select option background */
+html[data-admin-theme="light"] select option {
+  background-color: #ffffff;
+  color: #0f172a;
+}
+
+/* Restore dark-on-dark modal backdrop */
+html[data-admin-theme="light"] .bg-black\/60,
+html[data-admin-theme="light"] .bg-black\/70 {
+  background-color: rgba(15, 23, 42, 0.4) !important;
+}

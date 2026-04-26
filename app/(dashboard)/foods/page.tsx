@@ -1019,98 +1019,102 @@ export default function FoodsPage() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {foods.map((food) => (
-            <Card key={food.id} className="transition-shadow hover:shadow-lg">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <CategoryIcon name={food.category.name} className="h-5 w-5" />
-                      <CardTitle className="text-lg">{food.name}</CardTitle>
+          {foods.length
+            ? foods.map((food) => (
+                <Card key={food?.id} className="transition-shadow hover:shadow-lg">
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <CategoryIcon name={food?.category?.name} className="h-5 w-5" />
+                          <CardTitle className="text-lg">{food?.name}</CardTitle>
+                        </div>
+                        {food?.nameEn && (
+                          <p className="mt-1 text-sm text-muted-foreground">{food?.nameEn}</p>
+                        )}
+                      </div>
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleToggleFavorite(food?.id)}
+                          title={food?.isFavorite ? '取消收藏' : '加入最愛'}
+                          className={food?.isFavorite ? 'text-red-500' : ''}
+                        >
+                          <Heart className={`h-4 w-4 ${food?.isFavorite ? 'fill-current' : ''}`} />
+                        </Button>
+
+                        {/* 只對自訂食物顯示編輯/刪除按鈕 */}
+                        {food?.source === 'USER' && (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => openEditDialog(food)}
+                              title="編輯"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDeleteFood(food?.id, food?.name)}
+                              title="刪除"
+                            >
+                              <Trash2 className="h-4 w-4 text-red-500" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
                     </div>
-                    {food.nameEn && (
-                      <p className="mt-1 text-sm text-muted-foreground">{food.nameEn}</p>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {/* Brand */}
+                    {food?.brand && (
+                      <p className="text-sm text-muted-foreground">{food?.brand.name}</p>
                     )}
-                  </div>
-                  <div className="flex gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleToggleFavorite(food.id)}
-                      title={food.isFavorite ? '取消收藏' : '加入最愛'}
-                      className={food.isFavorite ? 'text-red-500' : ''}
-                    >
-                      <Heart className={`h-4 w-4 ${food.isFavorite ? 'fill-current' : ''}`} />
-                    </Button>
 
-                    {/* 只對自訂食物顯示編輯/刪除按鈕 */}
-                    {food.source === 'USER' && (
-                      <>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => openEditDialog(food)}
-                          title="編輯"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDeleteFood(food.id, food.name)}
-                          title="刪除"
-                        >
-                          <Trash2 className="h-4 w-4 text-red-500" />
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {/* Brand */}
-                {food.brand && <p className="text-sm text-muted-foreground">{food.brand.name}</p>}
+                    {/* Nutrition Info */}
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">熱量</span>
+                        <span className="font-medium">{food?.calories} kcal</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">蛋白質</span>
+                        <span className="font-medium">{food?.protein} g</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">碳水</span>
+                        <span className="font-medium">{food?.carbs} g</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">脂肪</span>
+                        <span className="font-medium">{food?.fat} g</span>
+                      </div>
+                    </div>
 
-                {/* Nutrition Info */}
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">熱量</span>
-                    <span className="font-medium">{food.calories} kcal</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">蛋白質</span>
-                    <span className="font-medium">{food.protein} g</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">碳水</span>
-                    <span className="font-medium">{food.carbs} g</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">脂肪</span>
-                    <span className="font-medium">{food.fat} g</span>
-                  </div>
-                </div>
+                    {/* Serving Size */}
+                    <p className="text-xs text-muted-foreground">
+                      每份 {food?.servingSize} {food?.servingUnit}
+                    </p>
 
-                {/* Serving Size */}
-                <p className="text-xs text-muted-foreground">
-                  每份 {food.servingSize} {food.servingUnit}
-                </p>
-
-                {/* Tags */}
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="text-xs">
-                    {food.category.name}
-                  </Badge>
-                  <Badge
-                    variant={food.source === 'USER' ? 'default' : 'secondary'}
-                    className="text-xs"
-                  >
-                    {SOURCE_LABELS[food.source]}
-                  </Badge>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                    {/* Tags */}
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="text-xs">
+                        {food?.category.name}
+                      </Badge>
+                      <Badge
+                        variant={food?.source === 'USER' ? 'default' : 'secondary'}
+                        className="text-xs"
+                      >
+                        {SOURCE_LABELS[food?.source]}
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            : null}
         </div>
       )}
 

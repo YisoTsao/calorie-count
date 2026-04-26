@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Icon } from '@iconify/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -12,42 +13,46 @@ interface SidebarProps {
   onClose?: () => void;
 }
 
-const navItems = [
-  {
-    section: '主要功能',
-    items: [
-      { href: '/dashboard', label: '首頁', icon: 'lucide:home' },
-      { href: '/scan', label: 'AI 掃描', icon: 'lucide:scan' },
-      { href: '/meals', label: '飲食記錄', icon: 'lucide:utensils' },
-      { href: '/foods', label: '食物資料庫', icon: 'lucide:search' },
-    ],
-  },
-  {
-    section: '數據分析',
-    items: [
-      { href: '/analytics', label: '趨勢分析', icon: 'lucide:chart-line' },
-      { href: '/reports', label: '報表', icon: 'lucide:file-text' },
-      { href: '/achievements', label: '成就', icon: 'lucide:trophy' },
-    ],
-  },
-  {
-    section: '健康追蹤',
-    items: [
-      { href: '/nutrition', label: '營養追蹤', icon: 'lucide:activity' },
-      { href: '/weight', label: '體重管理', icon: 'lucide:scale' },
-      { href: '/exercise', label: '運動記錄', icon: 'lucide:dumbbell' },
-    ],
-  },
-  {
-    section: '設定',
-    items: [
-      { href: '/profile', label: '個人資料', icon: 'lucide:user' },
-      { href: '/settings', label: '設定', icon: 'lucide:settings' },
-    ],
-  },
-];
+function useNavItems() {
+  const t = useTranslations('nav');
+  return [
+    {
+      section: t('sections.main'),
+      items: [
+        { href: '/dashboard', label: t('dashboard'), icon: 'lucide:home' },
+        { href: '/scan', label: t('scan'), icon: 'lucide:scan' },
+        { href: '/meals', label: t('meals'), icon: 'lucide:utensils' },
+        { href: '/foods', label: t('foods'), icon: 'lucide:search' },
+      ],
+    },
+    {
+      section: t('sections.analytics'),
+      items: [
+        { href: '/analytics', label: t('analytics'), icon: 'lucide:chart-line' },
+        { href: '/reports', label: t('reports'), icon: 'lucide:file-text' },
+        { href: '/achievements', label: t('achievements'), icon: 'lucide:trophy' },
+      ],
+    },
+    {
+      section: t('sections.health'),
+      items: [
+        { href: '/nutrition', label: t('nutrition'), icon: 'lucide:activity' },
+        { href: '/weight', label: t('weight'), icon: 'lucide:scale' },
+        { href: '/exercise', label: t('exercise'), icon: 'lucide:dumbbell' },
+      ],
+    },
+    {
+      section: t('sections.settings'),
+      items: [
+        { href: '/profile', label: t('profile'), icon: 'lucide:user' },
+        { href: '/settings', label: t('settings'), icon: 'lucide:settings' },
+      ],
+    },
+  ];
+}
 
 function QuickStats() {
+  const t = useTranslations('nav');
   const [calories, setCalories] = useState(0);
   const [goal, setGoal] = useState(2000);
 
@@ -76,7 +81,7 @@ function QuickStats() {
           if (dailyGoal) setGoal(dailyGoal);
         }
       } catch (error) {
-        console.error('載入今日摘要失敗:', error);
+        console.error('Failed to load stats:', error);
       }
     };
     void fetchStats();
@@ -87,14 +92,14 @@ function QuickStats() {
   return (
     <div className="mt-auto border-t pt-4 dark:border-gray-800">
       <div className="rounded-lg bg-blue-50 p-4 dark:bg-blue-950/30">
-        <h4 className="mb-2 text-sm font-semibold">今日摘要</h4>
+        <h4 className="mb-2 text-sm font-semibold">{t('todaySummary')}</h4>
         <div className="space-y-2 text-xs text-gray-600 dark:text-gray-400">
           <div className="flex justify-between">
-            <span>已攝取</span>
+            <span>{t('consumed')}</span>
             <span className="font-semibold text-blue-600 dark:text-blue-400">{calories} kcal</span>
           </div>
           <div className="flex justify-between">
-            <span>目標</span>
+            <span>{t('goal')}</span>
             <span className="font-semibold">{goal} kcal</span>
           </div>
           <div className="mt-2 h-2 w-full rounded-full bg-gray-200 dark:bg-gray-700">
@@ -111,6 +116,7 @@ function QuickStats() {
 }
 
 function NavContent({ pathname, onClose }: { pathname: string; onClose?: () => void }) {
+  const navItems = useNavItems();
   return (
     <div className="flex h-full flex-col gap-2 overflow-y-auto p-4">
       {navItems.map((section) => (
@@ -150,6 +156,7 @@ function NavContent({ pathname, onClose }: { pathname: string; onClose?: () => v
 
 export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   const pathname = usePathname();
+  const t = useTranslations('common');
 
   return (
     <>
@@ -191,7 +198,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
                 <button
                   onClick={onClose}
                   className="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
-                  aria-label="關閉選單"
+                  aria-label={t('close')}
                 >
                   <Icon icon="lucide:x" className="h-5 w-5" />
                 </button>

@@ -48,7 +48,7 @@ export default function ExerciseLogger({ dailyCalorieGoal = 300 }: ExerciseLogge
   const loadTodayRecords = async () => {
     try {
       setLoading(true);
-      const today = new Date().toISOString().split('T')[0];
+      const today = new Date().toLocaleDateString('en-CA');
       const response = await fetch(`/api/exercise?date=${today}`);
 
       if (!response.ok) throw new Error('載入失敗');
@@ -84,6 +84,7 @@ export default function ExerciseLogger({ dailyCalorieGoal = 300 }: ExerciseLogge
         body: JSON.stringify({
           type: selectedType,
           duration: durationNum,
+          date: new Date().toLocaleDateString('en-CA'),
         }),
       });
 

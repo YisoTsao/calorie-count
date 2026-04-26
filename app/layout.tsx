@@ -1,6 +1,4 @@
-import type { Metadata } from 'next';
 import { Noto_Sans_TC } from 'next/font/google';
-
 import './globals.css';
 
 const notoSansTC = Noto_Sans_TC({
@@ -10,19 +8,19 @@ const notoSansTC = Noto_Sans_TC({
   display: 'swap',
 });
 
-export const metadata: Metadata = {
-  title: 'CalorieCount | AI 食物卡路里辨識',
-  description: 'AI 智慧食物卡路里辨識與營養追蹤系統',
-};
-
+// Root layout — Next.js 16 requires <html> and <body> here.
+// app/[locale]/layout.tsx updates lang={locale} attribute for i18n routes.
+// app/(admin)/layout.tsx provides the admin shell for /admin routes.
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html lang="zh-TW">
-      <body className={`${notoSansTC.variable} font-sans antialiased`}>{children}</body>
+    <html suppressHydrationWarning>
+      <body className={`${notoSansTC.variable} font-sans antialiased`} suppressHydrationWarning>
+        {children}
+      </body>
     </html>
   );
 }

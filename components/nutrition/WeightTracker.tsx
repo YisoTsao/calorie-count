@@ -60,7 +60,7 @@ export default function WeightTracker() {
       startDate.setDate(startDate.getDate() - 30);
 
       const response = await fetch(
-        `/api/weight?startDate=${startDate.toISOString().split('T')[0]}&endDate=${endDate.toISOString().split('T')[0]}&limit=30`
+        `/api/weight?startDate=${startDate.toLocaleDateString('en-CA')}&endDate=${endDate.toLocaleDateString('en-CA')}&limit=30`
       );
 
       if (!response.ok) throw new Error('載入失敗');
@@ -103,6 +103,7 @@ export default function WeightTracker() {
           weight: weightNum,
           bodyFat: bodyFatNum,
           notes: notes || undefined,
+          date: new Date().toLocaleDateString('en-CA'),
         }),
       });
 

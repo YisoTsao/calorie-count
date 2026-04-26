@@ -3,15 +3,21 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Camera, Loader2, Sparkles } from 'lucide-react';
+import { Icon } from '@iconify/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CameraCapture } from '@/components/scan/camera-capture';
 import { ImageUpload } from '@/components/scan/image-upload';
+import { BarcodeScanDialog, BarcodeFood } from '@/components/scan/barcode-scan-dialog';
 import { compressImageFromSrc } from '@/lib/client-image-compress';
 
 export default function ScanPage() {
   const router = useRouter();
   const [showCamera, setShowCamera] = useState(false);
+  const [showBarcodeDialog, setShowBarcodeDialog] = useState(false);
+  const [barcodeResult, setBarcodeResult] = useState<{ food: BarcodeFood; cached: boolean } | null>(
+    null
+  );
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStep, setUploadStep] = useState<'idle' | 'compressing' | 'uploading' | 'analyzing'>(
     'idle'
@@ -76,6 +82,19 @@ export default function ScanPage() {
 
   if (showCamera) {
     return <CameraCapture onCapture={handleCapture} onClose={() => setShowCamera(false)} />;
+  }
+
+  // Barcode dialog
+  if (showBarcodeDialog) {
+    return (
+      <BarcodeScanDialog
+        onFood={(food, cached) => {
+          setBarcodeResult({ food, cached });
+          setShowBarcodeDialog(false);
+        }}
+        onClose={() => setShowBarcodeDialog(false)}
+      />
+    );
   }
 
   // Loading overlay
@@ -153,6 +172,89 @@ export default function ScanPage() {
           </div>
 
           <ImageUpload onUpload={handleUpload} />
+        </CardContent>
+      </Card>
+
+      {/* Barcode scan card */}
+      <Card className='hidden'>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Icon icon="mdi:barcode-scan" className="text-xl text-primary" />
+            條碼掃描
+          </CardTitle>
+          <CardDescription>
+            掃描包裝食品條碼，自動查詢 Open Food Facts 全球食品資料庫
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <Button
+            size="lg"
+            variant="outline"
+            className="w-full"
+            onClick={() => {
+              setBarcodeResult(null);
+              setShowBarcodeDialog(true);
+            }}
+          >
+            <Icon icon="mdi:barcode-scan" className="mr-2 text-lg" />
+            掃描條碼
+          </Button>
+
+          {/* Barcode result preview */}
+          {barcodeResult && (
+            <div className="space-y-3 rounded-xl border bg-muted/40 p-4">
+              <div className="flex items-start gap-3">
+                <Icon
+                  icon="mdi:check-circle"
+                  className="mt-0.5 flex-shrink-0 text-xl text-emerald-500"
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium">{barcodeResult.food.name}</p>
+                  {barcodeResult.food.barcode && (
+                    <p className="text-xs text-muted-foreground">
+                      條碼：{barcodeResult.food.barcode}
+                    </p>
+                  )}
+                  {barcodeResult.cached && (
+                    <span className="inline-block rounded bg-emerald-500/10 px-1.5 py-0.5 text-xs text-emerald-600">
+                      本地快取
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="grid grid-cols-4 gap-2 text-center text-sm">
+                <div className="rounded-lg bg-background py-1.5">
+                  <p className="font-semibold text-orange-500">{barcodeResult.food.calories}</p>
+                  <p className="text-xs text-muted-foreground">kcal</p>
+                </div>
+                <div className="rounded-lg bg-background py-1.5">
+                  <p className="font-semibold text-blue-500">{barcodeResult.food.protein}g</p>
+                  <p className="text-xs text-muted-foreground">蛋白質</p>
+                </div>
+                <div className="rounded-lg bg-background py-1.5">
+                  <p className="font-semibold text-amber-500">{barcodeResult.food.carbs}g</p>
+                  <p className="text-xs text-muted-foreground">碳水</p>
+                </div>
+                <div className="rounded-lg bg-background py-1.5">
+                  <p className="font-semibold text-rose-500">{barcodeResult.food.fat}g</p>
+                  <p className="text-xs text-muted-foreground">脂肪</p>
+                </div>
+              </div>
+              {barcodeResult.food.openFoodFactsUrl && (
+                <p className="text-xs text-muted-foreground">
+                  資料來源：
+                  <a
+                    href={barcodeResult.food.openFoodFactsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline-offset-2 hover:underline"
+                  >
+                    Open Food Facts
+                  </a>
+                </p>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

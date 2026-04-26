@@ -37,7 +37,10 @@ export default function AnalyticsPage() {
     const loadStats = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`/api/stats?days=${period}`);
+        const endDate = new Date().toLocaleDateString('en-CA');
+        const days = parseInt(period);
+        const startDate = new Date(Date.now() - (days - 1) * 86400000).toLocaleDateString('en-CA');
+        const response = await fetch(`/api/stats?startDate=${startDate}&endDate=${endDate}`);
         if (!response.ok) throw new Error('載入失敗');
         const data = await response.json();
         setStats(data.stats || []);
