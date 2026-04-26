@@ -45,6 +45,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           throw new Error('請先驗證您的 Email');
         }
 
+        if (!user.isActive) {
+          throw new Error('帳號已被停用，請聯繫管理員');
+        }
+
         return {
           id: user.id,
           email: user.email,
@@ -61,23 +65,50 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   callbacks: {
     ...authConfig.callbacks,
+    // Block OAuth logins for deactivated accounts
+    async signIn({ user, account }) {
+      if (account?.provider !== 'credentials') {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: user.id },
+          select: { isActive: true },
+        });
+        if (dbUser && !dbUser.isActive) return false;
+      }
+      return true;
+    },
     async jwt({ token, user, account }) {
       if (user) {
         token.id = user.id;
+        // Fetch role from DB on initial sign-in
+        const dbUser = await prisma.user.findUnique({
+          where: { id: user.id as string },
+          select: { role: true, isActive: true },
+        });
+        if (dbUser) {
+          token.role = dbUser.role;
+          token.isActive = dbUser.isActive;
+        }
+      }
+
+      // NextAuth v5 always sets token.sub = user.id; use as fallback if token.id is missing
+      if (!token.id && token.sub) {
+        token.id = token.sub;
       }
 
       if (account?.provider && account.provider !== 'credentials') {
+        const userId = (token.id ?? token.sub) as string;
         const dbUser = await prisma.user.findUnique({
-          where: { id: token.id as string },
-          select: { email: true, name: true, image: true },
+          where: { id: userId },
+          select: { email: true, name: true, image: true, role: true, isActive: true },
         });
         if (dbUser) {
           token.email = dbUser.email ?? undefined;
           token.name = dbUser.name ?? undefined;
           token.picture = dbUser.image ?? undefined;
-          // Log OAuth email for debugging
+          token.role = dbUser.role;
+          token.isActive = dbUser.isActive;
           console.info(
-            `[auth:jwt] provider=${account.provider} email=${dbUser.email ?? '(none)'} userId=${token.id}`
+            `[auth:jwt] provider=${account.provider} email=${dbUser.email ?? '(none)'} userId=${userId}`
           );
         }
       }
@@ -85,8 +116,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return token;
     },
     async session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.id as string;
+      // Use token.sub as fallback — NextAuth v5 always populates token.sub with the user's DB id
+      const userId = (token.id ?? token.sub) as string | undefined;
+      if (session.user && userId) {
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { role: true, isActive: true },
+          });
+          session.user.id = userId;
+          session.user.role = (dbUser?.role ?? token.role ?? 'USER') as string;
+          session.user.isActive = dbUser?.isActive ?? (token.isActive as boolean) ?? true;
+        } catch {
+          // Fallback to JWT cache if DB is unreachable
+          session.user.id = userId;
+          session.user.role = (token.role ?? 'USER') as string;
+          session.user.isActive = (token.isActive ?? true) as boolean;
+        }
       }
       return session;
     },

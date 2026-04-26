@@ -8,6 +8,9 @@ import FacebookProvider from 'next-auth/providers/facebook';
 import LineProvider from 'next-auth/providers/line';
 import CredentialsProvider from 'next-auth/providers/credentials';
 
+// 支援的 locale 列表（非預設語言，預設 zh-TW 無前綴）
+const NON_DEFAULT_LOCALES = ['en', 'ja'];
+
 // 公開路由（不需要登入）
 const publicRoutes = [
   '/login',
@@ -21,6 +24,26 @@ const publicRoutes = [
 ];
 // 已登入後不應再訪問的路由
 const authRoutes = ['/login', '/register'];
+
+/** 去除 URL 開頭的 locale 前綴（如 /en/... → /...） */
+function stripLocalePrefix(pathname: string): string {
+  for (const locale of NON_DEFAULT_LOCALES) {
+    if (pathname === `/${locale}` || pathname.startsWith(`/${locale}/`)) {
+      return pathname.slice(locale.length + 1) || '/';
+    }
+  }
+  return pathname;
+}
+
+/** 偵測 URL 中的 locale（非預設語言），若為預設語言則回傳 undefined */
+function detectLocale(pathname: string): string | undefined {
+  for (const locale of NON_DEFAULT_LOCALES) {
+    if (pathname === `/${locale}` || pathname.startsWith(`/${locale}/`)) {
+      return locale;
+    }
+  }
+  return undefined;
+}
 
 export const authConfig: NextAuthConfig = {
   trustHost: true,
@@ -78,13 +101,25 @@ export const authConfig: NextAuthConfig = {
   callbacks: {
     authorized({ auth, request }) {
       const { pathname } = request.nextUrl;
+      // 去除 locale 前綴後再比對路由
+      const strippedPath = stripLocalePrefix(pathname);
+      const locale = detectLocale(pathname);
+      const localePrefix = locale ? `/${locale}` : '';
 
-      const isPublicRoute = publicRoutes.some((r) => pathname.startsWith(r));
-      const isAuthRoute = authRoutes.some((r) => pathname.startsWith(r));
+      const isPublicRoute = publicRoutes.some((r) => strippedPath.startsWith(r));
+      const isAuthRoute = authRoutes.some((r) => strippedPath.startsWith(r));
 
       // 已登入者不應進入 login/register
       if (isAuthRoute && auth?.user) {
-        return Response.redirect(new URL('/dashboard', request.nextUrl));
+        return Response.redirect(new URL(`${localePrefix}/dashboard`, request.nextUrl));
+      }
+
+      // 管理後台路由：需要登入（角色檢查由 server layout 負責，Edge 無法查 DB）
+      const isAdminRoute = strippedPath.startsWith('/admin');
+      if (isAdminRoute && !auth?.user) {
+        return Response.redirect(
+          new URL(`${localePrefix}/login?callbackUrl=${encodeURIComponent(pathname)}`, request.nextUrl)
+        );
       }
 
       // 未登入者不能訪問私有路由
