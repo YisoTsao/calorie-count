@@ -12,6 +12,15 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+// ==================== Role-Based Access Control ====================
+
+enum UserRole {
+  USER    // 一般用戶
+  SUPPORT // 客服（唯讀）
+  EDITOR  // 小編／活動人員
+  ADMIN   // 最高權限
+}
+
 // ==================== NextAuth Models ====================
 
 model User {
@@ -21,6 +30,8 @@ model User {
   name          String?
   image         String?
   password      String? // Hashed password for email/password auth
+  role          UserRole  @default(USER) // RBAC 權限
+  isActive      Boolean   @default(true) // 帳號是否啟用
 
   // Relations
   accounts      Account[]
@@ -234,6 +245,7 @@ model FoodItem {
   // 食物資訊
   name        String // 食物名稱 (中文)
   nameEn      String? // 英文名稱
+  nameJa      String? // 日文名稱
   portion     String // 份量描述 (例: "一碗", "150克")
   portionSize Float // 份量數值
   portionUnit String // 份量單位 (g, ml, 碗, 個)
@@ -302,6 +314,7 @@ model MealFood {
   // 食物資訊 (複製自 FoodItem，但可以獨立編輯)
   name        String
   nameEn      String?
+  nameJa      String?
   portion     String
   portionSize Float
   portionUnit String
@@ -339,6 +352,7 @@ model Food {
   id          String  @id @default(cuid())
   name        String // 食物名稱
   nameEn      String? // 英文名稱
+  nameJa      String? // 日文名稱
   description String? // 描述
 
   // 營養素 (per 100g)
@@ -364,7 +378,12 @@ model Food {
   source     FoodSource @default(SYSTEM)
   isVerified Boolean    @default(false) // 是否經過驗證
   userId     String? // 如果是使用者自訂
-  user       User?      @relation(fields: [userId], references: [id])
+  user       User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  // 條碼掃描 (Open Food Facts)
+  barcode          String? @unique // 商品條碼 (EAN-13, UPC-A 等)
+  openFoodFactsId  String? // Open Food Facts product ID
+  openFoodFactsUrl String? // 原始來源 URL
 
   // 使用統計
   searchCount Int @default(0) // 搜尋次數
@@ -381,6 +400,7 @@ model Food {
   @@index([brandId])
   @@index([source])
   @@index([userId])
+  @@index([barcode])
   @@map("foods")
 }
 
@@ -388,6 +408,7 @@ model FoodCategory {
   id          String  @id @default(cuid())
   name        String // 分類名稱
   nameEn      String? // 英文名稱
+  nameJa      String? // 日文名稱
   icon        String? // 圖示 emoji
   description String?
 
@@ -586,4 +607,24 @@ model DailyStats {
   @@unique([userId, date])
   @@index([userId, date])
   @@map("daily_stats")
+}
+
+// ==================== Admin Audit Logs ====================
+
+model DeletedUserLog {
+  id             String   @id @default(cuid())
+  originalId     String   // 原始 userId（已不存在於 users 表）
+  email          String?  // 備份 email
+  name           String?  // 備份姓名
+  role           UserRole // 刪除時的角色
+  deletedBy      String   // 執行刪除的管理員 userId
+  deletedByEmail String?  // 管理員 email（備份）
+  reason         String?  // 刪除原因（可選）
+  snapshot       Json?    // 數據快照（meal count, weight count…）
+
+  createdAt DateTime @default(now())
+
+  @@index([originalId])
+  @@index([deletedBy])
+  @@map("deleted_user_logs")
 }
