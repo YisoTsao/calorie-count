@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Check, Plus } from 'lucide-react';
+import { useTranslations, useLocale } from 'next-intl';
 import {
   Dialog,
   DialogContent,
@@ -54,6 +55,16 @@ export function RecognitionResultDialog({
   const [recognition, setRecognition] = useState<RecognitionData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedFoods, setSelectedFoods] = useState<Set<string>>(new Set());
+  const t = useTranslations('scan');
+  const tFoods = useTranslations('foods');
+  const tCommon = useTranslations('common');
+  const locale = useLocale();
+
+  const getLocalizedName = (name: string, nameEn?: string | null, nameJa?: string | null) => {
+    if (locale === 'ja') return nameJa || nameEn || name;
+    if (locale === 'en') return nameEn || name;
+    return name;
+  };
 
   const loadRecognition = async () => {
     if (!recognitionId) return;
@@ -117,8 +128,8 @@ export function RecognitionResultDialog({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="flex max-h-[90vh] max-w-3xl flex-col">
         <DialogHeader>
-          <DialogTitle>辨識結果</DialogTitle>
-          <DialogDescription>AI 已辨識出以下食物,請選擇要新增的項目</DialogDescription>
+          <DialogTitle>{t('result')}</DialogTitle>
+          <DialogDescription>{t('resultDesc')}</DialogDescription>
         </DialogHeader>
 
         <div className="flex-1 space-y-4 overflow-y-auto">
@@ -162,9 +173,9 @@ export function RecognitionResultDialog({
               </div>
               <div className="space-y-1 text-center">
                 <p className="animate-pulse font-semibold tracking-widest text-green-600">
-                  AI 辨識中...
+                  {t('analyzing')}
                 </p>
-                <p className="text-sm text-muted-foreground">正在分析食物照片，請稍候</p>
+                <p className="text-sm text-muted-foreground">{t('analyzingDesc')}</p>
               </div>
             </div>
           ) : null}
@@ -172,9 +183,9 @@ export function RecognitionResultDialog({
           {/* 失敗 */}
           {recognition?.status === 'FAILED' && (
             <div className="py-12 text-center">
-              <p className="mb-2 text-destructive">辨識失敗</p>
+              <p className="mb-2 text-destructive">{t('recognitionFailed')}</p>
               <p className="text-sm text-muted-foreground">
-                {recognition.errorMessage || '請稍後再試'}
+                {recognition.errorMessage || t('retryLater')}
               </p>
             </div>
           )}
@@ -184,7 +195,7 @@ export function RecognitionResultDialog({
             <div className="space-y-3">
               {recognition.confidence !== null && (
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">辨識信心度</span>
+                  <span className="text-muted-foreground">{t('confidenceLevel')}</span>
                   <Badge variant="secondary">{Math.round(recognition.confidence * 100)}%</Badge>
                 </div>
               )}
@@ -216,9 +227,15 @@ export function RecognitionResultDialog({
                       <div className="min-w-0 flex-1">
                         <div className="mb-2 flex items-start justify-between gap-2">
                           <div>
-                            <h4 className="font-medium">{food.name}</h4>
-                            {food.nameEn && (
-                              <p className="text-sm text-muted-foreground">{food.nameEn}</p>
+                            <h4 className="font-medium">{getLocalizedName(food.name, food.nameEn)}</h4>
+                            {(locale === 'en' || locale === 'ja') ? (
+                              food.name !== getLocalizedName(food.name, food.nameEn) && (
+                                <p className="text-sm text-muted-foreground">{food.name}</p>
+                              )
+                            ) : (
+                              food.nameEn && (
+                                <p className="text-sm text-muted-foreground">{food.nameEn}</p>
+                              )
                             )}
                           </div>
                           {food.confidence !== null && (
@@ -230,21 +247,21 @@ export function RecognitionResultDialog({
 
                         <div className="flex items-center gap-4 text-sm">
                           <div>
-                            <span className="text-muted-foreground">份量:</span>{' '}
+                            <span className="text-muted-foreground">{t('servingLabel')}</span>{' '}
                             <span className="font-medium">
                               {food.portion} {food.portionUnit}
                             </span>
                           </div>
                           <div>
-                            <span className="text-muted-foreground">熱量:</span>{' '}
-                            <span className="font-medium">{food.calories} 卡</span>
+                            <span className="text-muted-foreground">{t('caloriesLabel')}</span>{' '}
+                            <span className="font-medium">{food.calories} kcal</span>
                           </div>
                         </div>
 
                         <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
-                          <span>蛋白質 {food.protein}g</span>
-                          <span>碳水 {food.carbs}g</span>
-                          <span>脂肪 {food.fat}g</span>
+                          <span>{tFoods('proteinShort')} {food.protein}g</span>
+                          <span>{tFoods('carbsShort')} {food.carbs}g</span>
+                          <span>{tFoods('fatShort')} {food.fat}g</span>
                         </div>
                       </div>
                     </div>
@@ -254,7 +271,7 @@ export function RecognitionResultDialog({
 
               {recognition.foods.length === 0 && (
                 <div className="py-8 text-center">
-                  <p className="text-muted-foreground">未辨識到任何食物</p>
+                  <p className="text-muted-foreground">{t('noFoodsRecognized')}</p>
                 </div>
               )}
             </div>
@@ -264,11 +281,11 @@ export function RecognitionResultDialog({
         {recognition?.status === 'COMPLETED' && recognition.foods.length > 0 && (
           <DialogFooter>
             <Button variant="outline" onClick={handleClose}>
-              取消
+              {tCommon('cancel')}
             </Button>
             <Button onClick={handleAddToMeal} disabled={selectedFoods.size === 0}>
               <Plus className="mr-2 h-4 w-4" />
-              新增 {selectedFoods.size} 項食物
+              {t('addSelectedCount', { count: selectedFoods.size })}
             </Button>
           </DialogFooter>
         )}

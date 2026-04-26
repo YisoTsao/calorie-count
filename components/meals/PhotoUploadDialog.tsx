@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { Camera, Upload, X, Loader2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import {
   Dialog,
   DialogContent,
@@ -34,6 +35,8 @@ export function PhotoUploadDialog({
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const t = useTranslations('scan');
+  const tCommon = useTranslations('common');
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -59,7 +62,7 @@ export function PhotoUploadDialog({
       }
     } catch (error) {
       console.error('無法啟動相機:', error);
-      alert('無法啟動相機,請檢查權限設定');
+      alert(t('noCameraPermission'));
     }
   };
 
@@ -119,11 +122,11 @@ export function PhotoUploadDialog({
         onImageAnalyzed(data.data.recognition.id);
         handleClose();
       } else {
-        throw new Error('辨識失敗');
+        throw new Error(t('recognitionFailed'));
       }
     } catch (error) {
       console.error('分析失敗:', error);
-      alert('分析失敗,請稍後再試');
+      alert(t('analysisFailed'));
     } finally {
       setIsAnalyzing(false);
     }
@@ -149,8 +152,8 @@ export function PhotoUploadDialog({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="flex max-h-[90vh] max-w-2xl flex-col p-0">
         <DialogHeader className="px-6 pb-4 pt-6">
-          <DialogTitle>拍照或上傳照片</DialogTitle>
-          <DialogDescription>拍攝或上傳食物照片,AI 將自動辨識並計算營養成分</DialogDescription>
+          <DialogTitle>{t('uploadDialogTitle')}</DialogTitle>
+          <DialogDescription>{t('uploadDialogDesc')}</DialogDescription>
         </DialogHeader>
 
         <Tabs
@@ -161,11 +164,11 @@ export function PhotoUploadDialog({
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="upload">
               <Upload className="mr-2 h-4 w-4" />
-              上傳照片
+              {t('uploadPhotoTab')}
             </TabsTrigger>
             <TabsTrigger value="camera">
               <Camera className="mr-2 h-4 w-4" />
-              拍照
+              {t('takePhotoTab')}
             </TabsTrigger>
           </TabsList>
 
@@ -177,8 +180,8 @@ export function PhotoUploadDialog({
                   className="cursor-pointer rounded-lg border-2 border-dashed border-muted-foreground/25 p-12 text-center transition-colors hover:border-primary/50"
                 >
                   <Upload className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-                  <p className="mb-2 text-lg font-medium">點擊上傳照片</p>
-                  <p className="text-sm text-muted-foreground">支援 JPG、PNG 格式,最大 10MB</p>
+                  <p className="mb-2 text-lg font-medium">{t('clickToUpload')}</p>
+                  <p className="text-sm text-muted-foreground">{t('fileHint')}</p>
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -235,7 +238,7 @@ export function PhotoUploadDialog({
 
                   {!isCameraReady && (
                     <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-                      <p className="text-white">正在啟動相機...</p>
+                      <p className="text-white">{t('startingCamera')}</p>
                     </div>
                   )}
                 </div>
@@ -274,16 +277,16 @@ export function PhotoUploadDialog({
                 className="flex-1"
                 disabled={isAnalyzing}
               >
-                取消
+                {tCommon('cancel')}
               </Button>
               <Button onClick={handleAnalyze} className="flex-1" disabled={isAnalyzing}>
                 {isAnalyzing ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    分析中...
+                    {t('analyzingFood')}
                   </>
                 ) : (
-                  '開始分析'
+                  t('startAnalysis')
                 )}
               </Button>
             </div>

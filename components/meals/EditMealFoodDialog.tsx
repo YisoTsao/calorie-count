@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslations, useLocale } from 'next-intl';
 import { Trash2 } from 'lucide-react';
 import {
   Dialog,
@@ -17,6 +18,7 @@ import { Label } from '@/components/ui/label';
 interface MealFood {
   id: string;
   name: string;
+  nameEn?: string | null;
   calories: number;
   protein: number;
   carbs: number;
@@ -45,6 +47,15 @@ export function EditMealFoodDialog({
   const [servings, setServings] = useState(1);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const t = useTranslations('meals');
+  const tc = useTranslations('common');
+  const locale = useLocale();
+
+  const getLocalizedName = (name: string, nameEn?: string | null, nameJa?: string | null) => {
+    if (locale === 'ja') return nameJa || nameEn || name;
+    if (locale === 'en') return nameEn || name;
+    return name;
+  };
 
   // 每次打開對話框時重置為原始值
   useEffect(() => {
@@ -65,21 +76,21 @@ export function EditMealFoodDialog({
       });
 
       if (!response.ok) {
-        throw new Error('更新失敗');
+        throw new Error(t('updateFoodFailed'));
       }
 
       onUpdate();
       onOpenChange(false);
     } catch (error) {
       console.error('Update error:', error);
-      alert('更新失敗,請稍後再試');
+      alert(t('updateFoodFailed'));
     } finally {
       setIsUpdating(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!confirm('確定要刪除這個食物嗎?')) {
+    if (!confirm(t('confirmDeleteFood'))) {
       return;
     }
 
@@ -90,14 +101,14 @@ export function EditMealFoodDialog({
       });
 
       if (!response.ok) {
-        throw new Error('刪除失敗');
+        throw new Error(t('deleteFoodFailed'));
       }
 
       onUpdate();
       onOpenChange(false);
     } catch (error) {
       console.error('Delete error:', error);
-      alert('刪除失敗,請稍後再試');
+      alert(t('deleteFoodFailed'));
     } finally {
       setIsDeleting(false);
     }
@@ -112,24 +123,24 @@ export function EditMealFoodDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>編輯食物</DialogTitle>
-          <DialogDescription>調整份數或刪除這個食物</DialogDescription>
+          <DialogTitle>{t('editFood')}</DialogTitle>
+          <DialogDescription>{t('editFoodDialogDesc')}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           {/* 食物資訊 */}
           <div className="space-y-2">
             <div>
-              <p className="text-lg font-medium">{mealFood.name}</p>
+              <p className="text-lg font-medium">{getLocalizedName(mealFood.name, mealFood.nameEn)}</p>
               <p className="text-sm text-muted-foreground">
-                每份 {mealFood.portionSize / mealFood.servings} {mealFood.portionUnit}
+                {t('perServingUnit')} {mealFood.portionSize / mealFood.servings} {mealFood.portionUnit}
               </p>
             </div>
           </div>
 
           {/* 份數調整 */}
           <div className="space-y-2">
-            <Label htmlFor="servings">份數</Label>
+            <Label htmlFor="servings">{t('quantityLabel')}</Label>
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
@@ -167,19 +178,19 @@ export function EditMealFoodDialog({
           {/* 營養資訊預覽 */}
           <div className="grid grid-cols-2 gap-3 rounded-lg bg-muted p-4">
             <div>
-              <p className="mb-1 text-xs text-muted-foreground">熱量</p>
+              <p className="mb-1 text-xs text-muted-foreground">{t('calories')}</p>
               <p className="font-medium">{(baseCalories * servings).toFixed(0)} kcal</p>
             </div>
             <div>
-              <p className="mb-1 text-xs text-muted-foreground">蛋白質</p>
+              <p className="mb-1 text-xs text-muted-foreground">{t('protein')}</p>
               <p className="font-medium">{(baseProtein * servings).toFixed(1)} g</p>
             </div>
             <div>
-              <p className="mb-1 text-xs text-muted-foreground">碳水化合物</p>
+              <p className="mb-1 text-xs text-muted-foreground">{t('carbs')}</p>
               <p className="font-medium">{(baseCarbs * servings).toFixed(1)} g</p>
             </div>
             <div>
-              <p className="mb-1 text-xs text-muted-foreground">脂肪</p>
+              <p className="mb-1 text-xs text-muted-foreground">{t('fat')}</p>
               <p className="font-medium">{(baseFat * servings).toFixed(1)} g</p>
             </div>
           </div>
@@ -193,7 +204,7 @@ export function EditMealFoodDialog({
             className="sm:mr-auto"
           >
             <Trash2 className="mr-2 h-4 w-4" />
-            刪除
+            {tc('delete')}
           </Button>
           <div className="flex flex-1 gap-2 sm:flex-initial">
             <Button
@@ -202,10 +213,10 @@ export function EditMealFoodDialog({
               disabled={isUpdating || isDeleting}
               className="flex-1"
             >
-              取消
+              {tc('cancel')}
             </Button>
             <Button onClick={handleUpdate} disabled={isUpdating || isDeleting} className="flex-1">
-              {isUpdating ? '更新中...' : '更新'}
+              {isUpdating ? t('updatingFood') : tc('update')}
             </Button>
           </div>
         </DialogFooter>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Search, X, Loader2 } from 'lucide-react';
+import { useTranslations, useLocale } from 'next-intl';
 import {
   Dialog,
   DialogContent,
@@ -19,6 +20,7 @@ interface Food {
   id: string;
   name: string;
   nameEn?: string;
+  nameJa?: string;
   calories: number;
   protein: number;
   carbs: number;
@@ -30,6 +32,7 @@ interface Food {
     id: string;
     name: string;
     nameEn?: string;
+    nameJa?: string;
     icon?: string;
   };
   brand?: {
@@ -80,6 +83,15 @@ export function FoodSearchDialog({
   const [selectedFood, setSelectedFood] = useState<Food | null>(null);
   const [servings, setServings] = useState(1);
   const [activeTab, setActiveTab] = useState<'search' | 'favorites'>('search');
+  const tMeals = useTranslations('meals');
+  const tFoods = useTranslations('foods');
+  const locale = useLocale();
+
+  const getLocalizedName = (name: string, nameEn?: string | null, nameJa?: string | null) => {
+    if (locale === 'ja') return nameJa || nameEn || name;
+    if (locale === 'en') return nameEn || name;
+    return name;
+  };
 
   // Fetch categories on mount
   useEffect(() => {
@@ -188,11 +200,19 @@ export function FoodSearchDialog({
               {food.category.icon && (
                 <span className="flex-shrink-0 text-base sm:text-lg">{food.category.icon}</span>
               )}
-              <h4 className="truncate text-sm font-medium sm:text-base">{food.name}</h4>
-              {food.nameEn && (
-                <span className="hidden text-xs text-muted-foreground sm:inline sm:text-sm">
-                  {food.nameEn}
-                </span>
+              <h4 className="truncate text-sm font-medium sm:text-base">{getLocalizedName(food.name, food.nameEn, food.nameJa)}</h4>
+              {(locale === 'en' || locale === 'ja') ? (
+                food.name !== getLocalizedName(food.name, food.nameEn, food.nameJa) && (
+                  <span className="hidden text-xs text-muted-foreground sm:inline sm:text-sm">
+                    {food.name}
+                  </span>
+                )
+              ) : (
+                food.nameEn && (
+                  <span className="hidden text-xs text-muted-foreground sm:inline sm:text-sm">
+                    {food.nameEn}
+                  </span>
+                )
               )}
             </div>
 
@@ -204,19 +224,19 @@ export function FoodSearchDialog({
 
             <div className="mt-2 flex flex-wrap items-center gap-2 text-xs sm:gap-3 sm:text-sm">
               <span className="font-medium text-primary">{food.calories} kcal</span>
-              <span className="text-muted-foreground">蛋白質 {food.protein}g</span>
-              <span className="text-muted-foreground">碳水 {food.carbs}g</span>
-              <span className="text-muted-foreground">脂肪 {food.fat}g</span>
+              <span className="text-muted-foreground">{tFoods('proteinShort')} {food.protein}g</span>
+              <span className="text-muted-foreground">{tFoods('carbsShort')} {food.carbs}g</span>
+              <span className="text-muted-foreground">{tFoods('fatShort')} {food.fat}g</span>
             </div>
 
             <p className="mt-1 text-xs text-muted-foreground">
-              每份 {food.servingSize} {food.servingUnit}
+              {tFoods('perServingLabel', { size: food.servingSize, unit: food.servingUnit })}
             </p>
 
             {isFavorite && food.favoriteInfo && (
               <div className="mt-2 flex items-center gap-2">
                 <Badge variant="secondary" className="text-xs">
-                  使用 {food.favoriteInfo.useCount} 次
+                  {tMeals('useCount', { count: food.favoriteInfo.useCount })}
                 </Badge>
               </div>
             )}
@@ -224,7 +244,7 @@ export function FoodSearchDialog({
 
           {food.source === 'USER' && (
             <Badge variant="outline" className="ml-2 flex-shrink-0 text-xs">
-              自訂
+              {tFoods('sourceUser')}
             </Badge>
           )}
         </div>
@@ -237,24 +257,16 @@ export function FoodSearchDialog({
       <DialogContent className="flex h-auto max-h-[90vh] w-[95vw] max-w-3xl flex-col gap-0 p-0 sm:w-full">
         <DialogHeader className="flex-shrink-0 px-4 pb-3 pt-4 sm:px-6 sm:pb-4 sm:pt-6">
           <DialogTitle className="flex items-center gap-2">
-            搜尋食物
+            {tMeals('searchFoodsTabLabel')}
             {mealType && (
               <span className="rounded-full bg-muted px-2 py-0.5 text-sm font-normal text-muted-foreground">
-                {
-                  (
-                    {
-                      BREAKFAST: '早餐',
-                      LUNCH: '午餐',
-                      DINNER: '晚餐',
-                      SNACK: '點心',
-                      OTHER: '其他',
-                    } as Record<string, string>
-                  )[mealType]
-                }
+                {mealType === 'OTHER'
+                  ? tMeals('other')
+                  : tMeals(`types.${mealType.toLowerCase()}`)}
               </span>
             )}
           </DialogTitle>
-          <DialogDescription>搜尋並選擇要加入的食物,或從常用食物中快速選擇</DialogDescription>
+          <DialogDescription>{tMeals('searchFoodsDialogDesc')}</DialogDescription>
         </DialogHeader>
 
         <Tabs
@@ -264,8 +276,8 @@ export function FoodSearchDialog({
         >
           <div className="flex-shrink-0 px-4 sm:px-6">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="search">搜尋食物</TabsTrigger>
-              <TabsTrigger value="favorites">常用食物</TabsTrigger>
+              <TabsTrigger value="search">{tMeals('searchFoodsTabLabel')}</TabsTrigger>
+              <TabsTrigger value="favorites">{tMeals('frequentFoodsTabLabel')}</TabsTrigger>
             </TabsList>
           </div>
 
@@ -277,7 +289,7 @@ export function FoodSearchDialog({
             <div className="relative mb-3 flex-shrink-0 sm:mb-4">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="搜尋食物名稱..."
+                placeholder={tMeals('searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9 pr-9"
@@ -301,7 +313,7 @@ export function FoodSearchDialog({
                     size="sm"
                     onClick={() => setSelectedCategory('')}
                   >
-                    全部
+                    {tMeals('allMealTypes')}
                   </Button>
                   {categories.map((category) => (
                     <Button
@@ -325,7 +337,7 @@ export function FoodSearchDialog({
                 </div>
               ) : foods.length === 0 ? (
                 <div className="py-8 text-center text-sm text-muted-foreground sm:text-base">
-                  {searchQuery || selectedCategory ? '找不到符合的食物' : '請輸入關鍵字或選擇分類'}
+                  {searchQuery || selectedCategory ? tMeals('noSearchResults') : tMeals('searchHint')}
                 </div>
               ) : (
                 <div className="h-[424px] space-y-2 pb-2">
@@ -346,7 +358,7 @@ export function FoodSearchDialog({
                 </div>
               ) : favoriteFoods.length === 0 ? (
                 <div className="py-8 text-center text-sm text-muted-foreground sm:text-base">
-                  尚無常用食物,多次使用的食物會自動加入常用清單
+                  {tMeals('noFrequentFoods')}
                 </div>
               ) : (
                 <div className="h-[424px] space-y-2 pb-2">
@@ -362,9 +374,9 @@ export function FoodSearchDialog({
           <div className="flex-shrink-0 border-t bg-muted/50 px-4 py-4 sm:px-6 sm:py-6">
             <div className="mb-3 flex items-start justify-between sm:mb-4">
               <div className="min-w-0 flex-1">
-                <h4 className="truncate font-medium">已選擇: {selectedFood.name}</h4>
+                <h4 className="truncate font-medium">{tMeals('selectedFood', { name: getLocalizedName(selectedFood.name, selectedFood.nameEn) })}</h4>
                 <p className="text-xs text-muted-foreground sm:text-sm">
-                  每份 {selectedFood.servingSize} {selectedFood.servingUnit}
+                  {tFoods('perServingLabel', { size: selectedFood.servingSize, unit: selectedFood.servingUnit })}
                 </p>
               </div>
               <button
@@ -376,7 +388,7 @@ export function FoodSearchDialog({
             </div>
 
             <div className="mb-3 flex flex-col gap-3 sm:mb-4 sm:flex-row sm:items-center sm:gap-4">
-              <label className="flex-shrink-0 text-sm font-medium">份數:</label>
+              <label className="flex-shrink-0 text-sm font-medium">{tMeals('servingsLabel')}</label>
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
@@ -405,25 +417,25 @@ export function FoodSearchDialog({
 
             <div className="mb-4 grid grid-cols-2 gap-3 rounded-lg bg-background p-3 sm:grid-cols-4 sm:gap-4 sm:p-4">
               <div>
-                <p className="mb-1 text-xs text-muted-foreground">熱量</p>
+                <p className="mb-1 text-xs text-muted-foreground">{tFoods('caloriesShort')}</p>
                 <p className="text-sm font-medium sm:text-base">
                   {(selectedFood.calories * servings).toFixed(0)} kcal
                 </p>
               </div>
               <div>
-                <p className="mb-1 text-xs text-muted-foreground">蛋白質</p>
+                <p className="mb-1 text-xs text-muted-foreground">{tFoods('proteinShort')}</p>
                 <p className="text-sm font-medium sm:text-base">
                   {(selectedFood.protein * servings).toFixed(1)} g
                 </p>
               </div>
               <div>
-                <p className="mb-1 text-xs text-muted-foreground">碳水化合物</p>
+                <p className="mb-1 text-xs text-muted-foreground">{tFoods('carbsShort')}</p>
                 <p className="text-sm font-medium sm:text-base">
                   {(selectedFood.carbs * servings).toFixed(1)} g
                 </p>
               </div>
               <div>
-                <p className="mb-1 text-xs text-muted-foreground">脂肪</p>
+                <p className="mb-1 text-xs text-muted-foreground">{tFoods('fatShort')}</p>
                 <p className="text-sm font-medium sm:text-base">
                   {(selectedFood.fat * servings).toFixed(1)} g
                 </p>
@@ -433,10 +445,10 @@ export function FoodSearchDialog({
             <div className="flex flex-col gap-2">
               <div className="flex gap-2">
                 <Button variant="outline" onClick={() => setSelectedFood(null)} className="flex-1">
-                  重新選擇
+                  {tMeals('reselect')}
                 </Button>
                 <Button onClick={handleConfirm} className="flex-1">
-                  加入並繼續
+                  {tMeals('addAndContinue')}
                 </Button>
               </div>
               <div className="flex gap-2">
@@ -448,7 +460,7 @@ export function FoodSearchDialog({
                   variant="default"
                   className="flex-1"
                 >
-                  加入並完成
+                  {tMeals('addAndFinish')}
                 </Button>
                 {onSelectFoodAndEdit && (
                   <Button
@@ -460,7 +472,7 @@ export function FoodSearchDialog({
                     variant="secondary"
                     className="flex-1"
                   >
-                    加入並編輯
+                    {tMeals('addAndEdit')}
                   </Button>
                 )}
               </div>
