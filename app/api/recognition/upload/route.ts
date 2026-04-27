@@ -114,7 +114,7 @@ async function processRecognition(recognitionId: string, imageUrl: string) {
     // 如果是相對 URL，轉換為完整 URL
     let fullImageUrl = imageUrl;
     if (imageUrl.startsWith('/')) {
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+      const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
       fullImageUrl = `${baseUrl}${imageUrl}`;
     }
 

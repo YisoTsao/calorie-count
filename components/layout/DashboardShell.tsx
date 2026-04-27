@@ -9,6 +9,7 @@ interface DashboardShellProps {
     name?: string | null;
     email?: string | null;
     image?: string | null;
+    role?: string | null;
   };
   children: React.ReactNode;
 }
@@ -34,6 +35,7 @@ export function DashboardShell({ user, children }: DashboardShellProps) {
         user={user}
         isSidebarOpen={isSidebarOpen}
         onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
+        role={user.role}
       />
       <div className="flex">
         {/* Desktop sidebar - always visible on lg+ */}

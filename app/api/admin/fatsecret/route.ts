@@ -66,15 +66,19 @@ function parseDescription(desc: string) {
   };
 }
 
-/** GET /api/admin/fatsecret?q=apple */
+/** GET /api/admin/fatsecret?q=apple&page=0 */
 export async function GET(req: NextRequest) {
   const session = await auth();
   const deny = checkAdminAccess(session, 'EDITOR');
   if (deny) return deny;
 
-  const q = new URL(req.url).searchParams.get('q')?.trim();
+  const sp = new URL(req.url).searchParams;
+  const q = sp.get('q')?.trim();
+  const page = Math.max(0, parseInt(sp.get('page') ?? '0', 10));
+  const maxResults = 25;
+
   if (!q || q.length < 2) {
-    return NextResponse.json({ foods: [], totalResults: 0 });
+    return NextResponse.json({ foods: [], totalResults: 0, totalPages: 0, page: 0 });
   }
 
   let token: string;
@@ -87,8 +91,8 @@ export async function GET(req: NextRequest) {
   const url = new URL(FS_SEARCH_URL);
   url.searchParams.set('search_expression', q);
   url.searchParams.set('format', 'json');
-  url.searchParams.set('max_results', '25');
-  url.searchParams.set('page_number', '0');
+  url.searchParams.set('max_results', String(maxResults));
+  url.searchParams.set('page_number', String(page));
   // NOTE: region / language / include_food_images are Premier Exclusive for v1 — omit them
 
   let raw: unknown;
@@ -144,5 +148,10 @@ export async function GET(req: NextRequest) {
     };
   });
 
-  return NextResponse.json({ foods, totalResults });
+  return NextResponse.json({
+    foods,
+    totalResults,
+    totalPages: Math.ceil(totalResults / maxResults),
+    page,
+  });
 }

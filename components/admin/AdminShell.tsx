@@ -93,7 +93,7 @@ export function AdminShell({ user, children }: AdminShellProps) {
             <Icon icon="mdi:shield-crown-outline" className="text-lg text-white" />
           </div>
           <span className="font-700 flex-1 font-['Manrope',sans-serif] text-sm tracking-wide text-white">
-            Admin Console
+            後台管理
           </span>
           <button
             onClick={toggleTheme}
@@ -171,7 +171,7 @@ export function AdminShell({ user, children }: AdminShellProps) {
             <Icon icon="mdi:menu" className="text-xl" />
           </button>
           <span className="font-['Manrope',sans-serif] text-sm font-semibold text-white">
-            Admin Console
+            後台管理
           </span>
         </header>
 

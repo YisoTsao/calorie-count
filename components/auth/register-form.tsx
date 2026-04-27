@@ -132,7 +132,7 @@ export const RegisterForm: React.FC = () => {
         </div>
 
         <div className="space-y-1 rounded-xl bg-blue-50 p-4 text-sm text-blue-700 dark:bg-blue-900/20 dark:text-blue-300">
-          <p className="font-medium">📬 請完成以下步驟：</p>
+          <p className="font-medium">請完成以下步驟：</p>
           <ol className="list-inside list-decimal space-y-1 text-blue-600 dark:text-blue-400">
             <li>前往您的信箱查收驗證信</li>
             <li>點擊信中的「驗證 Email」按鈕</li>

@@ -105,6 +105,7 @@ export default function AdminFoodsPage() {
 
   const switchTab = (t: 'system' | 'usda' | 'fatsecret') => {
     setTab(t);
+    if (t === 'system') load(); // 切換回系統食物庫時重新載入
     const params = new URLSearchParams(searchParams.toString());
     params.set('tab', t);
     router.replace(`?${params.toString()}`, { scroll: false });
@@ -113,6 +114,8 @@ export default function AdminFoodsPage() {
   const [usdaQ, setUsdaQ] = useState('');
   const [usdaResults, setUsdaResults] = useState<USDAFood[]>([]);
   const [usdaTotal, setUsdaTotal] = useState(0);
+  const [usdaPage, setUsdaPage] = useState(1);
+  const [usdaTotalPages, setUsdaTotalPages] = useState(0);
   const [usdaLoading, setUsdaLoading] = useState(false);
   const [usdaImported, setUsdaImported] = useState<Set<number>>(new Set());
   const usdaAbort = useRef<AbortController | null>(null);
@@ -121,6 +124,8 @@ export default function AdminFoodsPage() {
   const [fsQ, setFsQ] = useState('');
   const [fsResults, setFsResults] = useState<FatSecretFood[]>([]);
   const [fsTotal, setFsTotal] = useState(0);
+  const [fsPage, setFsPage] = useState(0);
+  const [fsTotalPages, setFsTotalPages] = useState(0);
   const [fsLoading, setFsLoading] = useState(false);
   const [fsError, setFsError] = useState<string | null>(null);
   const [fsImported, setFsImported] = useState<Set<string>>(new Set());
@@ -225,10 +230,11 @@ export default function AdminFoodsPage() {
   };
 
   // ── USDA handlers ──
-  const searchUsda = useCallback(async (keyword: string) => {
+  const searchUsda = useCallback(async (keyword: string, pg = 1) => {
     if (!keyword.trim()) {
       setUsdaResults([]);
       setUsdaTotal(0);
+      setUsdaTotalPages(0);
       return;
     }
     usdaAbort.current?.abort();
@@ -236,12 +242,15 @@ export default function AdminFoodsPage() {
     usdaAbort.current = ctrl;
     setUsdaLoading(true);
     try {
-      const res = await fetch(`/api/admin/usda?q=${encodeURIComponent(keyword)}`, {
-        signal: ctrl.signal,
-      });
+      const res = await fetch(
+        `/api/admin/usda?q=${encodeURIComponent(keyword)}&page=${pg}`,
+        { signal: ctrl.signal }
+      );
       const data = await res.json();
       setUsdaResults(data.foods ?? []);
       setUsdaTotal(data.totalHits ?? 0);
+      setUsdaTotalPages(data.totalPages ?? 0);
+      setUsdaPage(pg);
     } catch (e) {
       if ((e as Error).name !== 'AbortError') console.error(e);
     } finally {
@@ -250,7 +259,7 @@ export default function AdminFoodsPage() {
   }, []);
 
   useEffect(() => {
-    const t = setTimeout(() => searchUsda(usdaQ), 500);
+    const t = setTimeout(() => searchUsda(usdaQ, 1), 500);
     return () => clearTimeout(t);
   }, [usdaQ, searchUsda]);
 
@@ -277,15 +286,16 @@ export default function AdminFoodsPage() {
     });
     if (res.ok) {
       setUsdaImported((prev) => new Set([...prev, food.fdcId]));
-      if (tab === 'system') load();
+      load(); // 立即更新系統食物庫
     }
   };
 
   // ── FatSecret handlers ──
-  const searchFs = useCallback(async (keyword: string) => {
+  const searchFs = useCallback(async (keyword: string, pg = 0) => {
     if (!keyword.trim()) {
       setFsResults([]);
       setFsTotal(0);
+      setFsTotalPages(0);
       return;
     }
     fsAbort.current?.abort();
@@ -294,18 +304,22 @@ export default function AdminFoodsPage() {
     setFsLoading(true);
     setFsError(null);
     try {
-      const res = await fetch(`/api/admin/fatsecret?q=${encodeURIComponent(keyword)}`, {
-        signal: ctrl.signal,
-      });
+      const res = await fetch(
+        `/api/admin/fatsecret?q=${encodeURIComponent(keyword)}&page=${pg}`,
+        { signal: ctrl.signal }
+      );
       const data = await res.json();
       if (data.error) {
         setFsError(data.error);
         setFsResults([]);
         setFsTotal(0);
+        setFsTotalPages(0);
         return;
       }
       setFsResults(data.foods ?? []);
       setFsTotal(data.totalResults ?? 0);
+      setFsTotalPages(data.totalPages ?? 0);
+      setFsPage(pg);
     } catch (e) {
       if ((e as Error).name !== 'AbortError') console.error(e);
     } finally {
@@ -314,7 +328,7 @@ export default function AdminFoodsPage() {
   }, []);
 
   useEffect(() => {
-    const t = setTimeout(() => searchFs(fsQ), 500);
+    const t = setTimeout(() => searchFs(fsQ, 0), 500);
     return () => clearTimeout(t);
   }, [fsQ, searchFs]);
 
@@ -338,6 +352,7 @@ export default function AdminFoodsPage() {
     });
     if (res.ok) {
       setFsImported((prev) => new Set([...prev, food.foodId]));
+      load(); // 立即更新系統食物庫
     }
   };
 
@@ -678,7 +693,7 @@ export default function AdminFoodsPage() {
           ) : usdaResults.length > 0 ? (
             <>
               <p className="text-xs text-slate-500">
-                共找到 {usdaTotal.toLocaleString()} 筆，顯示前 {usdaResults.length} 筆
+                共找到 {usdaTotal.toLocaleString()} 筆，顯示第 {(usdaPage - 1) * 25 + 1}–{Math.min(usdaPage * 25, usdaTotal)} 筆
               </p>
               <div className="overflow-hidden rounded-2xl bg-slate-900/60">
                 <div className="overflow-x-auto">
@@ -750,6 +765,28 @@ export default function AdminFoodsPage() {
                   </table>
                 </div>
               </div>
+              {/* USDA Pagination */}
+              {usdaTotalPages > 1 && (
+                <div className="flex items-center justify-end gap-2">
+                  <button
+                    disabled={usdaPage <= 1}
+                    onClick={() => searchUsda(usdaQ, usdaPage - 1)}
+                    className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white disabled:pointer-events-none disabled:opacity-30"
+                  >
+                    <Icon icon="mdi:chevron-left" />
+                  </button>
+                  <span className="text-sm text-slate-400">
+                    {usdaPage} / {usdaTotalPages}
+                  </span>
+                  <button
+                    disabled={usdaPage >= usdaTotalPages}
+                    onClick={() => searchUsda(usdaQ, usdaPage + 1)}
+                    className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white disabled:pointer-events-none disabled:opacity-30"
+                  >
+                    <Icon icon="mdi:chevron-right" />
+                  </button>
+                </div>
+              )}
             </>
           ) : null}
         </div>
@@ -827,7 +864,7 @@ export default function AdminFoodsPage() {
           ) : fsResults.length > 0 ? (
             <>
               <p className="text-xs text-slate-500">
-                共找到 {fsTotal.toLocaleString()} 筆，顯示前 {fsResults.length} 筆
+                共找到 {fsTotal.toLocaleString()} 筆，顯示第 {fsPage * 25 + 1}–{Math.min((fsPage + 1) * 25, fsTotal)} 筆
               </p>
               <div className="overflow-hidden rounded-2xl bg-slate-900/60">
                 <div className="overflow-x-auto">
@@ -894,6 +931,28 @@ export default function AdminFoodsPage() {
                   </table>
                 </div>
               </div>
+              {/* FatSecret Pagination */}
+              {fsTotalPages > 1 && (
+                <div className="flex items-center justify-end gap-2">
+                  <button
+                    disabled={fsPage <= 0}
+                    onClick={() => searchFs(fsQ, fsPage - 1)}
+                    className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white disabled:pointer-events-none disabled:opacity-30"
+                  >
+                    <Icon icon="mdi:chevron-left" />
+                  </button>
+                  <span className="text-sm text-slate-400">
+                    {fsPage + 1} / {fsTotalPages}
+                  </span>
+                  <button
+                    disabled={fsPage >= fsTotalPages - 1}
+                    onClick={() => searchFs(fsQ, fsPage + 1)}
+                    className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white disabled:pointer-events-none disabled:opacity-30"
+                  >
+                    <Icon icon="mdi:chevron-right" />
+                  </button>
+                </div>
+              )}
             </>
           ) : null}
         </div>
