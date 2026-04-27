@@ -208,33 +208,3 @@ bun prisma db push   # 推送 schema 到資料庫
 bun run lint         # ESLint 檢查
 bun run type-check   # TypeScript 型別檢查
 ```
-
-## 🚧 開發路線圖
-
-- [x] Phase 1: 專案基礎架構 (完成度: 100%)
-- [ ] Phase 2: 使用者管理
-- [ ] Phase 3: AI 食物識別
-- [ ] Phase 4: 飲食記錄
-- [ ] Phase 5: 營養追蹤
-- [ ] Phase 6: 數據分析
-- [ ] Phase 7: 食物資料庫
-- [ ] Phase 8: 社交功能 (選配)
-- [ ] Phase 9: 優化與部署
-
-詳細規劃請參考 [openspec/OPENSPEC_GUIDE.md](openspec/OPENSPEC_GUIDE.md)
-
-## 🤝 貢獻
-
-歡迎提交 Issue 和 Pull Request!
-
-## 📄 授權
-
-MIT License
-
-## 👥 作者
-
-CalorieCount Development Team
-
----
-
-**注意**: 本專案目前處於開發階段,部分功能尚未實作。
