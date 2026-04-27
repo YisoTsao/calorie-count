@@ -130,7 +130,8 @@ export default function NutritionSummaryCard() {
           <div className="flex-1">
             <div className="mb-1 flex items-center justify-between">
               <span className="text-sm font-medium">
-                {t('exerciseBurn')} {data.exercise.count > 0 && t('exerciseCount', { count: data.exercise.count })}
+                {t('exerciseBurn')}{' '}
+                {data.exercise.count > 0 && t('exerciseCount', { count: data.exercise.count })}
               </span>
               <span className="text-sm text-muted-foreground">
                 {Math.round(data.exercise.totalCalories)} / {data.exercise.goal} kcal

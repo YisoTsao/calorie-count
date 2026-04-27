@@ -6,13 +6,13 @@ const USDA_BASE = 'https://api.nal.usda.gov/fdc/v1';
 
 /** Key nutrient IDs from USDA FoodData Central */
 const NUTRIENT_IDS = {
-  calories: 1008,  // Energy (kcal)
-  protein: 1003,   // Protein (g)
-  carbs: 1005,     // Carbohydrate, by difference (g)
-  fat: 1004,       // Total lipid (fat) (g)
-  fiber: 1079,     // Fiber, total dietary (g)
-  sugar: 2000,     // Sugars, total including NLEA (g)
-  sodium: 1093,    // Sodium (mg)
+  calories: 1008, // Energy (kcal)
+  protein: 1003, // Protein (g)
+  carbs: 1005, // Carbohydrate, by difference (g)
+  fat: 1004, // Total lipid (fat) (g)
+  fiber: 1079, // Fiber, total dietary (g)
+  sugar: 2000, // Sugars, total including NLEA (g)
+  sodium: 1093, // Sodium (mg)
 } as const;
 
 function round1(n: number) {

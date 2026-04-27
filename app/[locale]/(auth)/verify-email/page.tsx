@@ -37,7 +37,7 @@ function VerifyEmailContent() {
         if (response.ok) {
           setStatus('success');
           setMessage(data.data?.message || 'Email 驗證成功！');
-          
+
           // 3 秒後自動跳轉到登入頁面
           setTimeout(() => {
             router.push('/login');
@@ -59,20 +59,14 @@ function VerifyEmailContent() {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-12 dark:from-gray-900 dark:to-gray-800">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-center text-2xl font-bold">
-            Email 驗證
-          </CardTitle>
-          <CardDescription className="text-center">
-            正在驗證您的 Email 地址
-          </CardDescription>
+          <CardTitle className="text-center text-2xl font-bold">Email 驗證</CardTitle>
+          <CardDescription className="text-center">正在驗證您的 Email 地址</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {status === 'loading' && (
             <div className="flex flex-col items-center space-y-4">
               <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-              <p className="text-center text-muted-foreground">
-                正在驗證中...
-              </p>
+              <p className="text-center text-muted-foreground">正在驗證中...</p>
             </div>
           )}
 
@@ -85,17 +79,10 @@ function VerifyEmailContent() {
                 />
               </div>
               <div className="space-y-2 text-center">
-                <p className="font-semibold text-green-600 dark:text-green-400">
-                  {message}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  即將自動跳轉到登入頁面...
-                </p>
+                <p className="font-semibold text-green-600 dark:text-green-400">{message}</p>
+                <p className="text-sm text-muted-foreground">即將自動跳轉到登入頁面...</p>
               </div>
-              <Button
-                onClick={() => router.push('/login')}
-                className="w-full"
-              >
+              <Button onClick={() => router.push('/login')} className="w-full">
                 立即前往登入
               </Button>
             </div>
@@ -112,10 +99,7 @@ function VerifyEmailContent() {
                 >
                   返回註冊頁面
                 </Button>
-                <Button
-                  onClick={() => router.push('/login')}
-                  className="w-full"
-                >
+                <Button onClick={() => router.push('/login')} className="w-full">
                   前往登入頁面
                 </Button>
               </div>
@@ -129,11 +113,13 @@ function VerifyEmailContent() {
 
 export default function VerifyEmailPage() {
   return (
-    <Suspense fallback={
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center">
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        </div>
+      }
+    >
       <VerifyEmailContent />
     </Suspense>
   );

@@ -176,7 +176,7 @@ export default function ScanPage() {
       </Card>
 
       {/* Barcode scan card */}
-      <Card className='hidden'>
+      <Card className="hidden">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Icon icon="mdi:barcode-scan" className="text-xl text-primary" />

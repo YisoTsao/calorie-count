@@ -700,9 +700,18 @@
     "earnedCount": "Earned {earned}/{total} · {pct}% complete",
     "codes": {
       "first_meal": { "name": "First Step", "description": "Logged your first meal" },
-      "streak_7": { "name": "One Week Strong", "description": "Logged meals for 7 consecutive days" },
-      "streak_30": { "name": "Habit Builder", "description": "Logged meals for 30 consecutive days" },
-      "streak_100": { "name": "Willpower Master", "description": "Logged meals for 100 consecutive days" },
+      "streak_7": {
+        "name": "One Week Strong",
+        "description": "Logged meals for 7 consecutive days"
+      },
+      "streak_30": {
+        "name": "Habit Builder",
+        "description": "Logged meals for 30 consecutive days"
+      },
+      "streak_100": {
+        "name": "Willpower Master",
+        "description": "Logged meals for 100 consecutive days"
+      },
       "total_100_meals": { "name": "Century Eater", "description": "Logged 100 meals total" },
       "total_500_meals": { "name": "Foodie", "description": "Logged 500 meals total" },
       "app_30_days": { "name": "One Month User", "description": "Using the app for 30 days" },

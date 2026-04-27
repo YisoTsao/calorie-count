@@ -31,14 +31,9 @@ export function LocaleSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="gap-2 h-9 px-2"
-          aria-label={t('label')}
-        >
+        <Button variant="ghost" size="sm" className="h-9 gap-2 px-2" aria-label={t('label')}>
           <span className="text-base leading-none">{LOCALE_FLAGS[locale]}</span>
-          <span className="hidden sm:inline text-sm font-medium">
+          <span className="hidden text-sm font-medium sm:inline">
             {t(locale as 'zh-TW' | 'en' | 'ja')}
           </span>
           <Icon icon="lucide:chevron-down" className="h-3.5 w-3.5 opacity-60" />
@@ -49,7 +44,7 @@ export function LocaleSwitcher() {
           <DropdownMenuItem
             key={loc}
             onClick={() => handleLocaleChange(loc)}
-            className={`gap-2 cursor-pointer ${locale === loc ? 'font-semibold bg-accent' : ''}`}
+            className={`cursor-pointer gap-2 ${locale === loc ? 'bg-accent font-semibold' : ''}`}
           >
             <span className="text-base leading-none">{LOCALE_FLAGS[loc]}</span>
             <span>{t(loc as 'zh-TW' | 'en' | 'ja')}</span>

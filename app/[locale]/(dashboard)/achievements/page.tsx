@@ -33,15 +33,15 @@ interface AchievementData {
 }
 
 const CATEGORY_CONFIG: Record<string, { colorClass: string }> = {
-  streak:    { colorClass: 'text-orange-500' },
+  streak: { colorClass: 'text-orange-500' },
   milestone: { colorClass: 'text-yellow-500' },
-  goal:      { colorClass: 'text-blue-500' },
+  goal: { colorClass: 'text-blue-500' },
 };
 
 const CATEGORY_CARD_COLORS: Record<string, { earned: string; progress: string }> = {
-  streak:    { earned: 'bg-orange-50 border-orange-200',  progress: 'bg-orange-500' },
+  streak: { earned: 'bg-orange-50 border-orange-200', progress: 'bg-orange-500' },
   milestone: { earned: 'bg-yellow-50 border-yellow-200', progress: 'bg-yellow-500' },
-  goal:      { earned: 'bg-blue-50 border-blue-200',     progress: 'bg-blue-500'   },
+  goal: { earned: 'bg-blue-50 border-blue-200', progress: 'bg-blue-500' },
 };
 
 type FilterTab = 'all' | 'streak' | 'milestone' | 'goal';
@@ -72,7 +72,7 @@ export default function AchievementsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="flex min-h-[60vh] items-center justify-center">
         <div className="text-gray-500">{t('calculating')}</div>
       </div>
     );
@@ -83,32 +83,33 @@ export default function AchievementsPage() {
   const { achievements, stats, earnedCount, totalCount } = data;
   const completionPct = totalCount > 0 ? Math.round((earnedCount / totalCount) * 100) : 0;
 
-  const filtered = activeTab === 'all' ? achievements : achievements.filter((a) => a.category === activeTab);
+  const filtered =
+    activeTab === 'all' ? achievements : achievements.filter((a) => a.category === activeTab);
   const earned = filtered.filter((a) => a.earned);
   const unearned = filtered.filter((a) => !a.earned);
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 p-6">
+    <div className="mx-auto max-w-4xl space-y-6 p-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold flex items-center gap-3">
-          <Trophy className="w-8 h-8 text-yellow-500" />
+        <h1 className="flex items-center gap-3 text-3xl font-bold">
+          <Trophy className="h-8 w-8 text-yellow-500" />
           {t('title')}
         </h1>
-        <p className="text-muted-foreground mt-1">
+        <p className="mt-1 text-muted-foreground">
           {t('earnedCount', { earned: earnedCount, total: totalCount, pct: completionPct })}
         </p>
       </div>
 
       {/* 總進度 */}
-      <div className="bg-white rounded-xl border p-5 shadow-sm">
-        <div className="flex justify-between items-center mb-2">
+      <div className="rounded-xl border bg-white p-5 shadow-sm">
+        <div className="mb-2 flex items-center justify-between">
           <span className="text-sm font-medium text-gray-700">{t('overallProgress')}</span>
           <span className="text-sm font-bold text-primary">{completionPct}%</span>
         </div>
-        <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
+        <div className="h-3 w-full overflow-hidden rounded-full bg-gray-100">
           <div
-            className="h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-full transition-all duration-500"
+            className="h-full rounded-full bg-gradient-to-r from-purple-500 to-blue-500 transition-all duration-500"
             style={{ width: `${completionPct}%` }}
           />
         </div>
@@ -129,16 +130,18 @@ export default function AchievementsPage() {
       </div>
 
       {/* Tab 篩選 */}
-      <div className="flex bg-gray-100 rounded-xl p-1 gap-1">
+      <div className="flex gap-1 rounded-xl bg-gray-100 p-1">
         {(['all', 'streak', 'milestone', 'goal'] as FilterTab[]).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === tab ? 'bg-white shadow text-gray-900' : 'text-gray-600 hover:text-gray-900'
+            className={`flex-1 rounded-lg py-2 text-sm font-medium transition-colors ${
+              activeTab === tab
+                ? 'bg-white text-gray-900 shadow'
+                : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-{tab === 'all' ? t('allCategories') : t(`categories.${tab}`)}
+            {tab === 'all' ? t('allCategories') : t(`categories.${tab}`)}
           </button>
         ))}
       </div>
@@ -146,12 +149,14 @@ export default function AchievementsPage() {
       {/* 已獲得 */}
       {earned.length > 0 && (
         <section>
-          <h2 className="flex items-center gap-2 text-lg font-semibold mb-3">
-            <CheckCircle className="w-5 h-5 text-green-500" />
-{t('earned')} ({earned.length})
+          <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold">
+            <CheckCircle className="h-5 w-5 text-green-500" />
+            {t('earned')} ({earned.length})
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {earned.map((a) => <AchievementCard key={a.id} achievement={a} />)}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {earned.map((a) => (
+              <AchievementCard key={a.id} achievement={a} />
+            ))}
           </div>
         </section>
       )}
@@ -159,20 +164,22 @@ export default function AchievementsPage() {
       {/* 未獲得 */}
       {unearned.length > 0 && (
         <section>
-          <h2 className="flex items-center gap-2 text-lg font-semibold mb-3">
-            <Lock className="w-5 h-5 text-gray-400" />
-{t('notStarted')} ({unearned.length})
+          <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold">
+            <Lock className="h-5 w-5 text-gray-400" />
+            {t('notStarted')} ({unearned.length})
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {unearned.map((a) => <AchievementCard key={a.id} achievement={a} />)}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {unearned.map((a) => (
+              <AchievementCard key={a.id} achievement={a} />
+            ))}
           </div>
         </section>
       )}
 
       {/* Empty */}
       {earned.length === 0 && unearned.length === 0 && (
-        <div className="text-center py-16">
-          <Trophy className="w-16 h-16 text-gray-200 mx-auto mb-4" />
+        <div className="py-16 text-center">
+          <Trophy className="mx-auto mb-4 h-16 w-16 text-gray-200" />
           <p className="text-gray-400">{t('noResults')}</p>
         </div>
       )}
@@ -182,28 +189,34 @@ export default function AchievementsPage() {
 
 function AchievementCard({ achievement: a }: { achievement: AchievementItem }) {
   const t = useTranslations('achievements');
-  const colors = CATEGORY_CARD_COLORS[a.category] ?? { earned: 'bg-gray-50 border-gray-200', progress: 'bg-gray-500' };
+  const colors = CATEGORY_CARD_COLORS[a.category] ?? {
+    earned: 'bg-gray-50 border-gray-200',
+    progress: 'bg-gray-500',
+  };
   const pct = a.maxProgress > 1 ? Math.round((a.progress / a.maxProgress) * 100) : 0;
 
   return (
     <div
       className={`relative rounded-xl border p-4 transition-all ${
-        a.earned ? `${colors.earned} shadow-sm` : 'bg-gray-50 border-gray-200 opacity-65'
+        a.earned ? `${colors.earned} shadow-sm` : 'border-gray-200 bg-gray-50 opacity-65'
       }`}
     >
-      {a.earned
-        ? <CheckCircle className="absolute top-3 right-3 w-5 h-5 text-green-500" />
-        : <Lock className="absolute top-3 right-3 w-4 h-4 text-gray-300" />
-      }
+      {a.earned ? (
+        <CheckCircle className="absolute right-3 top-3 h-5 w-5 text-green-500" />
+      ) : (
+        <Lock className="absolute right-3 top-3 h-4 w-4 text-gray-300" />
+      )}
 
-      <div className="flex items-start gap-3 mb-3 pr-6">
-        <span className={`text-3xl flex-shrink-0 ${!a.earned ? 'grayscale' : ''}`}>{a.icon}</span>
+      <div className="mb-3 flex items-start gap-3 pr-6">
+        <span className={`flex-shrink-0 text-3xl ${!a.earned ? 'grayscale' : ''}`}>{a.icon}</span>
         <div>
-          <h3 className={`font-semibold text-sm ${a.earned ? '' : 'text-gray-500'}`}>
+          <h3 className={`text-sm font-semibold ${a.earned ? '' : 'text-gray-500'}`}>
             {t.has(`codes.${a.code}.name`) ? t(`codes.${a.code}.name`) : a.name}
           </h3>
-          <p className="text-xs text-gray-500 mt-0.5">
-            {t.has(`codes.${a.code}.description`) ? t(`codes.${a.code}.description`) : a.description}
+          <p className="mt-0.5 text-xs text-gray-500">
+            {t.has(`codes.${a.code}.description`)
+              ? t(`codes.${a.code}.description`)
+              : a.description}
           </p>
         </div>
       </div>
@@ -211,11 +224,19 @@ function AchievementCard({ achievement: a }: { achievement: AchievementItem }) {
       {/* 進度條 */}
       {a.maxProgress > 1 && (
         <div>
-          <div className="flex justify-between text-xs text-gray-400 mb-1">
-            <span>{!a.earned && a.progress > 0 ? t('inProgress') : a.earned ? t('completed') : t('pending')}</span>
-            <span>{a.progress} / {a.maxProgress}</span>
+          <div className="mb-1 flex justify-between text-xs text-gray-400">
+            <span>
+              {!a.earned && a.progress > 0
+                ? t('inProgress')
+                : a.earned
+                  ? t('completed')
+                  : t('pending')}
+            </span>
+            <span>
+              {a.progress} / {a.maxProgress}
+            </span>
           </div>
-          <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
             <div
               className={`h-full rounded-full transition-all ${colors.progress}`}
               style={{ width: `${Math.min(pct, 100)}%` }}
@@ -225,11 +246,14 @@ function AchievementCard({ achievement: a }: { achievement: AchievementItem }) {
       )}
 
       {a.earned && a.earnedAt && (
-        <p className="text-xs text-gray-400 mt-2">
-          {new Date(a.earnedAt).toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' })}
+        <p className="mt-2 text-xs text-gray-400">
+          {new Date(a.earnedAt).toLocaleDateString('zh-TW', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+          })}
         </p>
       )}
     </div>
   );
 }
-

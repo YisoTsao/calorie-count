@@ -18,7 +18,9 @@ export default async function EditProfilePage() {
     name: user.name || undefined,
     height: user.profile?.height || undefined,
     weight: user.profile?.weight || undefined,
-    birthDate: user.profile?.dateOfBirth ? user.profile.dateOfBirth.toISOString().split('T')[0] : undefined,
+    birthDate: user.profile?.dateOfBirth
+      ? user.profile.dateOfBirth.toISOString().split('T')[0]
+      : undefined,
     gender: user.profile?.gender || undefined,
     activityLevel: user.profile?.activityLevel || undefined,
     bio: user.profile?.bio || undefined,

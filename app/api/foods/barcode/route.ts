@@ -26,7 +26,10 @@ interface OFFProduct {
   code?: string;
 }
 
-function parseServingSize(raw?: string): { servingSize: number | null; servingUnit: string | null } {
+function parseServingSize(raw?: string): {
+  servingSize: number | null;
+  servingUnit: string | null;
+} {
   if (!raw) return { servingSize: null, servingUnit: null };
   const m = raw.match(/^([\d.]+)\s*([a-zA-Z]+)/);
   if (!m) return { servingSize: null, servingUnit: raw };
@@ -41,17 +44,14 @@ function mapOFFToFood(product: OFFProduct, barcode: string) {
     n['energy-kcal_100g'] != null
       ? Math.round(n['energy-kcal_100g'])
       : n.energy_100g != null
-      ? Math.round(n.energy_100g / 4.184)
-      : 0;
+        ? Math.round(n.energy_100g / 4.184)
+        : 0;
 
   const { servingSize, servingUnit } = parseServingSize(product.serving_size);
 
   // Name: prefer zh/local over generic
   const name =
-    product.product_name_zh ||
-    product.product_name ||
-    product.product_name_en ||
-    `條碼 ${barcode}`;
+    product.product_name_zh || product.product_name || product.product_name_en || `條碼 ${barcode}`;
 
   return {
     name,
@@ -75,11 +75,20 @@ function mapOFFToFood(product: OFFProduct, barcode: string) {
 }
 
 const FOOD_SELECT = {
-  id: true, name: true, nameEn: true,
-  calories: true, protein: true, carbs: true, fat: true,
-  fiber: true, sugar: true, sodium: true,
-  servingSize: true, servingUnit: true,
-  barcode: true, openFoodFactsUrl: true,
+  id: true,
+  name: true,
+  nameEn: true,
+  calories: true,
+  protein: true,
+  carbs: true,
+  fat: true,
+  fiber: true,
+  sugar: true,
+  sodium: true,
+  servingSize: true,
+  servingUnit: true,
+  barcode: true,
+  openFoodFactsUrl: true,
 } as const;
 
 /** GET /api/foods/barcode?barcode=4902102081399 */
@@ -121,7 +130,10 @@ export async function GET(req: NextRequest) {
       }
     );
     if (!res.ok) {
-      return NextResponse.json({ error: `Open Food Facts 回傳錯誤 ${res.status}` }, { status: 502 });
+      return NextResponse.json(
+        { error: `Open Food Facts 回傳錯誤 ${res.status}` },
+        { status: 502 }
+      );
     }
     const data = (await res.json()) as { status: number; product?: OFFProduct };
     if (data.status !== 1 || !data.product) {

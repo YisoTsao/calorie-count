@@ -22,14 +22,15 @@ export default async function ProfilePage() {
   // Mock stats - 實際應該從 API 取得
   const stats = {
     profileCompleteness: 75,
-    bmi: user.profile?.height && user.profile?.weight 
-      ? user.profile.weight / ((user.profile.height / 100) ** 2)
-      : undefined,
+    bmi:
+      user.profile?.height && user.profile?.weight
+        ? user.profile.weight / (user.profile.height / 100) ** 2
+        : undefined,
     bmiCategory: 'NORMAL',
   };
 
   return (
-    <div className="container max-w-6xl py-8 space-y-8">
+    <div className="container max-w-6xl space-y-8 py-8">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">個人資料</h1>
@@ -38,25 +39,25 @@ export default async function ProfilePage() {
         <div className="flex gap-2">
           <Link href="/profile/edit">
             <Button variant="outline" size="sm">
-              <Edit className="h-4 w-4 mr-2" />
+              <Edit className="mr-2 h-4 w-4" />
               編輯資料
             </Button>
           </Link>
           <Link href="/profile/goals">
             <Button variant="outline" size="sm">
-              <Target className="h-4 w-4 mr-2" />
+              <Target className="mr-2 h-4 w-4" />
               目標設定
             </Button>
           </Link>
           <Link href="/profile/preferences">
             <Button variant="outline" size="sm">
-              <Settings className="h-4 w-4 mr-2" />
+              <Settings className="mr-2 h-4 w-4" />
               偏好設定
             </Button>
           </Link>
           <Link href="/profile/security">
             <Button variant="outline" size="sm">
-              <Shield className="h-4 w-4 mr-2" />
+              <Shield className="mr-2 h-4 w-4" />
               安全設定
             </Button>
           </Link>

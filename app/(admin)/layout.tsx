@@ -25,10 +25,16 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           __html: `(function(){try{var t=localStorage.getItem('admin-theme');document.documentElement.setAttribute('data-admin-theme',t==='light'?'light':'dark');}catch(e){}})();`,
         }}
       />
-      <AdminShell user={{ name: session.user.name, email: session.user.email, image: session.user.image, role }}>
+      <AdminShell
+        user={{
+          name: session.user.name,
+          email: session.user.email,
+          image: session.user.image,
+          role,
+        }}
+      >
         {children}
       </AdminShell>
     </>
   );
 }
-

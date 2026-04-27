@@ -106,7 +106,10 @@ export async function GET(req: NextRequest) {
       raw = JSON.parse(text);
     } catch {
       console.error('[FatSecret] Non-JSON response:', text.slice(0, 500));
-      return NextResponse.json({ error: 'FatSecret 回傳非 JSON', detail: text.slice(0, 200) }, { status: 502 });
+      return NextResponse.json(
+        { error: 'FatSecret 回傳非 JSON', detail: text.slice(0, 200) },
+        { status: 502 }
+      );
     }
   } catch (err) {
     return NextResponse.json({ error: '無法連線 FatSecret API' }, { status: 502 });
@@ -126,9 +129,7 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  const foodsRaw: FSFood[] = data?.foods?.food
-    ? ([] as FSFood[]).concat(data.foods.food)
-    : [];
+  const foodsRaw: FSFood[] = data?.foods?.food ? ([] as FSFood[]).concat(data.foods.food) : [];
   const totalResults: number = parseInt(data?.foods?.total_results ?? '0', 10);
 
   const foods = foodsRaw.map((f) => {

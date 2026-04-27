@@ -31,7 +31,9 @@ export function BarcodeScanDialog({ onFood, onClose }: BarcodeScanDialogProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const animFrameRef = useRef<number>(0);
-  const detectorRef = useRef<{ detect: (source: HTMLVideoElement) => Promise<{ rawValue: string }[]> } | null>(null);
+  const detectorRef = useRef<{
+    detect: (source: HTMLVideoElement) => Promise<{ rawValue: string }[]>;
+  } | null>(null);
 
   const [scanState, setScanState] = useState<ScanState>('idle');
   const [manualInput, setManualInput] = useState('');
@@ -163,14 +165,17 @@ export function BarcodeScanDialog({ onFood, onClose }: BarcodeScanDialogProps) {
             <h2 className="font-semibold">條碼掃描</h2>
           </div>
           <button
-            onClick={() => { stopCamera(); onClose(); }}
-            className="rounded-lg p-1.5 text-muted-foreground hover:bg-accent transition-colors"
+            onClick={() => {
+              stopCamera();
+              onClose();
+            }}
+            className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-accent"
           >
             <Icon icon="mdi:close" className="text-lg" />
           </button>
         </div>
 
-        <div className="p-5 space-y-4">
+        <div className="space-y-4 p-5">
           {/* ── Idle: start buttons ── */}
           {scanState === 'idle' && (
             <div className="space-y-3">
@@ -210,27 +215,27 @@ export function BarcodeScanDialog({ onFood, onClose }: BarcodeScanDialogProps) {
           {/* ── Scanning ── */}
           {scanState === 'scanning' && (
             <div className="space-y-3">
-              <div className="relative overflow-hidden rounded-2xl bg-black aspect-[4/3]">
+              <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-black">
                 <video ref={videoRef} className="h-full w-full object-cover" muted playsInline />
                 {/* scanning frame overlay */}
                 <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                  <div className="relative w-[75%] h-24">
-                    {(['tl','tr','bl','br'] as const).map((c) => (
+                  <div className="relative h-24 w-[75%]">
+                    {(['tl', 'tr', 'bl', 'br'] as const).map((c) => (
                       <div
                         key={c}
                         className={`absolute h-6 w-6 border-[3px] border-primary
-                          ${c==='tl'?'top-0 left-0 rounded-tl border-r-0 border-b-0':''}
-                          ${c==='tr'?'top-0 right-0 rounded-tr border-l-0 border-b-0':''}
-                          ${c==='bl'?'bottom-0 left-0 rounded-bl border-r-0 border-t-0':''}
-                          ${c==='br'?'bottom-0 right-0 rounded-br border-l-0 border-t-0':''}
+                          ${c === 'tl' ? 'left-0 top-0 rounded-tl border-b-0 border-r-0' : ''}
+                          ${c === 'tr' ? 'right-0 top-0 rounded-tr border-b-0 border-l-0' : ''}
+                          ${c === 'bl' ? 'bottom-0 left-0 rounded-bl border-r-0 border-t-0' : ''}
+                          ${c === 'br' ? 'bottom-0 right-0 rounded-br border-l-0 border-t-0' : ''}
                         `}
                       />
                     ))}
-                    <div className="absolute inset-x-0 top-1/2 h-px bg-primary/60 animate-[scan_2s_ease-in-out_infinite]" />
+                    <div className="absolute inset-x-0 top-1/2 h-px animate-[scan_2s_ease-in-out_infinite] bg-primary/60" />
                   </div>
                 </div>
                 {!barcodeDetectorAvailable && (
-                  <div className="absolute bottom-3 inset-x-0 text-center text-xs text-white/70 bg-black/40 py-1">
+                  <div className="absolute inset-x-0 bottom-3 bg-black/40 py-1 text-center text-xs text-white/70">
                     此瀏覽器不支援自動掃描，請手動輸入條碼
                   </div>
                 )}
@@ -258,9 +263,9 @@ export function BarcodeScanDialog({ onFood, onClose }: BarcodeScanDialogProps) {
           {/* ── Found ── */}
           {scanState === 'found' && food && (
             <div className="space-y-3">
-              <div className="rounded-xl border bg-card p-4 space-y-3">
+              <div className="space-y-3 rounded-xl border bg-card p-4">
                 <div>
-                  <p className="font-semibold text-base">{food.name}</p>
+                  <p className="text-base font-semibold">{food.name}</p>
                   {food.nameEn && <p className="text-xs text-muted-foreground">{food.nameEn}</p>}
                   {food.barcode && (
                     <p className="mt-0.5 text-xs text-muted-foreground">條碼：{food.barcode}</p>
@@ -275,12 +280,22 @@ export function BarcodeScanDialog({ onFood, onClose }: BarcodeScanDialogProps) {
                 {/* Macros row */}
                 <div className="grid grid-cols-4 gap-2 text-center">
                   {[
-                    { label: '熱量', value: `${food.calories}`, unit: 'kcal', color: 'text-orange-500' },
-                    { label: '蛋白質', value: `${food.protein}`, unit: 'g', color: 'text-blue-500' },
+                    {
+                      label: '熱量',
+                      value: `${food.calories}`,
+                      unit: 'kcal',
+                      color: 'text-orange-500',
+                    },
+                    {
+                      label: '蛋白質',
+                      value: `${food.protein}`,
+                      unit: 'g',
+                      color: 'text-blue-500',
+                    },
                     { label: '碳水', value: `${food.carbs}`, unit: 'g', color: 'text-amber-500' },
                     { label: '脂肪', value: `${food.fat}`, unit: 'g', color: 'text-rose-500' },
                   ].map((m) => (
-                    <div key={m.label} className="rounded-lg bg-muted py-2 px-1">
+                    <div key={m.label} className="rounded-lg bg-muted px-1 py-2">
                       <p className={`text-base font-bold leading-tight ${m.color}`}>{m.value}</p>
                       <p className="text-[10px] text-muted-foreground">{m.unit}</p>
                       <p className="text-[10px] text-muted-foreground">{m.label}</p>
@@ -289,7 +304,7 @@ export function BarcodeScanDialog({ onFood, onClose }: BarcodeScanDialogProps) {
                 </div>
 
                 {(food.fiber != null || food.sugar != null || food.sodium != null) && (
-                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground border-t pt-2">
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 border-t pt-2 text-xs text-muted-foreground">
                     {food.fiber != null && <span>纖維 {food.fiber}g</span>}
                     {food.sugar != null && <span>糖 {food.sugar}g</span>}
                     {food.sodium != null && <span>鈉 {food.sodium}mg</span>}
@@ -298,7 +313,8 @@ export function BarcodeScanDialog({ onFood, onClose }: BarcodeScanDialogProps) {
 
                 {food.servingSize && (
                   <p className="text-xs text-muted-foreground">
-                    參考份量：{food.servingSize}{food.servingUnit ?? 'g'}（以上數值為每 100g）
+                    參考份量：{food.servingSize}
+                    {food.servingUnit ?? 'g'}（以上數值為每 100g）
                   </p>
                 )}
 
@@ -327,7 +343,7 @@ export function BarcodeScanDialog({ onFood, onClose }: BarcodeScanDialogProps) {
           {/* ── Not found ── */}
           {scanState === 'not_found' && (
             <div className="space-y-3">
-              <div className="rounded-xl bg-muted px-5 py-6 text-center space-y-2">
+              <div className="space-y-2 rounded-xl bg-muted px-5 py-6 text-center">
                 <Icon icon="mdi:barcode-off" className="mx-auto text-4xl text-muted-foreground" />
                 <p className="font-medium">找不到此條碼的商品資訊</p>
                 <p className="text-sm text-muted-foreground">
@@ -347,8 +363,11 @@ export function BarcodeScanDialog({ onFood, onClose }: BarcodeScanDialogProps) {
           {/* ── Error ── */}
           {scanState === 'error' && (
             <div className="space-y-3">
-              <div className="rounded-xl bg-destructive/10 px-5 py-4 text-center space-y-1">
-                <Icon icon="mdi:alert-circle-outline" className="mx-auto text-3xl text-destructive" />
+              <div className="space-y-1 rounded-xl bg-destructive/10 px-5 py-4 text-center">
+                <Icon
+                  icon="mdi:alert-circle-outline"
+                  className="mx-auto text-3xl text-destructive"
+                />
                 <p className="text-sm font-medium text-destructive">{errorMsg}</p>
               </div>
               <button
@@ -367,7 +386,10 @@ export function BarcodeScanDialog({ onFood, onClose }: BarcodeScanDialogProps) {
 }
 
 function ManualInput({
-  value, onChange, onSubmit, errorMsg,
+  value,
+  onChange,
+  onSubmit,
+  errorMsg,
 }: {
   value: string;
   onChange: (v: string) => void;
@@ -390,7 +412,7 @@ function ManualInput({
         <button
           onClick={onSubmit}
           disabled={value.length < 8}
-          className="rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground disabled:opacity-40 transition-opacity hover:opacity-90"
+          className="rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
         >
           查詢
         </button>

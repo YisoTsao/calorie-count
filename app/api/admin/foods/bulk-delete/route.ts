@@ -17,7 +17,10 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   const parsed = bodySchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: '資料驗證失敗', details: parsed.error.issues }, { status: 400 });
+    return NextResponse.json(
+      { error: '資料驗證失敗', details: parsed.error.issues },
+      { status: 400 }
+    );
   }
 
   const { ids } = parsed.data;
