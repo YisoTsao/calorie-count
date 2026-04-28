@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
-import { registerSchema, type RegisterInput } from '@/lib/validations/auth';
+import { useTranslations } from 'next-intl';
+import { createRegisterSchema, type RegisterInput } from '@/lib/validations/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -22,6 +23,8 @@ import { Icon } from '@iconify/react';
 export const RegisterForm: React.FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const t = useTranslations('auth.register');
+  const tv = useTranslations('validation');
   const [error, setError] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [registered, setRegistered] = useState(false);
@@ -30,55 +33,51 @@ export const RegisterForm: React.FC = () => {
   const [resendMessage, setResendMessage] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
 
-  // 從 URL 讀取 callbackUrl，過濾掉無效路徑
   const rawCallbackUrl = searchParams.get('callbackUrl');
   const callbackUrl =
     rawCallbackUrl && !rawCallbackUrl.startsWith('/auth/') ? rawCallbackUrl : '/dashboard';
 
+  const schema = useMemo(
+    () =>
+      createRegisterSchema({
+        emailInvalid: tv('emailInvalid'),
+        passwordMin: tv('passwordMin'),
+        passwordUpperCase: tv('passwordUpperCase'),
+        passwordLowerCase: tv('passwordLowerCase'),
+        passwordNumber: tv('passwordNumber'),
+        nameRequired: tv('nameRequired'),
+        passwordMismatch: tv('passwordMismatch'),
+      }),
+    [tv]
+  );
+
   const form = useForm<RegisterInput>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: {
-      name: '',
-      email: '',
-      password: '',
-      confirmPassword: '',
-    },
+    resolver: zodResolver(schema),
+    defaultValues: { name: '', email: '', password: '', confirmPassword: '' },
   });
 
   const onSubmit = async (data: RegisterInput) => {
     setError('');
     setIsLoading(true);
-
     try {
       const response = await fetch('/api/auth/register', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: data.name,
-          email: data.email,
-          password: data.password,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: data.name, email: data.email, password: data.password }),
       });
-
       const result = await response.json();
-
       if (!response.ok) {
-        // 409 Conflict = email 已被使用
         if (response.status === 409) {
-          setError('此 Email 已被註冊，請直接登入或使用其他 Email。');
+          setError(t('errors.emailExists'));
         } else {
-          setError(result.error?.message || '註冊失敗，請稍後再試');
+          setError(result.error?.message || t('errors.generic'));
         }
         return;
       }
-
-      // 註冊成功 → 顯示驗證 Email 提示（不自動登入，因信箱尚未驗證）
       setRegisteredEmail(data.email);
       setRegistered(true);
     } catch {
-      setError('註冊時發生錯誤，請稍後再試');
+      setError(t('errors.generic'));
     } finally {
       setIsLoading(false);
     }
@@ -101,46 +100,41 @@ export const RegisterForm: React.FC = () => {
       const data = await res.json();
       if (res.ok) {
         setResendStatus('sent');
-        setResendMessage(data.data?.message || '驗證信已重新發送');
+        setResendMessage(data.data?.message || t('emailVerification.resendApiSuccess'));
       } else {
         setResendStatus('error');
-        setResendMessage(data.error?.message || '發送失敗，請稍後再試');
+        setResendMessage(data.error?.message || t('emailVerification.resendApiFailed'));
       }
     } catch {
       setResendStatus('error');
-      setResendMessage('發送失敗，請稍後再試');
+      setResendMessage(t('emailVerification.resendApiFailed'));
     }
   };
 
-  // 註冊成功 → 顯示驗證 Email 提示畫面
   if (registered) {
     return (
       <div className="w-full space-y-5">
         <div className="space-y-2 text-center">
           <div className="flex justify-center">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900">
-              <Icon
-                icon="mdi:email-check"
-                className="h-10 w-10 text-green-600 dark:text-green-400"
-              />
+              <Icon icon="mdi:email-check" className="h-10 w-10 text-green-600 dark:text-green-400" />
             </div>
           </div>
-          <h1 className="text-2xl font-bold">驗證信已發送！</h1>
+          <h1 className="text-2xl font-bold">{t('emailVerification.title')}</h1>
           <p className="text-sm text-muted-foreground">
-            我們已發送驗證信到 <strong className="text-foreground">{registeredEmail}</strong>
+            {t('emailVerification.desc')}{' '}
+            <strong className="text-foreground">{registeredEmail}</strong>
           </p>
         </div>
 
         <div className="space-y-1 rounded-xl bg-blue-50 p-4 text-sm text-blue-700 dark:bg-blue-900/20 dark:text-blue-300">
-          <p className="font-medium">請完成以下步驟：</p>
+          <p className="font-medium">{t('emailVerification.stepsTitle')}</p>
           <ol className="list-inside list-decimal space-y-1 text-blue-600 dark:text-blue-400">
-            <li>前往您的信箱查收驗證信</li>
-            <li>點擊信中的「驗證 Email」按鈕</li>
-            <li>驗證完成後即可登入</li>
+            <li>{t('emailVerification.step1')}</li>
+            <li>{t('emailVerification.step2')}</li>
+            <li>{t('emailVerification.step3')}</li>
           </ol>
-          <p className="mt-2 text-xs text-blue-500">
-            若未收到，請查看垃圾郵件資料夾。連結 24 小時內有效。
-          </p>
+          <p className="mt-2 text-xs text-blue-500">{t('emailVerification.expiryNote')}</p>
         </div>
 
         {resendMessage && (
@@ -154,7 +148,7 @@ export const RegisterForm: React.FC = () => {
         )}
 
         <Button onClick={() => router.push('/login')} className="w-full">
-          前往登入
+          {t('emailVerification.goToLogin')}
         </Button>
         <Button
           variant="ghost"
@@ -163,10 +157,10 @@ export const RegisterForm: React.FC = () => {
           onClick={handleResend}
         >
           {resendStatus === 'sending'
-            ? '發送中...'
+            ? t('emailVerification.resending')
             : resendStatus === 'sent'
-              ? '✓ 已重新發送'
-              : '沒收到驗證信？重新發送'}
+              ? t('emailVerification.resent')
+              : t('emailVerification.resend')}
         </Button>
       </div>
     );
@@ -175,8 +169,8 @@ export const RegisterForm: React.FC = () => {
   return (
     <div className="w-full space-y-6">
       <div className="space-y-2 text-center">
-        <h1 className="text-3xl font-bold">註冊</h1>
-        <p className="text-muted-foreground">建立您的帳號以開始使用</p>
+        <h1 className="text-3xl font-bold">{t('title')}</h1>
+        <p className="text-muted-foreground">{t('description')}</p>
       </div>
 
       {error && <ErrorMessage message={error} type="error" />}
@@ -188,9 +182,9 @@ export const RegisterForm: React.FC = () => {
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>姓名</FormLabel>
+                <FormLabel>{t('name')}</FormLabel>
                 <FormControl>
-                  <Input type="text" placeholder="您的姓名" disabled={isLoading} {...field} />
+                  <Input type="text" placeholder={t('namePlaceholder')} disabled={isLoading} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -202,14 +196,9 @@ export const RegisterForm: React.FC = () => {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel>{t('email')}</FormLabel>
                 <FormControl>
-                  <Input
-                    type="email"
-                    placeholder="your@email.com"
-                    disabled={isLoading}
-                    {...field}
-                  />
+                  <Input type="email" placeholder="your@email.com" disabled={isLoading} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -221,14 +210,9 @@ export const RegisterForm: React.FC = () => {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>密碼</FormLabel>
+                <FormLabel>{t('password')}</FormLabel>
                 <FormControl>
-                  <Input
-                    type="password"
-                    placeholder="至少 8 個字元"
-                    disabled={isLoading}
-                    {...field}
-                  />
+                  <Input type="password" placeholder={t('passwordPlaceholder')} disabled={isLoading} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -240,14 +224,9 @@ export const RegisterForm: React.FC = () => {
             name="confirmPassword"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>確認密碼</FormLabel>
+                <FormLabel>{t('confirmPassword')}</FormLabel>
                 <FormControl>
-                  <Input
-                    type="password"
-                    placeholder="再次輸入密碼"
-                    disabled={isLoading}
-                    {...field}
-                  />
+                  <Input type="password" placeholder={t('confirmPasswordPlaceholder')} disabled={isLoading} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -255,10 +234,9 @@ export const RegisterForm: React.FC = () => {
           />
 
           <Button type="submit" className="w-full" disabled={isLoading || !agreedToTerms}>
-            {isLoading ? '註冊中...' : '建立帳號'}
+            {isLoading ? t('submitting') : t('submit')}
           </Button>
 
-          {/* 條款同意 */}
           <label className="flex cursor-pointer items-start gap-2">
             <input
               type="checkbox"
@@ -267,21 +245,15 @@ export const RegisterForm: React.FC = () => {
               className="mt-0.5 rounded border-gray-300 accent-primary"
             />
             <span className="text-xs leading-relaxed text-muted-foreground">
-              我已閱讀並同意{' '}
-              <a
-                href="/terms"
-                className="text-primary underline underline-offset-2 hover:no-underline"
-              >
-                服務條款
+              {t('agreeTerms')}{' '}
+              <a href="/terms" className="text-primary underline underline-offset-2 hover:no-underline">
+                {t('termsLink')}
               </a>{' '}
               與{' '}
-              <a
-                href="/privacy"
-                className="text-primary underline underline-offset-2 hover:no-underline"
-              >
-                隱私權政策
+              <a href="/privacy" className="text-primary underline underline-offset-2 hover:no-underline">
+                {t('privacyLink')}
               </a>
-              ，包括本系統對個人健康資料的收集與使用方式。
+              {t('agreeTermsSuffix')}
             </span>
           </label>
         </form>
@@ -292,7 +264,7 @@ export const RegisterForm: React.FC = () => {
           <span className="w-full border-t" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">或使用社群帳號註冊</span>
+          <span className="bg-background px-2 text-muted-foreground">{t('orContinueWithSocial')}</span>
         </div>
       </div>
 
@@ -305,7 +277,7 @@ export const RegisterForm: React.FC = () => {
           disabled={isLoading}
         >
           <Icon icon="logos:google-icon" className="mr-3 h-5 w-5 flex-shrink-0" />
-          使用 Google 繼續
+          {t('withGoogle')}
         </Button>
 
         {process.env.NEXT_PUBLIC_FACEBOOK_ENABLED === 'true' && (
@@ -317,7 +289,7 @@ export const RegisterForm: React.FC = () => {
             disabled={isLoading}
           >
             <Icon icon="logos:facebook" className="mr-3 h-5 w-5 flex-shrink-0" />
-            使用 Facebook 繼續
+            {t('withFacebook')}
           </Button>
         )}
 
@@ -330,17 +302,18 @@ export const RegisterForm: React.FC = () => {
             disabled={isLoading}
           >
             <Icon icon="simple-icons:line" className="mr-3 h-5 w-5 flex-shrink-0 text-[#00B900]" />
-            使用 LINE 繼續
+            {t('withLine')}
           </Button>
         )}
       </div>
 
       <p className="text-center text-sm text-muted-foreground">
-        已經有帳號了？{' '}
+        {t('alreadyHaveAccount')}{' '}
         <a href="/login" className="text-primary hover:underline">
-          立即登入
+          {t('loginLink')}
         </a>
       </p>
     </div>
   );
 };
+

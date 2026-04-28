@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Icon } from '@iconify/react';
+import { useTranslations } from 'next-intl';
 
 export interface BarcodeFood {
   id: string;
@@ -42,6 +43,7 @@ export function BarcodeScanDialog({ onFood, onClose }: BarcodeScanDialogProps) {
   const [cached, setCached] = useState(false);
   const [cameraAvailable, setCameraAvailable] = useState(true);
   const [barcodeDetectorAvailable, setBarcodeDetectorAvailable] = useState(false);
+  const t = useTranslations('scan.barcode');
 
   // ── Start camera ──
   const startCamera = useCallback(async () => {
@@ -81,7 +83,7 @@ export function BarcodeScanDialog({ onFood, onClose }: BarcodeScanDialogProps) {
         const res = await fetch(`/api/foods/barcode?barcode=${encodeURIComponent(barcode)}`);
         const data = await res.json();
         if (!res.ok || data.error) {
-          setErrorMsg(data.error ?? '查詢失敗');
+          setErrorMsg(data.error ?? t('errors.queryFailed'));
           setScanState(res.status === 404 ? 'not_found' : 'error');
           return;
         }
@@ -90,7 +92,7 @@ export function BarcodeScanDialog({ onFood, onClose }: BarcodeScanDialogProps) {
         setScanState('found');
         onFood(data.food, data.cached);
       } catch {
-        setErrorMsg('網路連線失敗');
+        setErrorMsg(t('errors.networkFailed'));
         setScanState('error');
       }
     },
@@ -142,7 +144,7 @@ export function BarcodeScanDialog({ onFood, onClose }: BarcodeScanDialogProps) {
   const handleManualSubmit = () => {
     const code = manualInput.trim().replace(/\s/g, '');
     if (!/^\d{8,14}$/.test(code)) {
-      setErrorMsg('條碼需為 8–14 位數字');
+      setErrorMsg(t('errors.invalidFormat'));
       return;
     }
     queryBarcode(code);
@@ -162,7 +164,7 @@ export function BarcodeScanDialog({ onFood, onClose }: BarcodeScanDialogProps) {
         <div className="flex items-center justify-between border-b px-5 py-4">
           <div className="flex items-center gap-2">
             <Icon icon="mdi:barcode-scan" className="text-xl text-primary" />
-            <h2 className="font-semibold">條碼掃描</h2>
+            <h2 className="font-semibold">{t('title')}</h2>
           </div>
           <button
             onClick={() => {
@@ -185,13 +187,13 @@ export function BarcodeScanDialog({ onFood, onClose }: BarcodeScanDialogProps) {
                   className="flex w-full items-center justify-center gap-3 rounded-xl bg-primary py-3.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
                 >
                   <Icon icon="mdi:camera-outline" className="text-xl" />
-                  {barcodeDetectorAvailable ? '開啟相機掃描條碼' : '開啟相機（手動輸入）'}
+                  {barcodeDetectorAvailable ? t('openCamera') : t('openCameraManual')}
                 </button>
               )}
               {!cameraAvailable && (
                 <div className="rounded-xl bg-amber-500/10 px-4 py-3 text-sm text-amber-600">
                   <Icon icon="mdi:camera-off-outline" className="mr-1.5 inline" />
-                  無法使用相機，請手動輸入條碼
+                  {t('noCameraWarning')}
                 </div>
               )}
 
@@ -200,7 +202,7 @@ export function BarcodeScanDialog({ onFood, onClose }: BarcodeScanDialogProps) {
                   <span className="w-full border-t" />
                 </div>
                 <div className="relative flex justify-center text-xs">
-                  <span className="bg-background px-2 text-muted-foreground">或手動輸入</span>
+                  <span className="bg-background px-2 text-muted-foreground">{t('orManualInput')}</span>
                 </div>
               </div>
               <ManualInput
@@ -236,11 +238,11 @@ export function BarcodeScanDialog({ onFood, onClose }: BarcodeScanDialogProps) {
                 </div>
                 {!barcodeDetectorAvailable && (
                   <div className="absolute inset-x-0 bottom-3 bg-black/40 py-1 text-center text-xs text-white/70">
-                    此瀏覽器不支援自動掃描，請手動輸入條碼
+                    {t('browserNoSupport')}
                   </div>
                 )}
               </div>
-              <p className="text-center text-sm text-muted-foreground">將條碼對準畫面中央</p>
+              <p className="text-center text-sm text-muted-foreground">{t('aimAtCenter')}</p>
               {!barcodeDetectorAvailable && (
                 <ManualInput
                   value={manualInput}
@@ -256,7 +258,7 @@ export function BarcodeScanDialog({ onFood, onClose }: BarcodeScanDialogProps) {
           {scanState === 'querying' && (
             <div className="flex flex-col items-center gap-3 py-8">
               <Icon icon="mdi:loading" className="animate-spin text-4xl text-primary" />
-              <p className="text-sm text-muted-foreground">正在查詢 Open Food Facts...</p>
+              <p className="text-sm text-muted-foreground">{t('querying')}</p>
             </div>
           )}
 
@@ -272,7 +274,7 @@ export function BarcodeScanDialog({ onFood, onClose }: BarcodeScanDialogProps) {
                   )}
                   {cached && (
                     <span className="mt-1 inline-block rounded bg-emerald-500/10 px-1.5 py-0.5 text-xs text-emerald-600">
-                      本地快取
+                      {t('cachedBadge')}
                     </span>
                   )}
                 </div>
@@ -325,7 +327,7 @@ export function BarcodeScanDialog({ onFood, onClose }: BarcodeScanDialogProps) {
                     rel="noopener noreferrer"
                     className="text-xs text-muted-foreground underline-offset-2 hover:underline"
                   >
-                    資料來源：Open Food Facts
+                    {t('attribution')}
                   </a>
                 )}
               </div>
@@ -335,7 +337,7 @@ export function BarcodeScanDialog({ onFood, onClose }: BarcodeScanDialogProps) {
                 className="flex w-full items-center justify-center gap-2 rounded-xl border py-2.5 text-sm transition-colors hover:bg-accent"
               >
                 <Icon icon="mdi:barcode-scan" className="text-base" />
-                掃描其他條碼
+                {t('scanAnother')}
               </button>
             </div>
           )}
@@ -345,9 +347,9 @@ export function BarcodeScanDialog({ onFood, onClose }: BarcodeScanDialogProps) {
             <div className="space-y-3">
               <div className="space-y-2 rounded-xl bg-muted px-5 py-6 text-center">
                 <Icon icon="mdi:barcode-off" className="mx-auto text-4xl text-muted-foreground" />
-                <p className="font-medium">找不到此條碼的商品資訊</p>
+                <p className="font-medium">{t('notFoundTitle')}</p>
                 <p className="text-sm text-muted-foreground">
-                  Open Food Facts 資料庫尚無此商品，請改用 AI 掃描或手動搜尋食物。
+                  {t('notFoundDesc')}
                 </p>
               </div>
               <button
@@ -355,7 +357,7 @@ export function BarcodeScanDialog({ onFood, onClose }: BarcodeScanDialogProps) {
                 className="flex w-full items-center justify-center gap-2 rounded-xl border py-2.5 text-sm transition-colors hover:bg-accent"
               >
                 <Icon icon="mdi:refresh" className="text-base" />
-                重新掃描
+                {t('rescan')}
               </button>
             </div>
           )}
@@ -375,7 +377,7 @@ export function BarcodeScanDialog({ onFood, onClose }: BarcodeScanDialogProps) {
                 className="flex w-full items-center justify-center gap-2 rounded-xl border py-2.5 text-sm transition-colors hover:bg-accent"
               >
                 <Icon icon="mdi:refresh" className="text-base" />
-                重新嘗試
+                {t('retry')}
               </button>
             </div>
           )}
@@ -396,6 +398,7 @@ function ManualInput({
   onSubmit: () => void;
   errorMsg: string;
 }) {
+  const t = useTranslations('scan.barcode');
   return (
     <div className="space-y-1.5">
       <div className="flex gap-2">
@@ -403,7 +406,8 @@ function ManualInput({
           type="text"
           inputMode="numeric"
           pattern="[0-9]*"
-          placeholder="輸入條碼號碼..."
+          placeholder={t('manualPlaceholder')}
+          aria-label={t('manualLabel')}
           value={value}
           onChange={(e) => onChange(e.target.value.replace(/\D/g, '').slice(0, 14))}
           onKeyDown={(e) => e.key === 'Enter' && onSubmit()}
@@ -414,7 +418,7 @@ function ManualInput({
           disabled={value.length < 8}
           className="rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
         >
-          查詢
+          {t('manualSubmit')}
         </button>
       </div>
       {errorMsg && <p className="text-xs text-destructive">{errorMsg}</p>}
