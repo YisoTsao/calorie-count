@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Activity, Plus, Trash2, ChevronDown, ChevronUp, Flame } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface ExerciseRecord {
   id: string;
@@ -33,6 +34,7 @@ const EXERCISE_TYPES = {
 } as const;
 
 export default function ExerciseLogger({ dailyCalorieGoal = 300 }: ExerciseLoggerProps) {
+  const t = useTranslations('nutrition');
   const [records, setRecords] = useState<ExerciseRecord[]>([]);
   const [totalCalories, setTotalCalories] = useState(0);
   const [selectedType, setSelectedType] = useState<string>('慢跑');
@@ -72,7 +74,7 @@ export default function ExerciseLogger({ dailyCalorieGoal = 300 }: ExerciseLogge
     const durationNum = parseInt(duration);
 
     if (!selectedType || !duration || durationNum <= 0) {
-      alert('請選擇運動類型並輸入有效時間');
+      alert(t('invalidExercise'));
       return;
     }
 
@@ -100,7 +102,7 @@ export default function ExerciseLogger({ dailyCalorieGoal = 300 }: ExerciseLogge
       await loadTodayRecords(); // 重新載入確保資料同步
     } catch (error) {
       console.error('新增運動記錄失敗:', error);
-      alert('新增失敗，請稍後再試');
+      alert(t('addFailed'));
     } finally {
       setLoading(false);
     }
@@ -108,7 +110,7 @@ export default function ExerciseLogger({ dailyCalorieGoal = 300 }: ExerciseLogge
 
   // 刪除記錄
   const deleteRecord = async (recordId: string, calories: number) => {
-    if (!confirm('確定要刪除此記錄嗎?')) return;
+    if (!confirm(t('confirmDelete'))) return;
 
     try {
       setLoading(true);
@@ -122,7 +124,7 @@ export default function ExerciseLogger({ dailyCalorieGoal = 300 }: ExerciseLogge
       setTotalCalories((prev) => prev - calories);
     } catch (error) {
       console.error('刪除記錄失敗:', error);
-      alert('刪除失敗,請稍後再試');
+      alert(t('deleteFailed'));
     } finally {
       setLoading(false);
     }
@@ -144,7 +146,7 @@ export default function ExerciseLogger({ dailyCalorieGoal = 300 }: ExerciseLogge
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Activity className="text-orange-500" size={24} />
-          <h3 className="text-lg font-semibold">運動記錄</h3>
+          <h3 className="text-lg font-semibold">{t('exerciseLogTitle')}</h3>
         </div>
         <button
           onClick={() => setIsExpanded(!isExpanded)}
@@ -158,11 +160,11 @@ export default function ExerciseLogger({ dailyCalorieGoal = 300 }: ExerciseLogge
       <div className="mb-6">
         <div className="mb-2 flex justify-between text-sm">
           <span className="text-gray-600">
-            已消耗:{' '}
-            <span className="font-semibold text-orange-600">{Math.round(totalCalories)} 卡</span>
+            {t('burnedCalories')}:{' '}
+            <span className="font-semibold text-orange-600">{Math.round(totalCalories)} {t('kcal')}</span>
           </span>
           <span className="text-gray-600">
-            目標: <span className="font-semibold">{dailyCalorieGoal} 卡</span>
+            {t('target')}: <span className="font-semibold">{dailyCalorieGoal} {t('kcal')}</span>
           </span>
         </div>
 
@@ -178,12 +180,12 @@ export default function ExerciseLogger({ dailyCalorieGoal = 300 }: ExerciseLogge
         <>
           {/* Add Exercise Form */}
           <div className="mb-6 rounded-lg bg-gray-50 p-4">
-            <p className="mb-3 text-sm text-gray-600">新增運動</p>
+            <p className="mb-3 text-sm text-gray-600">{t('addExerciseForm')}</p>
 
             <div className="space-y-3">
               {/* Exercise Type Selector */}
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">運動類型</label>
+                <label className="mb-1 block text-sm font-medium text-gray-700">{t('exerciseTypeLabel')}</label>
                 <select
                   value={selectedType}
                   onChange={(e) => setSelectedType(e.target.value)}
@@ -192,7 +194,7 @@ export default function ExerciseLogger({ dailyCalorieGoal = 300 }: ExerciseLogge
                 >
                   {Object.keys(EXERCISE_TYPES).map((type) => (
                     <option key={type} value={type}>
-                      {type} (MET: {EXERCISE_TYPES[type as keyof typeof EXERCISE_TYPES]})
+                      {t(`exerciseTypes.${type}`)} (MET: {EXERCISE_TYPES[type as keyof typeof EXERCISE_TYPES]})
                     </option>
                   ))}
                 </select>
@@ -201,13 +203,13 @@ export default function ExerciseLogger({ dailyCalorieGoal = 300 }: ExerciseLogge
               {/* Duration Input */}
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">
-                  運動時間 (分鐘)
+                  {t('durationLabel')}
                 </label>
                 <input
                   type="number"
                   value={duration}
                   onChange={(e) => setDuration(e.target.value)}
-                  placeholder="輸入運動時間"
+                  placeholder={t('enterDuration')}
                   min="1"
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
                   disabled={loading}
@@ -219,8 +221,8 @@ export default function ExerciseLogger({ dailyCalorieGoal = 300 }: ExerciseLogge
                 <div className="flex items-center gap-2 rounded bg-orange-50 p-2 text-sm">
                   <Flame size={16} className="text-orange-500" />
                   <span className="text-gray-600">
-                    預估消耗:{' '}
-                    <span className="font-semibold text-orange-600">{estimatedCalories()} 卡</span>
+                    {t('estimatedBurn')}:{' '}
+                    <span className="font-semibold text-orange-600">{estimatedCalories()} {t('kcal')}</span>
                   </span>
                 </div>
               )}
@@ -232,7 +234,7 @@ export default function ExerciseLogger({ dailyCalorieGoal = 300 }: ExerciseLogge
                 className="flex w-full items-center justify-center gap-2 rounded-lg bg-orange-600 px-4 py-2 text-white transition-colors hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Plus size={16} />
-                新增運動記錄
+                {t('addExerciseBtn')}
               </button>
             </div>
           </div>
@@ -240,15 +242,15 @@ export default function ExerciseLogger({ dailyCalorieGoal = 300 }: ExerciseLogge
           {/* Records List */}
           <div>
             <div className="mb-2 flex items-center justify-between">
-              <p className="text-sm text-gray-600">今日記錄</p>
-              <span className="text-xs text-gray-500">{records.length} 筆</span>
+              <p className="text-sm text-gray-600">{t('todayRecords')}</p>
+              <span className="text-xs text-gray-500">{records.length}</span>
             </div>
 
             <div className="max-h-64 space-y-2 overflow-y-auto">
               {loading && records.length === 0 ? (
-                <p className="py-4 text-center text-gray-400">載入中...</p>
+                <p className="py-4 text-center text-gray-400">{t('loading')}</p>
               ) : records.length === 0 ? (
-                <p className="py-4 text-center text-gray-400">尚無記錄</p>
+                <p className="py-4 text-center text-gray-400">{t('noRecord')}</p>
               ) : (
                 records.map((record) => (
                   <div
@@ -260,10 +262,10 @@ export default function ExerciseLogger({ dailyCalorieGoal = 300 }: ExerciseLogge
                       <div>
                         <p className="font-medium">{record.type}</p>
                         <div className="flex gap-3 text-xs text-gray-500">
-                          <span>{record.duration} 分鐘</span>
+                          <span>{record.duration} {t('minutes')}</span>
                           <span className="flex items-center gap-1">
                             <Flame size={12} />
-                            {Math.round(record.calories)} 卡
+                            {Math.round(record.calories)} {t('kcal')}
                           </span>
                           <span>
                             {new Date(record.time).toLocaleTimeString('zh-TW', {

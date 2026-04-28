@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 
 interface QuickStats {
   waterMl: number | null;
@@ -9,6 +10,7 @@ interface QuickStats {
 }
 
 export default function NutritionQuickStats() {
+  const t = useTranslations('nutrition');
   const [stats, setStats] = useState<QuickStats>({
     waterMl: null,
     exerciseKcal: null,
@@ -41,7 +43,7 @@ export default function NutritionQuickStats() {
       <div className="rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 p-6 text-white shadow-lg">
         <div className="flex items-center justify-between">
           <div>
-            <p className="mb-1 text-sm text-blue-100">今日飲水</p>
+            <p className="mb-1 text-sm text-blue-100">{t('todayWater')}</p>
             <p className="text-3xl font-bold">
               {stats.waterMl === null ? '—' : `${stats.waterMl} ml`}
             </p>
@@ -63,9 +65,9 @@ export default function NutritionQuickStats() {
       <div className="rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 p-6 text-white shadow-lg">
         <div className="flex items-center justify-between">
           <div>
-            <p className="mb-1 text-sm text-orange-100">今日消耗</p>
+            <p className="mb-1 text-sm text-orange-100">{t('todayBurn')}</p>
             <p className="text-3xl font-bold">
-              {stats.exerciseKcal === null ? '—' : `${stats.exerciseKcal} 卡`}
+              {stats.exerciseKcal === null ? '—' : `${stats.exerciseKcal} ${t('kcal')}`}
             </p>
           </div>
           <div className="rounded-full bg-white/20 p-3">
@@ -85,7 +87,7 @@ export default function NutritionQuickStats() {
       <div className="rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 p-6 text-white shadow-lg">
         <div className="flex items-center justify-between">
           <div>
-            <p className="mb-1 text-sm text-purple-100">目前體重</p>
+            <p className="mb-1 text-sm text-purple-100">{t('currentWeight')}</p>
             <p className="text-3xl font-bold">
               {stats.weightKg === null ? '—' : `${stats.weightKg} kg`}
             </p>

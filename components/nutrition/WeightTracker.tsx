@@ -10,6 +10,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import {
   LineChart,
   Line,
@@ -38,6 +39,7 @@ interface WeightStats {
 }
 
 export default function WeightTracker() {
+  const t = useTranslations('nutrition');
   const [records, setRecords] = useState<WeightRecord[]>([]);
   const [stats, setStats] = useState<WeightStats | null>(null);
   const [weight, setWeight] = useState('');
@@ -85,12 +87,12 @@ export default function WeightTracker() {
     const bodyFatNum = bodyFat ? parseFloat(bodyFat) : undefined;
 
     if (!weight || weightNum <= 0 || weightNum > 300) {
-      alert('請輸入有效體重 (0.1-300 kg)');
+      alert(t('invalidWeight'));
       return;
     }
 
     if (bodyFat && (bodyFatNum! <= 0 || bodyFatNum! > 100)) {
-      alert('體脂率範圍應在 0.1-100%');
+      alert(t('invalidBodyFat'));
       return;
     }
 
@@ -115,7 +117,7 @@ export default function WeightTracker() {
       setNotes('');
     } catch (error) {
       console.error('儲存體重記錄失敗:', error);
-      alert('儲存失敗,請稍後再試');
+      alert(t('saveFailed'));
     } finally {
       setLoading(false);
     }
@@ -123,7 +125,7 @@ export default function WeightTracker() {
 
   // 刪除記錄
   const deleteRecord = async (date: string) => {
-    if (!confirm('確定要刪除此記錄嗎?')) return;
+    if (!confirm(t('confirmDelete'))) return;
 
     try {
       setLoading(true);
@@ -136,7 +138,7 @@ export default function WeightTracker() {
       await loadRecords();
     } catch (error) {
       console.error('刪除記錄失敗:', error);
-      alert('刪除失敗,請稍後再試');
+      alert(t('deleteFailed'));
     } finally {
       setLoading(false);
     }
@@ -154,10 +156,10 @@ export default function WeightTracker() {
 
   const getBMIStatus = (bmi: number | null) => {
     if (!bmi) return { text: '-', color: 'text-gray-500' };
-    if (bmi < 18.5) return { text: '過輕', color: 'text-blue-600' };
-    if (bmi < 24) return { text: '正常', color: 'text-green-600' };
-    if (bmi < 27) return { text: '過重', color: 'text-yellow-600' };
-    return { text: '肥胖', color: 'text-red-600' };
+    if (bmi < 18.5) return { text: t('bmiUnder'), color: 'text-blue-600' };
+    if (bmi < 24) return { text: t('bmiNormal'), color: 'text-green-600' };
+    if (bmi < 27) return { text: t('bmiOver'), color: 'text-yellow-600' };
+    return { text: t('bmiObese'), color: 'text-red-600' };
   };
 
   const weightChange = stats?.change || 0;
@@ -171,7 +173,7 @@ export default function WeightTracker() {
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Scale className="text-purple-500" size={24} />
-          <h3 className="text-lg font-semibold">體重追蹤</h3>
+          <h3 className="text-lg font-semibold">{t('weightTrackTitle')}</h3>
         </div>
         <button
           onClick={() => setIsExpanded(!isExpanded)}
@@ -184,14 +186,14 @@ export default function WeightTracker() {
       {/* Stats Summary */}
       <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
         <div className="rounded-lg bg-purple-50 p-3">
-          <p className="mb-1 text-xs text-gray-600">目前體重</p>
+          <p className="mb-1 text-xs text-gray-600">{t('currentWeightLabel')}</p>
           <p className="text-lg font-bold text-purple-700">
             {stats?.current?.toFixed(1) || '-'} kg
           </p>
         </div>
 
         <div className="rounded-lg bg-gray-50 p-3">
-          <p className="mb-1 text-xs text-gray-600">變化</p>
+          <p className="mb-1 text-xs text-gray-600">{t('changeLabel')}</p>
           <div className="flex items-center gap-1">
             {weightChange !== 0 &&
               (weightChange > 0 ? (
@@ -229,7 +231,7 @@ export default function WeightTracker() {
         </div>
 
         <div className="rounded-lg bg-green-50 p-3">
-          <p className="mb-1 text-xs text-gray-600">平均體重</p>
+          <p className="mb-1 text-xs text-gray-600">{t('avgWeight')}</p>
           <p className="text-lg font-bold text-green-700">
             {stats?.average ? `${stats.average.toFixed(1)} kg` : '-'}
           </p>
@@ -241,7 +243,7 @@ export default function WeightTracker() {
           {/* Weight Chart */}
           {chartData.length > 0 && (
             <div className="mb-6">
-              <p className="mb-3 text-sm text-gray-600">體重趨勢 (最近 30 天)</p>
+              <p className="mb-3 text-sm text-gray-600">{t('weightTrend')}</p>
               <div className="h-48">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chartData}>
@@ -265,7 +267,7 @@ export default function WeightTracker() {
                       stroke="#9333ea"
                       strokeWidth={2}
                       dot={{ fill: '#9333ea', r: 4 }}
-                      name="體重 (kg)"
+                      name={`${t('weightLabel')} (kg)`}
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -275,19 +277,19 @@ export default function WeightTracker() {
 
           {/* Add Weight Form */}
           <div className="mb-6 rounded-lg bg-gray-50 p-4">
-            <p className="mb-3 text-sm text-gray-600">記錄今日體重</p>
+            <p className="mb-3 text-sm text-gray-600">{t('recordToday')}</p>
 
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-700">
-                    體重 (kg) *
+                    {t('weightInputLabel')}
                   </label>
                   <input
                     type="number"
                     value={weight}
                     onChange={(e) => setWeight(e.target.value)}
-                    placeholder="例: 70.5"
+                    placeholder={t('weightPlaceholder')}
                     step="0.1"
                     min="0.1"
                     max="300"
@@ -297,12 +299,12 @@ export default function WeightTracker() {
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">體脂率 (%)</label>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">{t('bodyFatLabel')}</label>
                   <input
                     type="number"
                     value={bodyFat}
                     onChange={(e) => setBodyFat(e.target.value)}
-                    placeholder="選填"
+                    placeholder={t('bodyFatOptional')}
                     step="0.1"
                     min="0.1"
                     max="100"
@@ -313,12 +315,12 @@ export default function WeightTracker() {
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">備註</label>
+                <label className="mb-1 block text-sm font-medium text-gray-700">{t('notesLabel')}</label>
                 <input
                   type="text"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="例: 早餐前測量"
+                  placeholder={t('notesPlaceholder')}
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
                   disabled={loading}
                 />
@@ -330,7 +332,7 @@ export default function WeightTracker() {
                 className="flex w-full items-center justify-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-white transition-colors hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Plus size={16} />
-                儲存記錄
+                {t('saveRecord')}
               </button>
             </div>
           </div>
@@ -338,15 +340,15 @@ export default function WeightTracker() {
           {/* Records List */}
           <div className="hidden">
             <div className="mb-2 flex items-center justify-between">
-              <p className="text-sm text-gray-600">歷史記錄</p>
-              <span className="text-xs text-gray-500">{records.length} 筆</span>
+              <p className="text-sm text-gray-600">{t('historyRecords')}</p>
+              <span className="text-xs text-gray-500">{records.length}</span>
             </div>
 
             <div className="max-h-64 space-y-2 overflow-y-auto">
               {loading && records.length === 0 ? (
-                <p className="py-4 text-center text-gray-400">載入中...</p>
+                <p className="py-4 text-center text-gray-400">{t('loading')}</p>
               ) : records.length === 0 ? (
-                <p className="py-4 text-center text-gray-400">尚無記錄</p>
+                <p className="py-4 text-center text-gray-400">{t('noRecord')}</p>
               ) : (
                 records.map((record) => {
                   const recordBMI = record.bmi
@@ -368,7 +370,7 @@ export default function WeightTracker() {
                                 BMI: {record.bmi.toFixed(1)} ({recordBMI.text})
                               </span>
                             )}
-                            {record.bodyFat && <span>體脂: {record.bodyFat}%</span>}
+                            {record.bodyFat && <span>{t('bodyFatLabel').replace(' (%)', '')}: {record.bodyFat}%</span>}
                           </div>
                           {record.notes && (
                             <p className="mt-1 text-xs text-gray-400">{record.notes}</p>

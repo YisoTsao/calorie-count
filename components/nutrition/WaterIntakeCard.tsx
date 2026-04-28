@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Plus, Droplet, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface WaterIntakeRecord {
   id: string;
@@ -14,6 +15,8 @@ interface WaterIntakeCardProps {
 }
 
 export default function WaterIntakeCard({ dailyGoal = 2000 }: WaterIntakeCardProps) {
+  const t = useTranslations('nutrition');
+  const tc = useTranslations('common');
   const [records, setRecords] = useState<WaterIntakeRecord[]>([]);
   const [totalAmount, setTotalAmount] = useState(0);
   const [customAmount, setCustomAmount] = useState('');
@@ -52,7 +55,7 @@ export default function WaterIntakeCard({ dailyGoal = 2000 }: WaterIntakeCardPro
   // 新增飲水記錄
   const addWater = async (amount: number) => {
     if (amount <= 0 || amount > 5000) {
-      alert('請輸入 1-5000ml 之間的數量');
+      alert(t('invalidAmount'));
       return;
     }
 
@@ -76,7 +79,7 @@ export default function WaterIntakeCard({ dailyGoal = 2000 }: WaterIntakeCardPro
       await loadTodayRecords(); // 重新載入確保資料同步
     } catch (error) {
       console.error('新增飲水記錄失敗:', error);
-      alert('新增失敗，請稍後再試');
+      alert(t('addFailed'));
     } finally {
       setLoading(false);
     }
@@ -84,7 +87,7 @@ export default function WaterIntakeCard({ dailyGoal = 2000 }: WaterIntakeCardPro
 
   // 刪除記錄
   const deleteRecord = async (recordId: string, amount: number) => {
-    if (!confirm('確定要刪除此記錄嗎?')) return;
+    if (!confirm(t('confirmDelete'))) return;
 
     try {
       setLoading(true);
@@ -98,7 +101,7 @@ export default function WaterIntakeCard({ dailyGoal = 2000 }: WaterIntakeCardPro
       setTotalAmount((prev) => prev - amount);
     } catch (error) {
       console.error('刪除記錄失敗:', error);
-      alert('刪除失敗,請稍後再試');
+      alert(t('deleteFailed'));
     } finally {
       setLoading(false);
     }
@@ -113,7 +116,7 @@ export default function WaterIntakeCard({ dailyGoal = 2000 }: WaterIntakeCardPro
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Droplet className="text-blue-500" size={24} />
-          <h3 className="text-lg font-semibold">飲水追蹤</h3>
+          <h3 className="text-lg font-semibold">{t('waterTrackingTitle')}</h3>
         </div>
         <button
           onClick={() => setIsExpanded(!isExpanded)}
@@ -127,10 +130,10 @@ export default function WaterIntakeCard({ dailyGoal = 2000 }: WaterIntakeCardPro
       <div className="mb-6">
         <div className="mb-2 flex justify-between text-sm">
           <span className="text-gray-600">
-            已喝: <span className="font-semibold text-blue-600">{totalAmount}ml</span>
+            {t('drunk')}: <span className="font-semibold text-blue-600">{totalAmount}ml</span>
           </span>
           <span className="text-gray-600">
-            目標: <span className="font-semibold">{dailyGoal}ml</span>
+            {t('target')}: <span className="font-semibold">{dailyGoal}ml</span>
           </span>
         </div>
 
@@ -142,7 +145,7 @@ export default function WaterIntakeCard({ dailyGoal = 2000 }: WaterIntakeCardPro
         </div>
 
         <p className="mt-2 text-center text-xs text-gray-500">
-          {remaining > 0 ? `還需 ${remaining}ml 達成目標` : '🎉 已完成今日目標!'}
+          {remaining > 0 ? t('remainingWater', { remaining }) : t('goalCompleted')}
         </p>
       </div>
 
@@ -150,7 +153,7 @@ export default function WaterIntakeCard({ dailyGoal = 2000 }: WaterIntakeCardPro
         <>
           {/* Quick Add Buttons */}
           <div className="mb-4">
-            <p className="mb-2 text-sm text-gray-600">快速新增</p>
+            <p className="mb-2 text-sm text-gray-600">{t('quickAdd')}</p>
             <div className="grid grid-cols-4 gap-2">
               {quickAmounts.map((amount) => (
                 <button
@@ -167,13 +170,13 @@ export default function WaterIntakeCard({ dailyGoal = 2000 }: WaterIntakeCardPro
 
           {/* Custom Amount Input */}
           <div className="mb-6">
-            <p className="mb-2 text-sm text-gray-600">自訂數量</p>
+            <p className="mb-2 text-sm text-gray-600">{t('customAmount')}</p>
             <div className="flex gap-2">
               <input
                 type="number"
                 value={customAmount}
                 onChange={(e) => setCustomAmount(e.target.value)}
-                placeholder="輸入毫升數"
+                placeholder={t('enterMl')}
                 min="1"
                 max="5000"
                 className="flex-1 rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -188,7 +191,7 @@ export default function WaterIntakeCard({ dailyGoal = 2000 }: WaterIntakeCardPro
                 className="flex items-center gap-1 rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Plus size={16} />
-                新增
+                {tc('add')}
               </button>
             </div>
           </div>
@@ -196,15 +199,15 @@ export default function WaterIntakeCard({ dailyGoal = 2000 }: WaterIntakeCardPro
           {/* Records List */}
           <div>
             <div className="mb-2 flex items-center justify-between">
-              <p className="text-sm text-gray-600">今日記錄</p>
-              <span className="text-xs text-gray-500">{records.length} 筆</span>
+              <p className="text-sm text-gray-600">{t('todayRecords')}</p>
+              <span className="text-xs text-gray-500">{records.length}</span>
             </div>
 
             <div className="max-h-64 space-y-2 overflow-y-auto">
               {loading && records.length === 0 ? (
-                <p className="py-4 text-center text-gray-400">載入中...</p>
+                <p className="py-4 text-center text-gray-400">{t('loading')}</p>
               ) : records.length === 0 ? (
-                <p className="py-4 text-center text-gray-400">尚無記錄</p>
+                <p className="py-4 text-center text-gray-400">{t('noRecord')}</p>
               ) : (
                 records.map((record) => (
                   <div
