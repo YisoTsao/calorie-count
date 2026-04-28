@@ -43,7 +43,10 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   const parsed = categorySchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: '資料驗證失敗', details: parsed.error.issues }, { status: 400 });
+    return NextResponse.json(
+      { error: '資料驗證失敗', details: parsed.error.issues },
+      { status: 400 }
+    );
   }
 
   const category = await prisma.foodCategory.create({
@@ -66,7 +69,10 @@ export async function PATCH(req: NextRequest) {
   const { id, ...rest } = body;
   const parsed = categorySchema.safeParse(rest);
   if (!parsed.success) {
-    return NextResponse.json({ error: '資料驗證失敗', details: parsed.error.issues }, { status: 400 });
+    return NextResponse.json(
+      { error: '資料驗證失敗', details: parsed.error.issues },
+      { status: 400 }
+    );
   }
 
   const existing = await prisma.foodCategory.findUnique({ where: { id } });

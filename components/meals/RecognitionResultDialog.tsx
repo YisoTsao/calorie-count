@@ -227,16 +227,16 @@ export function RecognitionResultDialog({
                       <div className="min-w-0 flex-1">
                         <div className="mb-2 flex items-start justify-between gap-2">
                           <div>
-                            <h4 className="font-medium">{getLocalizedName(food.name, food.nameEn)}</h4>
-                            {(locale === 'en' || locale === 'ja') ? (
-                              food.name !== getLocalizedName(food.name, food.nameEn) && (
-                                <p className="text-sm text-muted-foreground">{food.name}</p>
-                              )
-                            ) : (
-                              food.nameEn && (
-                                <p className="text-sm text-muted-foreground">{food.nameEn}</p>
-                              )
-                            )}
+                            <h4 className="font-medium">
+                              {getLocalizedName(food.name, food.nameEn)}
+                            </h4>
+                            {locale === 'en' || locale === 'ja'
+                              ? food.name !== getLocalizedName(food.name, food.nameEn) && (
+                                  <p className="text-sm text-muted-foreground">{food.name}</p>
+                                )
+                              : food.nameEn && (
+                                  <p className="text-sm text-muted-foreground">{food.nameEn}</p>
+                                )}
                           </div>
                           {food.confidence !== null && (
                             <Badge variant="outline" className="shrink-0">
@@ -259,9 +259,15 @@ export function RecognitionResultDialog({
                         </div>
 
                         <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
-                          <span>{tFoods('proteinShort')} {food.protein}g</span>
-                          <span>{tFoods('carbsShort')} {food.carbs}g</span>
-                          <span>{tFoods('fatShort')} {food.fat}g</span>
+                          <span>
+                            {tFoods('proteinShort')} {food.protein}g
+                          </span>
+                          <span>
+                            {tFoods('carbsShort')} {food.carbs}g
+                          </span>
+                          <span>
+                            {tFoods('fatShort')} {food.fat}g
+                          </span>
                         </div>
                       </div>
                     </div>

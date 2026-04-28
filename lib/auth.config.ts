@@ -118,7 +118,10 @@ export const authConfig: NextAuthConfig = {
       const isAdminRoute = strippedPath.startsWith('/admin');
       if (isAdminRoute && !auth?.user) {
         return Response.redirect(
-          new URL(`${localePrefix}/login?callbackUrl=${encodeURIComponent(pathname)}`, request.nextUrl)
+          new URL(
+            `${localePrefix}/login?callbackUrl=${encodeURIComponent(pathname)}`,
+            request.nextUrl
+          )
         );
       }
 

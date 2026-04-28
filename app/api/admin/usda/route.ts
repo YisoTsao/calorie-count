@@ -6,13 +6,13 @@ const USDA_BASE = 'https://api.nal.usda.gov/fdc/v1';
 
 /** Key nutrient IDs from USDA FoodData Central */
 const NUTRIENT_IDS = {
-  calories: 1008,  // Energy (kcal)
-  protein: 1003,   // Protein (g)
-  carbs: 1005,     // Carbohydrate, by difference (g)
-  fat: 1004,       // Total lipid (fat) (g)
-  fiber: 1079,     // Fiber, total dietary (g)
-  sugar: 2000,     // Sugars, total including NLEA (g)
-  sodium: 1093,    // Sodium (mg)
+  calories: 1008, // Energy (kcal)
+  protein: 1003, // Protein (g)
+  carbs: 1005, // Carbohydrate, by difference (g)
+  fat: 1004, // Total lipid (fat) (g)
+  fiber: 1079, // Fiber, total dietary (g)
+  sugar: 2000, // Sugars, total including NLEA (g)
+  sodium: 1093, // Sodium (mg)
 } as const;
 
 function round1(n: number) {
@@ -26,22 +26,27 @@ function extractNutrient(
   return round1(nutrients.find((n) => n.nutrientId === id)?.value ?? 0);
 }
 
-/** GET /api/admin/usda?q=apple — search USDA FoodData Central */
+/** GET /api/admin/usda?q=apple&page=1 — search USDA FoodData Central */
 export async function GET(req: NextRequest) {
   const session = await auth();
   const deny = checkAdminAccess(session, 'EDITOR');
   if (deny) return deny;
 
-  const q = new URL(req.url).searchParams.get('q')?.trim();
+  const sp = new URL(req.url).searchParams;
+  const q = sp.get('q')?.trim();
+  const page = Math.max(1, parseInt(sp.get('page') ?? '1', 10));
+  const pageSize = 25;
+
   if (!q || q.length < 2) {
-    return NextResponse.json({ foods: [], totalHits: 0 });
+    return NextResponse.json({ foods: [], totalHits: 0, totalPages: 0, page: 1 });
   }
 
   const apiKey = process.env.USDA_API_KEY ?? 'DEMO_KEY';
   const url = new URL(`${USDA_BASE}/foods/search`);
   url.searchParams.set('query', q);
   url.searchParams.set('api_key', apiKey);
-  url.searchParams.set('pageSize', '25');
+  url.searchParams.set('pageSize', String(pageSize));
+  url.searchParams.set('pageNumber', String(page));
   // Foundation + SR Legacy = well-structured nutrient data
   url.searchParams.set('dataType', 'Foundation,SR Legacy');
 
@@ -82,5 +87,10 @@ export async function GET(req: NextRequest) {
     })
   );
 
-  return NextResponse.json({ foods, totalHits: raw.totalHits ?? 0 });
+  return NextResponse.json({
+    foods,
+    totalHits: raw.totalHits ?? 0,
+    totalPages: Math.ceil((raw.totalHits ?? 0) / pageSize),
+    page,
+  });
 }

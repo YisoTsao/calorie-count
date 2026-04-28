@@ -33,12 +33,8 @@ export default async function ProfilePage() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">
-            {t('title')}
-          </h1>
-          <p className="text-muted-foreground">
-            {t('subtitle')}
-          </p>
+          <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
+          <p className="text-muted-foreground">{t('subtitle')}</p>
         </div>
         <Link href="/profile/edit">
           <Button>
@@ -119,21 +115,15 @@ export default async function ProfilePage() {
             </div>
             <div>
               <p className="text-sm font-medium">{tm('macros.protein')}</p>
-              <p className="text-sm text-muted-foreground">
-                {user.goals?.proteinGoal || 50} g
-              </p>
+              <p className="text-sm text-muted-foreground">{user.goals?.proteinGoal || 50} g</p>
             </div>
             <div>
               <p className="text-sm font-medium">{tm('macros.carbs')}</p>
-              <p className="text-sm text-muted-foreground">
-                {user.goals?.carbsGoal || 250} g
-              </p>
+              <p className="text-sm text-muted-foreground">{user.goals?.carbsGoal || 250} g</p>
             </div>
             <div>
               <p className="text-sm font-medium">{tm('macros.fat')}</p>
-              <p className="text-sm text-muted-foreground">
-                {user.goals?.fatGoal || 65} g
-              </p>
+              <p className="text-sm text-muted-foreground">{user.goals?.fatGoal || 65} g</p>
             </div>
           </CardContent>
         </Card>
@@ -146,9 +136,7 @@ export default async function ProfilePage() {
           <CardContent className="space-y-2">
             <div>
               <p className="text-sm font-medium">{t('theme')}</p>
-              <p className="text-sm text-muted-foreground">
-                {user.preferences?.theme || 'LIGHT'}
-              </p>
+              <p className="text-sm text-muted-foreground">{user.preferences?.theme || 'LIGHT'}</p>
             </div>
             <div>
               <p className="text-sm font-medium">{t('language')}</p>
@@ -158,9 +146,7 @@ export default async function ProfilePage() {
             </div>
             <div>
               <p className="text-sm font-medium">{t('units')}</p>
-              <p className="text-sm text-muted-foreground">
-                {user.preferences?.units || 'METRIC'}
-              </p>
+              <p className="text-sm text-muted-foreground">{user.preferences?.units || 'METRIC'}</p>
             </div>
           </CardContent>
         </Card>

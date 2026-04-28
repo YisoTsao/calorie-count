@@ -21,11 +21,12 @@ interface NavbarProps {
     email?: string | null;
     image?: string | null;
   };
+  role?: string | null;
   isSidebarOpen?: boolean;
   onToggleSidebar?: () => void;
 }
 
-export function Navbar({ user, isSidebarOpen = false, onToggleSidebar }: NavbarProps) {
+export function Navbar({ user, role, isSidebarOpen = false, onToggleSidebar }: NavbarProps) {
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-white dark:border-gray-800 dark:bg-gray-900">
       <div className="container mx-auto px-4">
@@ -90,6 +91,17 @@ export function Navbar({ user, isSidebarOpen = false, onToggleSidebar }: NavbarP
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
+                {(role === 'ADMIN' || role === 'SUPER_ADMIN') && (
+                  <>
+                    <DropdownMenuItem asChild>
+                      <Link href="/admin" className="cursor-pointer">
+                        <Icon icon="lucide:shield" className="mr-2 h-4 w-4" />
+                        後台管理
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
                 <DropdownMenuItem asChild>
                   <button
                     className="flex w-full cursor-pointer items-center"

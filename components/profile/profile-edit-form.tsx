@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { profileUpdateSchema } from '@/lib/validations/profile';
@@ -22,6 +23,8 @@ export function ProfileEditForm({ defaultValues }: ProfileEditFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const t = useTranslations('profile');
+  const tCommon = useTranslations('common');
 
   const {
     register,
@@ -46,13 +49,13 @@ export function ProfileEditForm({ defaultValues }: ProfileEditFormProps) {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error?.message || '更新失敗');
+        throw new Error(result.error?.message || t('saveError'));
       }
 
       router.refresh();
       router.push('/profile');
     } catch (err) {
-      setError(err instanceof Error ? err.message : '更新失敗');
+      setError(err instanceof Error ? err.message : t('saveError'));
     } finally {
       setIsLoading(false);
     }
@@ -61,8 +64,8 @@ export function ProfileEditForm({ defaultValues }: ProfileEditFormProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>編輯個人資料</CardTitle>
-        <CardDescription>更新您的基本資訊</CardDescription>
+        <CardTitle>{t('editProfile')}</CardTitle>
+        <CardDescription>{t('editSubtitle')}</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -71,14 +74,14 @@ export function ProfileEditForm({ defaultValues }: ProfileEditFormProps) {
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="name">姓名</Label>
+            <Label htmlFor="name">{t('name')}</Label>
             <Input id="name" {...register('name')} />
             {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="height">身高 (cm)</Label>
+              <Label htmlFor="height">{t('height')}</Label>
               <Input
                 id="height"
                 type="number"
@@ -92,7 +95,7 @@ export function ProfileEditForm({ defaultValues }: ProfileEditFormProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="weight">體重 (kg)</Label>
+              <Label htmlFor="weight">{t('weight')}</Label>
               <Input
                 id="weight"
                 type="number"
@@ -107,7 +110,7 @@ export function ProfileEditForm({ defaultValues }: ProfileEditFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="birthDate">生日</Label>
+            <Label htmlFor="birthDate">{t('birthday')}</Label>
             <Input id="birthDate" type="date" {...register('birthDate')} />
             {errors.birthDate && (
               <p className="text-sm text-destructive">{errors.birthDate.message}</p>
@@ -115,7 +118,7 @@ export function ProfileEditForm({ defaultValues }: ProfileEditFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="gender">性別</Label>
+            <Label htmlFor="gender">{t('gender')}</Label>
             <select
               id="gender"
               {...register('gender', {
@@ -123,16 +126,16 @@ export function ProfileEditForm({ defaultValues }: ProfileEditFormProps) {
               })}
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
             >
-              <option value="">請選擇</option>
-              <option value="MALE">男性</option>
-              <option value="FEMALE">女性</option>
-              <option value="OTHER">其他</option>
+              <option value="">{t('selectGender')}</option>
+              <option value="MALE">{t('genders.male')}</option>
+              <option value="FEMALE">{t('genders.female')}</option>
+              <option value="OTHER">{t('genders.other')}</option>
             </select>
             {errors.gender && <p className="text-sm text-destructive">{errors.gender.message}</p>}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="activityLevel">活動量</Label>
+            <Label htmlFor="activityLevel">{t('activityLevel')}</Label>
             <select
               id="activityLevel"
               {...register('activityLevel', {
@@ -140,34 +143,22 @@ export function ProfileEditForm({ defaultValues }: ProfileEditFormProps) {
               })}
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2"
             >
-              <option value="">請選擇</option>
-              <option value="SEDENTARY">久坐</option>
-              <option value="LIGHT">輕度活動</option>
-              <option value="MODERATE">中度活動</option>
-              <option value="ACTIVE">活躍</option>
-              <option value="VERY_ACTIVE">非常活躍</option>
+              <option value="">{t('selectActivityLevel')}</option>
+              <option value="SEDENTARY">{t('activityLevels.sedentary')}</option>
+              <option value="LIGHT">{t('activityLevels.light')}</option>
+              <option value="MODERATE">{t('activityLevels.moderate')}</option>
+              <option value="ACTIVE">{t('activityLevels.active')}</option>
+              <option value="VERY_ACTIVE">{t('activityLevels.veryActive')}</option>
             </select>
             {errors.activityLevel && (
               <p className="text-sm text-destructive">{errors.activityLevel.message}</p>
             )}
           </div>
 
-          {/* <div className="space-y-2">
-            <Label htmlFor="bio">個人簡介</Label>
-            <textarea
-              id="bio"
-              {...register('bio')}
-              className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2"
-            />
-            {errors.bio && (
-              <p className="text-sm text-destructive">{errors.bio.message}</p>
-            )}
-          </div> */}
-
           <div className="flex gap-4">
             <Button type="submit" disabled={isLoading}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              儲存變更
+              {t('saveChanges')}
             </Button>
             <Button
               type="button"
@@ -175,7 +166,7 @@ export function ProfileEditForm({ defaultValues }: ProfileEditFormProps) {
               onClick={() => router.back()}
               disabled={isLoading}
             >
-              取消
+              {tCommon('cancel')}
             </Button>
           </div>
         </form>

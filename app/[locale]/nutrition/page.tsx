@@ -1,38 +1,42 @@
-import { Metadata } from "next";
-import { auth } from "@/lib/auth";
-import { redirect } from "next/navigation";
-import { DashboardShell } from "@/components/layout/DashboardShell";
-import WaterIntakeCard from "@/components/nutrition/WaterIntakeCard";
-import ExerciseLogger from "@/components/nutrition/ExerciseLogger";
-import WeightTracker from "@/components/nutrition/WeightTracker";
-import NutritionQuickStats from "@/components/nutrition/NutritionQuickStats";
+import { Metadata } from 'next';
+import { auth } from '@/lib/auth';
+import { redirect } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
+import { DashboardShell } from '@/components/layout/DashboardShell';
+import WaterIntakeCard from '@/components/nutrition/WaterIntakeCard';
+import ExerciseLogger from '@/components/nutrition/ExerciseLogger';
+import WeightTracker from '@/components/nutrition/WeightTracker';
+import NutritionQuickStats from '@/components/nutrition/NutritionQuickStats';
 
-export const metadata: Metadata = {
-  title: "營養追蹤 - Calorie Count",
-  description: "追蹤每日飲水量、運動消耗及體重變化",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('nutrition');
+  return {
+    title: `${t('title')} - Calorie Count`,
+    description: t('pageSubtitle'),
+  };
+}
 
 export default async function NutritionPage() {
   const session = await auth();
   if (!session?.user) {
-    redirect("/login");
+    redirect('/login');
   }
+
+  const t = await getTranslations('nutrition');
 
   return (
     <DashboardShell user={session.user}>
       {/* Page Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">營養追蹤</h1>
-        <p className="text-gray-600">
-          記錄您的飲水、運動與體重,全方位管理健康狀態
-        </p>
+        <h1 className="mb-2 text-3xl font-bold text-gray-900">{t('title')}</h1>
+        <p className="text-gray-600">{t('pageSubtitle')}</p>
       </div>
 
       {/* Quick Stats – dynamic client component */}
       <NutritionQuickStats />
 
       {/* Tracking Cards */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Water Intake */}
         <WaterIntakeCard dailyGoal={2000} />
 
@@ -46,28 +50,20 @@ export default async function NutritionPage() {
       </div>
 
       {/* Tips Section */}
-      <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-3">
-          💡 健康小提醒
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-700">
+      <div className="rounded-lg bg-gradient-to-r from-green-50 to-blue-50 p-6">
+        <h3 className="mb-3 text-lg font-semibold text-gray-900">{t('tipsTitle')}</h3>
+        <div className="grid grid-cols-1 gap-4 text-sm text-gray-700 md:grid-cols-3">
           <div>
-            <p className="font-medium mb-1">💧 充足飲水</p>
-            <p className="text-gray-600">
-              建議每日攝取 2000-2500ml 水分,幫助新陳代謝
-            </p>
+            <p className="mb-1 font-medium">{t('tips.water.title')}</p>
+            <p className="text-gray-600">{t('tips.water.desc')}</p>
           </div>
           <div>
-            <p className="font-medium mb-1">🏃‍♂️ 規律運動</p>
-            <p className="text-gray-600">
-              每週至少 150 分鐘中強度運動,維持健康體態
-            </p>
+            <p className="mb-1 font-medium">{t('tips.exercise.title')}</p>
+            <p className="text-gray-600">{t('tips.exercise.desc')}</p>
           </div>
           <div>
-            <p className="font-medium mb-1">⚖️ 定期測量</p>
-            <p className="text-gray-600">
-              建議每日固定時間測量體重,掌握變化趨勢
-            </p>
+            <p className="mb-1 font-medium">{t('tips.weight.title')}</p>
+            <p className="text-gray-600">{t('tips.weight.desc')}</p>
           </div>
         </div>
       </div>

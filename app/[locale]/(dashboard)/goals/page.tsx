@@ -30,9 +30,19 @@ interface UserProfile {
 }
 
 const GOAL_TYPE_OPTIONS = [
-  { value: 'LOSE_WEIGHT', labelKey: 'goalTypes.loseWeight', icon: TrendingDown, color: 'text-blue-600' },
+  {
+    value: 'LOSE_WEIGHT',
+    labelKey: 'goalTypes.loseWeight',
+    icon: TrendingDown,
+    color: 'text-blue-600',
+  },
   { value: 'MAINTAIN', labelKey: 'goalTypes.maintain', icon: Minus, color: 'text-green-600' },
-  { value: 'GAIN_WEIGHT', labelKey: 'goalTypes.gainWeight', icon: TrendingUp, color: 'text-orange-600' },
+  {
+    value: 'GAIN_WEIGHT',
+    labelKey: 'goalTypes.gainWeight',
+    icon: TrendingUp,
+    color: 'text-orange-600',
+  },
 ];
 
 export default function GoalsPage() {
@@ -110,7 +120,9 @@ export default function GoalsPage() {
     setCarbs(recommendations.carbs);
     setFat(recommendations.fat);
 
-    alert(`✅ ${t('calculateDesc')}\n\nBMR: ${recommendations.bmr} kcal\nTDEE: ${recommendations.tdee} kcal`);
+    alert(
+      `✅ ${t('calculateDesc')}\n\nBMR: ${recommendations.bmr} kcal\nTDEE: ${recommendations.tdee} kcal`
+    );
   };
 
   // 儲存目標
@@ -156,35 +168,33 @@ export default function GoalsPage() {
   };
 
   // 計算 BMI 和健康體重範圍
-  const bmi = profile?.height && profile?.weight
-    ? calculateBMI(profile.weight, profile.height)
-    : null;
+  const bmi =
+    profile?.height && profile?.weight ? calculateBMI(profile.weight, profile.height) : null;
 
-  const healthyRange = profile?.height
-    ? getHealthyWeightRange(profile.height)
-    : null;
+  const healthyRange = profile?.height ? getHealthyWeightRange(profile.height) : null;
 
-  const weeksToGoal = profile?.weight && profile?.targetWeight && goalType !== 'MAINTAIN'
-    ? estimateWeeksToGoal(profile.weight, profile.targetWeight, goalType)
-    : null;
+  const weeksToGoal =
+    profile?.weight && profile?.targetWeight && goalType !== 'MAINTAIN'
+      ? estimateWeeksToGoal(profile.weight, profile.targetWeight, goalType)
+      : null;
 
   if (isLoading) {
     return (
-      <div className="container max-w-4xl mx-auto p-6">
+      <div className="container mx-auto max-w-4xl p-6">
         <p className="text-center">{tc('loading')}</p>
       </div>
     );
   }
 
   return (
-    <div className="container max-w-4xl mx-auto p-6 space-y-6">
+    <div className="container mx-auto max-w-4xl space-y-6 p-6">
       {/* 頁首 */}
       <div>
-        <h1 className="text-3xl font-bold flex items-center gap-2">
+        <h1 className="flex items-center gap-2 text-3xl font-bold">
           <Target className="h-8 w-8" />
           {t('title')}
         </h1>
-        <p className="text-muted-foreground mt-1">{t('subtitle')}</p>
+        <p className="mt-1 text-muted-foreground">{t('subtitle')}</p>
       </div>
 
       {/* BMI 資訊卡片 */}
@@ -194,31 +204,29 @@ export default function GoalsPage() {
             <CardTitle>{t('healthMetrics')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="text-center p-4 bg-muted/50 rounded-lg">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <div className="rounded-lg bg-muted/50 p-4 text-center">
                 <p className="text-sm text-muted-foreground">{t('currentBmi')}</p>
                 <p className="text-2xl font-bold">{bmi.toFixed(1)}</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {getBMICategory(bmi)}
-                </p>
+                <p className="mt-1 text-xs text-muted-foreground">{getBMICategory(bmi)}</p>
               </div>
 
-              <div className="text-center p-4 bg-muted/50 rounded-lg">
+              <div className="rounded-lg bg-muted/50 p-4 text-center">
                 <p className="text-sm text-muted-foreground">{t('currentWeight')}</p>
                 <p className="text-2xl font-bold">{profile?.weight} kg</p>
                 {profile?.targetWeight && (
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="mt-1 text-xs text-muted-foreground">
                     {t('targetWeight')}: {profile.targetWeight} kg
                   </p>
                 )}
               </div>
 
-              <div className="text-center p-4 bg-muted/50 rounded-lg">
+              <div className="rounded-lg bg-muted/50 p-4 text-center">
                 <p className="text-sm text-muted-foreground">{t('recommendedRange')}</p>
                 <p className="text-xl font-bold">
                   {healthyRange?.min} - {healthyRange?.max} kg
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">BMI 18.5-24</p>
+                <p className="mt-1 text-xs text-muted-foreground">BMI 18.5-24</p>
               </div>
             </div>
 
@@ -247,13 +255,15 @@ export default function GoalsPage() {
                 <button
                   key={option.value}
                   onClick={() => setGoalType(option.value as GoalType)}
-                  className={`p-4 border-2 rounded-lg transition-all ${
+                  className={`rounded-lg border-2 p-4 transition-all ${
                     isSelected
                       ? 'border-primary bg-primary/5'
                       : 'border-muted hover:border-primary/50'
                   }`}
                 >
-                  <Icon className={`h-8 w-8 mx-auto mb-2 ${isSelected ? 'text-primary' : option.color}`} />
+                  <Icon
+                    className={`mx-auto mb-2 h-8 w-8 ${isSelected ? 'text-primary' : option.color}`}
+                  />
                   <p className="font-medium">{t(option.labelKey)}</p>
                 </button>
               );
@@ -276,7 +286,7 @@ export default function GoalsPage() {
               onClick={calculateRecommendedGoals}
               disabled={!profile?.height || !profile?.weight}
             >
-              <Calculator className="h-4 w-4 mr-2" />
+              <Calculator className="mr-2 h-4 w-4" />
               {t('autoCalculate')}
             </Button>
           </div>
@@ -297,7 +307,7 @@ export default function GoalsPage() {
           </div>
 
           {/* 飲水目標 + 目標體重 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="water">{t('water')}</Label>
               <Input
@@ -318,14 +328,16 @@ export default function GoalsPage() {
                 type="number"
                 step="0.1"
                 value={targetWeight}
-                onChange={(e) => setTargetWeight(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                onChange={(e) =>
+                  setTargetWeight(e.target.value === '' ? '' : parseFloat(e.target.value))
+                }
                 placeholder={profile?.weight ? String(profile.weight) : '68.0'}
               />
               <p className="text-xs text-muted-foreground">{t('saveToProfile')}</p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <div className="space-y-2">
               <Label htmlFor="protein">{t('protein')}</Label>
               <Input
@@ -337,7 +349,8 @@ export default function GoalsPage() {
                 max={500}
               />
               <p className="text-xs text-muted-foreground">
-                {Math.round((protein * 4 / dailyCalories) * 100)}{t('caloriesPct')}
+                {Math.round(((protein * 4) / dailyCalories) * 100)}
+                {t('caloriesPct')}
               </p>
             </div>
 
@@ -352,7 +365,8 @@ export default function GoalsPage() {
                 max={1000}
               />
               <p className="text-xs text-muted-foreground">
-                {Math.round((carbs * 4 / dailyCalories) * 100)}{t('caloriesPct')}
+                {Math.round(((carbs * 4) / dailyCalories) * 100)}
+                {t('caloriesPct')}
               </p>
             </div>
 
@@ -367,7 +381,8 @@ export default function GoalsPage() {
                 max={300}
               />
               <p className="text-xs text-muted-foreground">
-                {Math.round((fat * 9 / dailyCalories) * 100)}{t('caloriesPct')}
+                {Math.round(((fat * 9) / dailyCalories) * 100)}
+                {t('caloriesPct')}
               </p>
             </div>
           </div>
@@ -375,22 +390,22 @@ export default function GoalsPage() {
           {/* 營養素比例圖 */}
           <div className="space-y-2">
             <p className="text-sm font-medium">{t('nutritionDist')}</p>
-            <div className="h-8 flex rounded-lg overflow-hidden">
+            <div className="flex h-8 overflow-hidden rounded-lg">
               <div
-                className="bg-red-500 flex items-center justify-center text-xs text-white font-medium"
-                style={{ width: `${(protein * 4 / dailyCalories) * 100}%` }}
+                className="flex items-center justify-center bg-red-500 text-xs font-medium text-white"
+                style={{ width: `${((protein * 4) / dailyCalories) * 100}%` }}
               >
                 {t('proteinLabel')}
               </div>
               <div
-                className="bg-blue-500 flex items-center justify-center text-xs text-white font-medium"
-                style={{ width: `${(carbs * 4 / dailyCalories) * 100}%` }}
+                className="flex items-center justify-center bg-blue-500 text-xs font-medium text-white"
+                style={{ width: `${((carbs * 4) / dailyCalories) * 100}%` }}
               >
                 {t('carbsLabel')}
               </div>
               <div
-                className="bg-yellow-500 flex items-center justify-center text-xs text-white font-medium"
-                style={{ width: `${(fat * 9 / dailyCalories) * 100}%` }}
+                className="flex items-center justify-center bg-yellow-500 text-xs font-medium text-white"
+                style={{ width: `${((fat * 9) / dailyCalories) * 100}%` }}
               >
                 {t('fatLabel')}
               </div>
@@ -409,23 +424,24 @@ export default function GoalsPage() {
         </Button>
       </div>
 
-      {!profile?.height || !profile?.weight && (
-        <Card className="border-yellow-500/50 bg-yellow-50 dark:bg-yellow-950/20">
-          <CardContent className="pt-6">
-            <p className="text-sm text-yellow-800 dark:text-yellow-200">
-              💡 {t('incompleteProfile')}
-            </p>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => router.push('/profile')}
-              className="mt-2"
-            >
-              {t('goToProfile')}
-            </Button>
-          </CardContent>
-        </Card>
-      )}
+      {!profile?.height ||
+        (!profile?.weight && (
+          <Card className="border-yellow-500/50 bg-yellow-50 dark:bg-yellow-950/20">
+            <CardContent className="pt-6">
+              <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                💡 {t('incompleteProfile')}
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => router.push('/profile')}
+                className="mt-2"
+              >
+                {t('goToProfile')}
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
     </div>
   );
 }

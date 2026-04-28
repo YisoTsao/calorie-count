@@ -200,20 +200,20 @@ export function FoodSearchDialog({
               {food.category.icon && (
                 <span className="flex-shrink-0 text-base sm:text-lg">{food.category.icon}</span>
               )}
-              <h4 className="truncate text-sm font-medium sm:text-base">{getLocalizedName(food.name, food.nameEn, food.nameJa)}</h4>
-              {(locale === 'en' || locale === 'ja') ? (
-                food.name !== getLocalizedName(food.name, food.nameEn, food.nameJa) && (
-                  <span className="hidden text-xs text-muted-foreground sm:inline sm:text-sm">
-                    {food.name}
-                  </span>
-                )
-              ) : (
-                food.nameEn && (
-                  <span className="hidden text-xs text-muted-foreground sm:inline sm:text-sm">
-                    {food.nameEn}
-                  </span>
-                )
-              )}
+              <h4 className="truncate text-sm font-medium sm:text-base">
+                {getLocalizedName(food.name, food.nameEn, food.nameJa)}
+              </h4>
+              {locale === 'en' || locale === 'ja'
+                ? food.name !== getLocalizedName(food.name, food.nameEn, food.nameJa) && (
+                    <span className="hidden text-xs text-muted-foreground sm:inline sm:text-sm">
+                      {food.name}
+                    </span>
+                  )
+                : food.nameEn && (
+                    <span className="hidden text-xs text-muted-foreground sm:inline sm:text-sm">
+                      {food.nameEn}
+                    </span>
+                  )}
             </div>
 
             {food.brand && (
@@ -224,9 +224,15 @@ export function FoodSearchDialog({
 
             <div className="mt-2 flex flex-wrap items-center gap-2 text-xs sm:gap-3 sm:text-sm">
               <span className="font-medium text-primary">{food.calories} kcal</span>
-              <span className="text-muted-foreground">{tFoods('proteinShort')} {food.protein}g</span>
-              <span className="text-muted-foreground">{tFoods('carbsShort')} {food.carbs}g</span>
-              <span className="text-muted-foreground">{tFoods('fatShort')} {food.fat}g</span>
+              <span className="text-muted-foreground">
+                {tFoods('proteinShort')} {food.protein}g
+              </span>
+              <span className="text-muted-foreground">
+                {tFoods('carbsShort')} {food.carbs}g
+              </span>
+              <span className="text-muted-foreground">
+                {tFoods('fatShort')} {food.fat}g
+              </span>
             </div>
 
             <p className="mt-1 text-xs text-muted-foreground">
@@ -260,9 +266,7 @@ export function FoodSearchDialog({
             {tMeals('searchFoodsTabLabel')}
             {mealType && (
               <span className="rounded-full bg-muted px-2 py-0.5 text-sm font-normal text-muted-foreground">
-                {mealType === 'OTHER'
-                  ? tMeals('other')
-                  : tMeals(`types.${mealType.toLowerCase()}`)}
+                {mealType === 'OTHER' ? tMeals('other') : tMeals(`types.${mealType.toLowerCase()}`)}
               </span>
             )}
           </DialogTitle>
@@ -337,7 +341,9 @@ export function FoodSearchDialog({
                 </div>
               ) : foods.length === 0 ? (
                 <div className="py-8 text-center text-sm text-muted-foreground sm:text-base">
-                  {searchQuery || selectedCategory ? tMeals('noSearchResults') : tMeals('searchHint')}
+                  {searchQuery || selectedCategory
+                    ? tMeals('noSearchResults')
+                    : tMeals('searchHint')}
                 </div>
               ) : (
                 <div className="h-[424px] space-y-2 pb-2">
@@ -374,9 +380,16 @@ export function FoodSearchDialog({
           <div className="flex-shrink-0 border-t bg-muted/50 px-4 py-4 sm:px-6 sm:py-6">
             <div className="mb-3 flex items-start justify-between sm:mb-4">
               <div className="min-w-0 flex-1">
-                <h4 className="truncate font-medium">{tMeals('selectedFood', { name: getLocalizedName(selectedFood.name, selectedFood.nameEn) })}</h4>
+                <h4 className="truncate font-medium">
+                  {tMeals('selectedFood', {
+                    name: getLocalizedName(selectedFood.name, selectedFood.nameEn),
+                  })}
+                </h4>
                 <p className="text-xs text-muted-foreground sm:text-sm">
-                  {tFoods('perServingLabel', { size: selectedFood.servingSize, unit: selectedFood.servingUnit })}
+                  {tFoods('perServingLabel', {
+                    size: selectedFood.servingSize,
+                    unit: selectedFood.servingUnit,
+                  })}
                 </p>
               </div>
               <button

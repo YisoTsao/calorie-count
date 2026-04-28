@@ -136,10 +136,7 @@ export async function DELETE(req: NextRequest) {
     ]);
   } catch (err) {
     console.error('[DELETE /api/admin/members]', err);
-    return NextResponse.json(
-      { error: '刪除失敗', detail: String(err) },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: '刪除失敗', detail: String(err) }, { status: 500 });
   }
 
   return NextResponse.json({ success: true });

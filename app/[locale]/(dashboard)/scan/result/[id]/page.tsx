@@ -37,10 +37,10 @@ interface Recognition {
 
 const MEAL_OPTIONS = [
   { value: 'BREAKFAST', label: '早餐' },
-  { value: 'LUNCH',     label: '午餐' },
-  { value: 'DINNER',    label: '晚餐' },
-  { value: 'SNACK',     label: '點心' },
-  { value: 'OTHER',     label: '其他' },
+  { value: 'LUNCH', label: '午餐' },
+  { value: 'DINNER', label: '晚餐' },
+  { value: 'SNACK', label: '點心' },
+  { value: 'OTHER', label: '其他' },
 ] as const;
 
 type MealType = (typeof MEAL_OPTIONS)[number]['value'];
@@ -53,11 +53,7 @@ const getDefaultMealType = (): MealType => {
   return 'SNACK';
 };
 
-export default function ScanResultPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default function ScanResultPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const [recognition, setRecognition] = useState<Recognition | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -193,11 +189,15 @@ export default function ScanResultPage({
 
   if (error || !recognition) {
     return (
-      <div className="container max-w-4xl mx-auto p-6">
+      <div className="container mx-auto max-w-4xl p-6">
         <Card>
           <CardContent className="pt-6">
             <p className="text-center text-destructive">{error || '找不到辨識記錄'}</p>
-            <Button variant="outline" onClick={() => router.push('/scan')} className="mt-4 mx-auto block">
+            <Button
+              variant="outline"
+              onClick={() => router.push('/scan')}
+              className="mx-auto mt-4 block"
+            >
               返回掃描頁面
             </Button>
           </CardContent>
@@ -208,19 +208,23 @@ export default function ScanResultPage({
 
   if (recognition.status === 'FAILED') {
     return (
-      <div className="container max-w-4xl mx-auto p-6 space-y-6">
+      <div className="container mx-auto max-w-4xl space-y-6 p-6">
         <Button variant="ghost" onClick={() => router.back()}>
-          <ArrowLeft className="h-4 w-4 mr-2" />返回
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          返回
         </Button>
         <Card>
           <CardContent className="pt-6">
-            <p className="text-center text-destructive mb-4">
+            <p className="mb-4 text-center text-destructive">
               辨識失敗: {recognition.errorMessage || '未知錯誤'}
             </p>
-            <div className="flex gap-2 justify-center">
-              <Button variant="outline" onClick={() => router.push('/scan')}>重新掃描</Button>
+            <div className="flex justify-center gap-2">
+              <Button variant="outline" onClick={() => router.push('/scan')}>
+                重新掃描
+              </Button>
               <Button onClick={handleRefresh}>
-                <RefreshCw className="h-4 w-4 mr-2" />重試
+                <RefreshCw className="mr-2 h-4 w-4" />
+                重試
               </Button>
             </div>
           </CardContent>
@@ -232,23 +236,22 @@ export default function ScanResultPage({
   const allSelected = selectedFoodIds.size === recognition.foods.length;
 
   return (
-    <div className="container max-w-2xl mx-auto p-4 space-y-4">
+    <div className="container mx-auto max-w-2xl space-y-4 p-4">
       {/* 頂部返回 */}
       <Button variant="ghost" size="sm" onClick={() => router.back()}>
-        <ArrowLeft className="h-4 w-4 mr-1" />返回
+        <ArrowLeft className="mr-1 h-4 w-4" />
+        返回
       </Button>
 
       {/* 食物圖片 */}
-      <div className="relative w-full rounded-2xl overflow-hidden bg-gray-100" style={{ aspectRatio: '16/9' }}>
-        <Image
-          src={recognition.imageUrl}
-          alt="Food"
-          fill
-          className="object-cover"
-        />
+      <div
+        className="relative w-full overflow-hidden rounded-2xl bg-gray-100"
+        style={{ aspectRatio: '16/9' }}
+      >
+        <Image src={recognition.imageUrl} alt="Food" fill className="object-cover" />
         {recognition.confidence !== null && (
           <div className="absolute bottom-3 right-3">
-            <span className="bg-black/60 text-white text-sm px-3 py-1 rounded-full">
+            <span className="rounded-full bg-black/60 px-3 py-1 text-sm text-white">
               辨識信心度 {Math.round(recognition.confidence * 100)}%
             </span>
           </div>
@@ -256,17 +259,14 @@ export default function ScanResultPage({
       </div>
 
       {/* 食物列表 */}
-      <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+        <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
           <div>
             <p className="font-semibold text-gray-900">辨識結果</p>
             <p className="text-xs text-gray-500">AI 已辨識出以下食物，請選擇要新增的項目</p>
           </div>
-          <button
-            onClick={toggleAll}
-            className="text-xs text-blue-600 font-medium hover:underline"
-          >
+          <button onClick={toggleAll} className="text-xs font-medium text-blue-600 hover:underline">
             {allSelected ? '取消全選' : '全選'}
           </button>
         </div>
@@ -279,43 +279,48 @@ export default function ScanResultPage({
               <div
                 key={food.id}
                 onClick={() => toggleFood(food.id)}
-                className={`flex items-start gap-3 px-4 py-4 cursor-pointer transition-colors ${
+                className={`flex cursor-pointer items-start gap-3 px-4 py-4 transition-colors ${
                   checked ? 'bg-blue-50' : 'hover:bg-gray-50'
                 }`}
               >
                 {/* Checkbox */}
                 <div
-                  className={`mt-0.5 flex-shrink-0 w-5 h-5 rounded flex items-center justify-center border-2 transition-colors ${
-                    checked ? 'bg-blue-600 border-blue-600' : 'border-gray-300 bg-white'
+                  className={`mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded border-2 transition-colors ${
+                    checked ? 'border-blue-600 bg-blue-600' : 'border-gray-300 bg-white'
                   }`}
                 >
                   {checked && (
-                    <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none">
-                      <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <svg className="h-3 w-3 text-white" viewBox="0 0 12 12" fill="none">
+                      <path
+                        d="M2 6l3 3 5-5"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
                     </svg>
                   )}
                 </div>
 
                 {/* Food info */}
-                <div className="flex-1 min-w-0">
+                <div className="min-w-0 flex-1">
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <p className="font-semibold text-gray-900">{food.name}</p>
-                      {food.nameEn && (
-                        <p className="text-sm text-gray-500">{food.nameEn}</p>
-                      )}
+                      {food.nameEn && <p className="text-sm text-gray-500">{food.nameEn}</p>}
                     </div>
                     {food.confidence != null && (
-                      <span className="flex-shrink-0 text-sm bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
+                      <span className="flex-shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-sm text-gray-600">
                         {Math.round(food.confidence * 100)}%
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="mt-1 text-sm text-gray-500">
                     份量:&nbsp;<span className="text-gray-700">{food.portion}</span>
-                    &nbsp;&nbsp;熱量:&nbsp;<span className="font-medium text-gray-900">{food.calories} 卡</span>
+                    &nbsp;&nbsp;熱量:&nbsp;
+                    <span className="font-medium text-gray-900">{food.calories} 卡</span>
                   </p>
-                  <p className="text-xs text-gray-400 mt-0.5">
+                  <p className="mt-0.5 text-xs text-gray-400">
                     蛋白質 {food.protein}g&nbsp;&nbsp;碳水 {food.carbs}g&nbsp;&nbsp;脂肪 {food.fat}g
                   </p>
                 </div>
@@ -326,18 +331,18 @@ export default function ScanResultPage({
       </div>
 
       {/* 餐別選擇 */}
-      <div className="bg-white rounded-2xl border border-gray-200 px-4 py-3">
-        <p className="text-sm font-medium text-gray-600 mb-2">加入到</p>
-        <div className="flex gap-2 flex-wrap">
+      <div className="rounded-2xl border border-gray-200 bg-white px-4 py-3">
+        <p className="mb-2 text-sm font-medium text-gray-600">加入到</p>
+        <div className="flex flex-wrap gap-2">
           {MEAL_OPTIONS.map(({ value, label }) => (
             <button
               key={value}
               type="button"
               onClick={() => setSelectedMealType(value)}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+              className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-colors ${
                 selectedMealType === value
-                  ? 'bg-gray-900 text-white border-gray-900'
-                  : 'bg-white text-gray-600 border-gray-300 hover:border-gray-500'
+                  ? 'border-gray-900 bg-gray-900 text-white'
+                  : 'border-gray-300 bg-white text-gray-600 hover:border-gray-500'
               }`}
             >
               {label}
@@ -348,11 +353,7 @@ export default function ScanResultPage({
 
       {/* 底部操作 */}
       <div className="flex gap-3 pb-4">
-        <Button
-          variant="outline"
-          className="flex-1"
-          onClick={() => router.back()}
-        >
+        <Button variant="outline" className="flex-1" onClick={() => router.back()}>
           取消
         </Button>
         <Button

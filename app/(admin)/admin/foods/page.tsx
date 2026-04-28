@@ -105,6 +105,7 @@ export default function AdminFoodsPage() {
 
   const switchTab = (t: 'system' | 'usda' | 'fatsecret') => {
     setTab(t);
+    if (t === 'system') load(); // 切換回系統食物庫時重新載入
     const params = new URLSearchParams(searchParams.toString());
     params.set('tab', t);
     router.replace(`?${params.toString()}`, { scroll: false });
@@ -113,6 +114,8 @@ export default function AdminFoodsPage() {
   const [usdaQ, setUsdaQ] = useState('');
   const [usdaResults, setUsdaResults] = useState<USDAFood[]>([]);
   const [usdaTotal, setUsdaTotal] = useState(0);
+  const [usdaPage, setUsdaPage] = useState(1);
+  const [usdaTotalPages, setUsdaTotalPages] = useState(0);
   const [usdaLoading, setUsdaLoading] = useState(false);
   const [usdaImported, setUsdaImported] = useState<Set<number>>(new Set());
   const usdaAbort = useRef<AbortController | null>(null);
@@ -121,6 +124,8 @@ export default function AdminFoodsPage() {
   const [fsQ, setFsQ] = useState('');
   const [fsResults, setFsResults] = useState<FatSecretFood[]>([]);
   const [fsTotal, setFsTotal] = useState(0);
+  const [fsPage, setFsPage] = useState(0);
+  const [fsTotalPages, setFsTotalPages] = useState(0);
   const [fsLoading, setFsLoading] = useState(false);
   const [fsError, setFsError] = useState<string | null>(null);
   const [fsImported, setFsImported] = useState<Set<string>>(new Set());
@@ -129,7 +134,13 @@ export default function AdminFoodsPage() {
   // ── Category management state ──
   const [catDrawer, setCatDrawer] = useState(false);
   const [allCats, setAllCats] = useState<Category[]>([]);
-  const [catForm, setCatForm] = useState<{ id: string; name: string; nameEn: string; nameJa: string; icon: string } | null>(null);
+  const [catForm, setCatForm] = useState<{
+    id: string;
+    name: string;
+    nameEn: string;
+    nameJa: string;
+    icon: string;
+  } | null>(null);
   const [catSaving, setCatSaving] = useState(false);
 
   useEffect(() => {
@@ -219,10 +230,11 @@ export default function AdminFoodsPage() {
   };
 
   // ── USDA handlers ──
-  const searchUsda = useCallback(async (keyword: string) => {
+  const searchUsda = useCallback(async (keyword: string, pg = 1) => {
     if (!keyword.trim()) {
       setUsdaResults([]);
       setUsdaTotal(0);
+      setUsdaTotalPages(0);
       return;
     }
     usdaAbort.current?.abort();
@@ -230,12 +242,15 @@ export default function AdminFoodsPage() {
     usdaAbort.current = ctrl;
     setUsdaLoading(true);
     try {
-      const res = await fetch(`/api/admin/usda?q=${encodeURIComponent(keyword)}`, {
-        signal: ctrl.signal,
-      });
+      const res = await fetch(
+        `/api/admin/usda?q=${encodeURIComponent(keyword)}&page=${pg}`,
+        { signal: ctrl.signal }
+      );
       const data = await res.json();
       setUsdaResults(data.foods ?? []);
       setUsdaTotal(data.totalHits ?? 0);
+      setUsdaTotalPages(data.totalPages ?? 0);
+      setUsdaPage(pg);
     } catch (e) {
       if ((e as Error).name !== 'AbortError') console.error(e);
     } finally {
@@ -244,7 +259,7 @@ export default function AdminFoodsPage() {
   }, []);
 
   useEffect(() => {
-    const t = setTimeout(() => searchUsda(usdaQ), 500);
+    const t = setTimeout(() => searchUsda(usdaQ, 1), 500);
     return () => clearTimeout(t);
   }, [usdaQ, searchUsda]);
 
@@ -271,29 +286,40 @@ export default function AdminFoodsPage() {
     });
     if (res.ok) {
       setUsdaImported((prev) => new Set([...prev, food.fdcId]));
-      if (tab === 'system') load();
+      load(); // 立即更新系統食物庫
     }
   };
 
   // ── FatSecret handlers ──
-  const searchFs = useCallback(async (keyword: string) => {
-    if (!keyword.trim()) { setFsResults([]); setFsTotal(0); return; }
+  const searchFs = useCallback(async (keyword: string, pg = 0) => {
+    if (!keyword.trim()) {
+      setFsResults([]);
+      setFsTotal(0);
+      setFsTotalPages(0);
+      return;
+    }
     fsAbort.current?.abort();
     const ctrl = new AbortController();
     fsAbort.current = ctrl;
     setFsLoading(true);
     setFsError(null);
     try {
-      const res = await fetch(`/api/admin/fatsecret?q=${encodeURIComponent(keyword)}`, { signal: ctrl.signal });
+      const res = await fetch(
+        `/api/admin/fatsecret?q=${encodeURIComponent(keyword)}&page=${pg}`,
+        { signal: ctrl.signal }
+      );
       const data = await res.json();
       if (data.error) {
         setFsError(data.error);
         setFsResults([]);
         setFsTotal(0);
+        setFsTotalPages(0);
         return;
       }
       setFsResults(data.foods ?? []);
       setFsTotal(data.totalResults ?? 0);
+      setFsTotalPages(data.totalPages ?? 0);
+      setFsPage(pg);
     } catch (e) {
       if ((e as Error).name !== 'AbortError') console.error(e);
     } finally {
@@ -302,7 +328,7 @@ export default function AdminFoodsPage() {
   }, []);
 
   useEffect(() => {
-    const t = setTimeout(() => searchFs(fsQ), 500);
+    const t = setTimeout(() => searchFs(fsQ, 0), 500);
     return () => clearTimeout(t);
   }, [fsQ, searchFs]);
 
@@ -326,6 +352,7 @@ export default function AdminFoodsPage() {
     });
     if (res.ok) {
       setFsImported((prev) => new Set([...prev, food.foodId]));
+      load(); // 立即更新系統食物庫
     }
   };
 
@@ -494,7 +521,7 @@ export default function AdminFoodsPage() {
               <span className="flex-1 text-sm text-[#6063ee]">已選取 {selectedIds.size} 筆</span>
               <button
                 onClick={() => setSelectedIds(new Set())}
-                className="text-xs text-slate-400 hover:text-white transition-colors"
+                className="text-xs text-slate-400 transition-colors hover:text-white"
               >
                 取消選取
               </button>
@@ -666,7 +693,7 @@ export default function AdminFoodsPage() {
           ) : usdaResults.length > 0 ? (
             <>
               <p className="text-xs text-slate-500">
-                共找到 {usdaTotal.toLocaleString()} 筆，顯示前 {usdaResults.length} 筆
+                共找到 {usdaTotal.toLocaleString()} 筆，顯示第 {(usdaPage - 1) * 25 + 1}–{Math.min(usdaPage * 25, usdaTotal)} 筆
               </p>
               <div className="overflow-hidden rounded-2xl bg-slate-900/60">
                 <div className="overflow-x-auto">
@@ -738,6 +765,28 @@ export default function AdminFoodsPage() {
                   </table>
                 </div>
               </div>
+              {/* USDA Pagination */}
+              {usdaTotalPages > 1 && (
+                <div className="flex items-center justify-end gap-2">
+                  <button
+                    disabled={usdaPage <= 1}
+                    onClick={() => searchUsda(usdaQ, usdaPage - 1)}
+                    className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white disabled:pointer-events-none disabled:opacity-30"
+                  >
+                    <Icon icon="mdi:chevron-left" />
+                  </button>
+                  <span className="text-sm text-slate-400">
+                    {usdaPage} / {usdaTotalPages}
+                  </span>
+                  <button
+                    disabled={usdaPage >= usdaTotalPages}
+                    onClick={() => searchUsda(usdaQ, usdaPage + 1)}
+                    className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white disabled:pointer-events-none disabled:opacity-30"
+                  >
+                    <Icon icon="mdi:chevron-right" />
+                  </button>
+                </div>
+              )}
             </>
           ) : null}
         </div>
@@ -750,13 +799,14 @@ export default function AdminFoodsPage() {
             <p className="text-sm font-medium text-slate-300">FatSecret Platform API</p>
             <p className="text-xs text-slate-500">
               搜尋 FatSecret 全球食物資料庫，每份數值以 100g 為基準。
-              需在 .env 設定 <code className="text-slate-400">FATSECRET_CLIENT_ID</code> 與{' '}
-              <code className="text-slate-400">FATSECRET_CLIENT_SECRET</code>。
             </p>
           </div>
 
           <div className="relative">
-            <Icon icon="mdi:magnify" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-lg text-slate-500" />
+            <Icon
+              icon="mdi:magnify"
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-lg text-slate-500"
+            />
             <input
               type="text"
               placeholder="輸入食物名稱，例如: apple, salmon, tofu..."
@@ -782,14 +832,22 @@ export default function AdminFoodsPage() {
           ) : fsError ? (
             <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-5 py-4">
               <div className="flex items-start gap-3">
-                <Icon icon="mdi:alert-circle-outline" className="mt-0.5 flex-shrink-0 text-xl text-red-400" />
+                <Icon
+                  icon="mdi:alert-circle-outline"
+                  className="mt-0.5 flex-shrink-0 text-xl text-red-400"
+                />
                 <div>
                   <p className="text-sm font-medium text-red-300">FatSecret API 錯誤</p>
                   <p className="mt-0.5 text-xs text-red-400/80">{fsError}</p>
                   {fsError.includes('IP') && (
                     <p className="mt-2 text-xs text-slate-400">
                       請登入{' '}
-                      <a href="https://platform.fatsecret.com" target="_blank" rel="noopener noreferrer" className="underline text-slate-300">
+                      <a
+                        href="https://platform.fatsecret.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-slate-300 underline"
+                      >
                         platform.fatsecret.com
                       </a>{' '}
                       → My Account → Applications → Edit → 清空 IP whitelist 後重試。
@@ -805,7 +863,9 @@ export default function AdminFoodsPage() {
             </div>
           ) : fsResults.length > 0 ? (
             <>
-              <p className="text-xs text-slate-500">共找到 {fsTotal.toLocaleString()} 筆，顯示前 {fsResults.length} 筆</p>
+              <p className="text-xs text-slate-500">
+                共找到 {fsTotal.toLocaleString()} 筆，顯示第 {fsPage * 25 + 1}–{Math.min((fsPage + 1) * 25, fsTotal)} 筆
+              </p>
               <div className="overflow-hidden rounded-2xl bg-slate-900/60">
                 <div className="overflow-x-auto">
                   <table className="w-full min-w-[700px] text-sm">
@@ -814,7 +874,9 @@ export default function AdminFoodsPage() {
                         <th className="px-5 py-3 text-left font-medium text-slate-500">食物名稱</th>
                         <th className="px-4 py-3 text-left font-medium text-slate-500">類型</th>
                         <th className="px-4 py-3 text-right font-medium text-slate-500">熱量</th>
-                        <th className="px-4 py-3 text-right font-medium text-slate-500">P · C · F</th>
+                        <th className="px-4 py-3 text-right font-medium text-slate-500">
+                          P · C · F
+                        </th>
                         <th className="px-4 py-3" />
                       </tr>
                     </thead>
@@ -822,13 +884,22 @@ export default function AdminFoodsPage() {
                       {fsResults.map((f) => {
                         const imported = fsImported.has(f.foodId);
                         return (
-                          <tr key={f.foodId} className={`transition-colors ${imported ? 'opacity-50' : 'hover:bg-slate-800/30'}`}>
+                          <tr
+                            key={f.foodId}
+                            className={`transition-colors ${imported ? 'opacity-50' : 'hover:bg-slate-800/30'}`}
+                          >
                             <td className="px-5 py-3">
                               <p className="text-sm font-medium text-white">{f.name}</p>
-                              {f.brandName && <p className="mt-0.5 text-xs text-slate-500">{f.brandName}</p>}
+                              {f.brandName && (
+                                <p className="mt-0.5 text-xs text-slate-500">{f.brandName}</p>
+                              )}
                             </td>
-                            <td className="px-4 py-3 text-xs text-slate-400">{f.foodType ?? '—'}</td>
-                            <td className="px-4 py-3 text-right text-sm text-slate-300">{f.calories} kcal</td>
+                            <td className="px-4 py-3 text-xs text-slate-400">
+                              {f.foodType ?? '—'}
+                            </td>
+                            <td className="px-4 py-3 text-right text-sm text-slate-300">
+                              {f.calories} kcal
+                            </td>
                             <td className="px-4 py-3 text-right text-xs">
                               <span className="text-blue-400">{f.protein}g</span>
                               {' · '}
@@ -846,7 +917,10 @@ export default function AdminFoodsPage() {
                                     : 'bg-[#4648d4]/20 text-[#6063ee] hover:bg-[#4648d4]/30'
                                 }`}
                               >
-                                <Icon icon={imported ? 'mdi:check' : 'mdi:database-arrow-down-outline'} className="text-base" />
+                                <Icon
+                                  icon={imported ? 'mdi:check' : 'mdi:database-arrow-down-outline'}
+                                  className="text-base"
+                                />
                                 {imported ? '已匯入' : '匯入'}
                               </button>
                             </td>
@@ -857,6 +931,28 @@ export default function AdminFoodsPage() {
                   </table>
                 </div>
               </div>
+              {/* FatSecret Pagination */}
+              {fsTotalPages > 1 && (
+                <div className="flex items-center justify-end gap-2">
+                  <button
+                    disabled={fsPage <= 0}
+                    onClick={() => searchFs(fsQ, fsPage - 1)}
+                    className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white disabled:pointer-events-none disabled:opacity-30"
+                  >
+                    <Icon icon="mdi:chevron-left" />
+                  </button>
+                  <span className="text-sm text-slate-400">
+                    {fsPage + 1} / {fsTotalPages}
+                  </span>
+                  <button
+                    disabled={fsPage >= fsTotalPages - 1}
+                    onClick={() => searchFs(fsQ, fsPage + 1)}
+                    className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white disabled:pointer-events-none disabled:opacity-30"
+                  >
+                    <Icon icon="mdi:chevron-right" />
+                  </button>
+                </div>
+              )}
             </>
           ) : null}
         </div>
@@ -865,38 +961,58 @@ export default function AdminFoodsPage() {
       {/* ===== Category Management Drawer ===== */}
       {catDrawer && (
         <div className="fixed inset-0 z-50 flex justify-end">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => { setCatDrawer(false); setCatForm(null); }} />
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => {
+              setCatDrawer(false);
+              setCatForm(null);
+            }}
+          />
           <div className="relative flex h-full w-full max-w-md flex-col bg-slate-900 shadow-2xl">
             {/* Drawer header */}
             <div className="flex items-center justify-between border-b border-slate-800 px-6 py-4">
               <h2 className="font-['Manrope',sans-serif] font-semibold text-white">管理分類</h2>
               <button
-                onClick={() => { setCatDrawer(false); setCatForm(null); }}
-                className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-800 hover:text-white transition-colors"
+                onClick={() => {
+                  setCatDrawer(false);
+                  setCatForm(null);
+                }}
+                className="rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-slate-800 hover:text-white"
               >
                 <Icon icon="mdi:close" />
               </button>
             </div>
 
             {/* Category list */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+            <div className="flex-1 space-y-2 overflow-y-auto p-4">
               {allCats.map((c) => (
-                <div key={c.id} className="flex items-center gap-3 rounded-xl bg-slate-800/60 px-4 py-3">
+                <div
+                  key={c.id}
+                  className="flex items-center gap-3 rounded-xl bg-slate-800/60 px-4 py-3"
+                >
                   {c.icon && <span className="text-xl">{c.icon}</span>}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-white truncate">{c.name}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-white">{c.name}</p>
                     <p className="text-xs text-slate-500">{c._count?.foods ?? 0} 筆食物</p>
                   </div>
-                  <div className="flex gap-1 flex-shrink-0">
+                  <div className="flex flex-shrink-0 gap-1">
                     <button
-                      onClick={() => setCatForm({ id: c.id, name: c.name, nameEn: c.nameEn ?? '', nameJa: c.nameJa ?? '', icon: c.icon ?? '' })}
-                      className="rounded-lg p-1.5 text-slate-500 hover:text-white hover:bg-slate-700 transition-colors"
+                      onClick={() =>
+                        setCatForm({
+                          id: c.id,
+                          name: c.name,
+                          nameEn: c.nameEn ?? '',
+                          nameJa: c.nameJa ?? '',
+                          icon: c.icon ?? '',
+                        })
+                      }
+                      className="rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-slate-700 hover:text-white"
                     >
                       <Icon icon="mdi:pencil-outline" className="text-base" />
                     </button>
                     <button
                       onClick={() => deleteCat(c.id)}
-                      className="rounded-lg p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                      className="rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-red-500/10 hover:text-red-400"
                     >
                       <Icon icon="mdi:trash-can-outline" className="text-base" />
                     </button>
@@ -909,18 +1025,20 @@ export default function AdminFoodsPage() {
             </div>
 
             {/* Add / edit form */}
-            <div className="border-t border-slate-800 p-4 space-y-3">
+            <div className="space-y-3 border-t border-slate-800 p-4">
               {catForm === null ? (
                 <button
                   onClick={() => setCatForm({ id: '', name: '', nameEn: '', nameJa: '', icon: '' })}
-                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#4648d4]/20 py-2.5 text-sm font-medium text-[#6063ee] hover:bg-[#4648d4]/30 transition-colors"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#4648d4]/20 py-2.5 text-sm font-medium text-[#6063ee] transition-colors hover:bg-[#4648d4]/30"
                 >
                   <Icon icon="mdi:plus" />
                   新增分類
                 </button>
               ) : (
                 <>
-                  <p className="text-xs font-medium text-slate-400">{catForm.id ? '編輯分類' : '新增分類'}</p>
+                  <p className="text-xs font-medium text-slate-400">
+                    {catForm.id ? '編輯分類' : '新增分類'}
+                  </p>
                   <div className="grid grid-cols-4 gap-2">
                     <div className="col-span-1">
                       <label className="mb-1 block text-xs text-slate-500">Emoji</label>
@@ -969,14 +1087,14 @@ export default function AdminFoodsPage() {
                   <div className="flex gap-2">
                     <button
                       onClick={() => setCatForm(null)}
-                      className="flex-1 rounded-xl bg-slate-800 py-2 text-sm text-slate-300 hover:bg-slate-700 transition-colors"
+                      className="flex-1 rounded-xl bg-slate-800 py-2 text-sm text-slate-300 transition-colors hover:bg-slate-700"
                     >
                       取消
                     </button>
                     <button
                       onClick={saveCat}
                       disabled={catSaving || !catForm.name}
-                      className="flex-1 rounded-xl bg-gradient-to-r from-[#4648d4] to-[#6063ee] py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50 transition-all"
+                      className="flex-1 rounded-xl bg-gradient-to-r from-[#4648d4] to-[#6063ee] py-2 text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
                     >
                       {catSaving ? '儲存中…' : '儲存'}
                     </button>

@@ -131,9 +131,12 @@ export function EditMealFoodDialog({
           {/* 食物資訊 */}
           <div className="space-y-2">
             <div>
-              <p className="text-lg font-medium">{getLocalizedName(mealFood.name, mealFood.nameEn)}</p>
+              <p className="text-lg font-medium">
+                {getLocalizedName(mealFood.name, mealFood.nameEn)}
+              </p>
               <p className="text-sm text-muted-foreground">
-                {t('perServingUnit')} {mealFood.portionSize / mealFood.servings} {mealFood.portionUnit}
+                {t('perServingUnit')} {mealFood.portionSize / mealFood.servings}{' '}
+                {mealFood.portionUnit}
               </p>
             </div>
           </div>

@@ -98,7 +98,10 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   const parsed = foodSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: '資料驗證失敗', details: parsed.error.issues }, { status: 400 });
+    return NextResponse.json(
+      { error: '資料驗證失敗', details: parsed.error.issues },
+      { status: 400 }
+    );
   }
 
   const { categoryId, source, ...rest } = parsed.data;
@@ -127,7 +130,10 @@ export async function PUT(req: NextRequest) {
   const { id, categoryId, ...rest } = body;
   const parsed = foodSchema.safeParse(rest);
   if (!parsed.success) {
-    return NextResponse.json({ error: '資料驗證失敗', details: parsed.error.issues }, { status: 400 });
+    return NextResponse.json(
+      { error: '資料驗證失敗', details: parsed.error.issues },
+      { status: 400 }
+    );
   }
 
   const existing = await prisma.food.findUnique({ where: { id }, select: { source: true } });

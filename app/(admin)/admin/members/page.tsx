@@ -97,12 +97,12 @@ export default function AdminMembersPage() {
   const deleteReady = deleteConfirm === deleting?.email;
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div className="mx-auto max-w-5xl space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-['Manrope',sans-serif] text-2xl font-bold text-white">會員管理</h1>
-          <p className="text-slate-400 text-sm mt-1">共 {total.toLocaleString()} 位會員</p>
+          <p className="mt-1 text-sm text-slate-400">共 {total.toLocaleString()} 位會員</p>
         </div>
       </div>
 
@@ -110,88 +110,93 @@ export default function AdminMembersPage() {
       <div className="relative">
         <Icon
           icon="mdi:magnify"
-          className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-lg"
+          className="absolute left-3.5 top-1/2 -translate-y-1/2 text-lg text-slate-500"
         />
         <input
           type="text"
           placeholder="搜尋姓名或 Email..."
           value={q}
-          onChange={(e) => { setQ(e.target.value); setPage(1); }}
-          className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900/60 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#4648d4]/50"
+          onChange={(e) => {
+            setQ(e.target.value);
+            setPage(1);
+          }}
+          className="w-full rounded-xl bg-slate-900/60 py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#4648d4]/50"
         />
       </div>
 
       {/* Table */}
-      <div className="rounded-2xl bg-slate-900/60 overflow-hidden">
+      <div className="overflow-hidden rounded-2xl bg-slate-900/60">
         {loading ? (
           <div className="space-y-3 p-6">
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-14 rounded-xl bg-slate-800/50 animate-pulse" />
+              <div key={i} className="h-14 animate-pulse rounded-xl bg-slate-800/50" />
             ))}
           </div>
         ) : members.length === 0 ? (
           <div className="p-12 text-center text-slate-500">
-            <Icon icon="mdi:account-search-outline" className="text-4xl mx-auto mb-3" />
+            <Icon icon="mdi:account-search-outline" className="mx-auto mb-3 text-4xl" />
             <p>找不到會員</p>
           </div>
         ) : (
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-slate-800/60">
-                <th className="text-left px-6 py-3 text-slate-500 font-medium">會員</th>
-                <th className="text-left px-4 py-3 text-slate-500 font-medium">角色</th>
-                <th className="text-left px-4 py-3 text-slate-500 font-medium">狀態</th>
-                <th className="text-left px-4 py-3 text-slate-500 font-medium">加入日期</th>
+                <th className="px-6 py-3 text-left font-medium text-slate-500">會員</th>
+                <th className="px-4 py-3 text-left font-medium text-slate-500">角色</th>
+                <th className="px-4 py-3 text-left font-medium text-slate-500">狀態</th>
+                <th className="px-4 py-3 text-left font-medium text-slate-500">加入日期</th>
                 <th className="px-4 py-3" />
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/40">
               {members.map((m) => (
-                <tr key={m.id} className="hover:bg-slate-800/30 transition-colors">
+                <tr key={m.id} className="transition-colors hover:bg-slate-800/30">
                   <td className="px-6 py-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center flex-shrink-0">
-                        <span className="text-xs text-slate-300 font-medium">
+                      <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-slate-700">
+                        <span className="text-xs font-medium text-slate-300">
                           {(m.name ?? m.email ?? '?')[0].toUpperCase()}
                         </span>
                       </div>
                       <div className="min-w-0">
-                        <p className="font-medium text-white truncate">{m.name ?? '未命名'}</p>
-                        <p className="text-slate-500 truncate text-xs">{m.email}</p>
+                        <p className="truncate font-medium text-white">{m.name ?? '未命名'}</p>
+                        <p className="truncate text-xs text-slate-500">{m.email}</p>
                       </div>
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${ROLE_COLOR[m.role]}`}>
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${ROLE_COLOR[m.role]}`}
+                    >
                       {m.role}
                     </span>
                   </td>
                   <td className="px-4 py-3">
                     <span
-                      className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                         m.isActive
-                          ? 'text-emerald-400 bg-emerald-500/10'
-                          : 'text-slate-500 bg-slate-800'
+                          ? 'bg-emerald-500/10 text-emerald-400'
+                          : 'bg-slate-800 text-slate-500'
                       }`}
                     >
                       {m.isActive ? '啟用' : '停用'}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-slate-400 text-xs">
+                  <td className="px-4 py-3 text-xs text-slate-400">
                     {new Date(m.createdAt).toLocaleDateString('zh-TW')}
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-1">
                       <button
                         onClick={() => setEditing({ ...m })}
-                        className="p-1.5 rounded-lg text-slate-500 hover:text-white hover:bg-slate-700 transition-colors"
+                        className="rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-slate-700 hover:text-white"
                         title="編輯"
                       >
                         <Icon icon="mdi:pencil-outline" className="text-base" />
                       </button>
                       <button
                         onClick={() => handleDeleteOpen(m)}
-                        className="p-1.5 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                        className="rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-red-500/10 hover:text-red-400"
                         title="刪除"
                       >
                         <Icon icon="mdi:trash-can-outline" className="text-base" />
@@ -211,7 +216,7 @@ export default function AdminMembersPage() {
           <button
             disabled={page <= 1}
             onClick={() => setPage((p) => p - 1)}
-            className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+            className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white disabled:pointer-events-none disabled:opacity-30"
           >
             <Icon icon="mdi:chevron-left" />
           </button>
@@ -221,7 +226,7 @@ export default function AdminMembersPage() {
           <button
             disabled={page >= totalPages}
             onClick={() => setPage((p) => p + 1)}
-            className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+            className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white disabled:pointer-events-none disabled:opacity-30"
           >
             <Icon icon="mdi:chevron-right" />
           </button>
@@ -231,33 +236,38 @@ export default function AdminMembersPage() {
       {/* Edit modal */}
       {editing && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setEditing(null)} />
-          <div className="relative w-full max-w-sm rounded-2xl bg-slate-900/90 backdrop-blur-[12px] p-6 space-y-5 shadow-2xl">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setEditing(null)}
+          />
+          <div className="relative w-full max-w-sm space-y-5 rounded-2xl bg-slate-900/90 p-6 shadow-2xl backdrop-blur-[12px]">
             <div className="flex items-center justify-between">
               <h2 className="font-['Manrope',sans-serif] font-semibold text-white">編輯會員</h2>
               <button
                 onClick={() => setEditing(null)}
-                className="p-1.5 rounded-lg text-slate-500 hover:text-white hover:bg-slate-700 transition-colors"
+                className="rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-slate-700 hover:text-white"
               >
                 <Icon icon="mdi:close" />
               </button>
             </div>
 
             <div className="space-y-1">
-              <p className="text-white font-medium">{editing.name ?? '未命名'}</p>
-              <p className="text-slate-400 text-sm">{editing.email}</p>
+              <p className="font-medium text-white">{editing.name ?? '未命名'}</p>
+              <p className="text-sm text-slate-400">{editing.email}</p>
             </div>
 
             <div className="space-y-3">
               <div>
-                <label className="block text-xs text-slate-400 mb-1.5">角色</label>
+                <label className="mb-1.5 block text-xs text-slate-400">角色</label>
                 <select
                   value={editing.role}
                   onChange={(e) => setEditing({ ...editing, role: e.target.value as Role })}
-                  className="w-full rounded-xl bg-slate-800 text-white text-sm px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#4648d4]/50"
+                  className="w-full rounded-xl bg-slate-800 px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#4648d4]/50"
                 >
                   {ROLE_OPTIONS.map((r) => (
-                    <option key={r} value={r}>{r}</option>
+                    <option key={r} value={r}>
+                      {r}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -266,7 +276,7 @@ export default function AdminMembersPage() {
               <div className="flex items-center justify-between py-1">
                 <div>
                   <p className="text-sm text-slate-300">啟用帳號</p>
-                  <p className="text-xs text-slate-500 mt-0.5">
+                  <p className="mt-0.5 text-xs text-slate-500">
                     {editing.isActive ? '帳號正常使用中' : '帳號已停用，無法登入'}
                   </p>
                 </div>
@@ -292,7 +302,7 @@ export default function AdminMembersPage() {
             <button
               onClick={handleSave}
               disabled={saving}
-              className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#4648d4] to-[#6063ee] text-white text-sm font-semibold hover:opacity-90 disabled:opacity-50 transition-all"
+              className="w-full rounded-xl bg-gradient-to-r from-[#4648d4] to-[#6063ee] py-2.5 text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
             >
               {saving ? '儲存中…' : '儲存變更'}
             </button>
@@ -303,71 +313,78 @@ export default function AdminMembersPage() {
       {/* Delete confirm modal */}
       {deleting && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setDeleting(null)} />
-          <div className="relative w-full max-w-md rounded-2xl bg-slate-900/95 backdrop-blur-[12px] p-6 space-y-5 shadow-2xl border border-red-500/20">
+          <div
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={() => setDeleting(null)}
+          />
+          <div className="relative w-full max-w-md space-y-5 rounded-2xl border border-red-500/20 bg-slate-900/95 p-6 shadow-2xl backdrop-blur-[12px]">
             {/* Header */}
             <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center">
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-red-500/10">
                 <Icon icon="mdi:alert-outline" className="text-xl text-red-400" />
               </div>
               <div>
                 <h2 className="font-['Manrope',sans-serif] font-semibold text-white">刪除會員</h2>
-                <p className="text-xs text-slate-400 mt-0.5">此操作無法復原，所有相關資料將一併移除</p>
+                <p className="mt-0.5 text-xs text-slate-400">
+                  此操作無法復原，所有相關資料將一併移除
+                </p>
               </div>
               <button
                 onClick={() => setDeleting(null)}
-                className="ml-auto p-1.5 rounded-lg text-slate-500 hover:text-white hover:bg-slate-700 transition-colors"
+                className="ml-auto rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-slate-700 hover:text-white"
               >
                 <Icon icon="mdi:close" />
               </button>
             </div>
 
             {/* Target user info */}
-            <div className="rounded-xl bg-slate-800/60 p-4 space-y-1">
+            <div className="space-y-1 rounded-xl bg-slate-800/60 p-4">
               <p className="text-sm font-medium text-white">{deleting.name ?? '未命名'}</p>
               <p className="text-xs text-slate-400">{deleting.email}</p>
-              <span className={`inline-block text-xs px-2 py-0.5 rounded-full font-medium mt-1 ${ROLE_COLOR[deleting.role]}`}>
+              <span
+                className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-medium ${ROLE_COLOR[deleting.role]}`}
+              >
                 {deleting.role}
               </span>
             </div>
 
             {/* Reason (optional) */}
             <div>
-              <label className="block text-xs text-slate-400 mb-1.5">刪除原因（選填）</label>
+              <label className="mb-1.5 block text-xs text-slate-400">刪除原因（選填）</label>
               <input
                 type="text"
                 value={deleteReason}
                 onChange={(e) => setDeleteReason(e.target.value)}
                 placeholder="例：違反使用條款、本人申請…"
-                className="w-full rounded-xl bg-slate-800 text-white text-sm px-3 py-2.5 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-red-500/40"
+                className="w-full rounded-xl bg-slate-800 px-3 py-2.5 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-red-500/40"
               />
             </div>
 
             {/* Email confirmation */}
             <div>
-              <label className="block text-xs text-slate-400 mb-1.5">
-                請輸入 <span className="text-white font-medium">{deleting.email}</span> 以確認刪除
+              <label className="mb-1.5 block text-xs text-slate-400">
+                請輸入 <span className="font-medium text-white">{deleting.email}</span> 以確認刪除
               </label>
               <input
                 type="text"
                 value={deleteConfirm}
                 onChange={(e) => setDeleteConfirm(e.target.value)}
                 placeholder="輸入 Email 確認..."
-                className="w-full rounded-xl bg-slate-800 text-white text-sm px-3 py-2.5 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-red-500/40"
+                className="w-full rounded-xl bg-slate-800 px-3 py-2.5 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-red-500/40"
               />
             </div>
 
             <div className="flex gap-3">
               <button
                 onClick={() => setDeleting(null)}
-                className="flex-1 py-2.5 rounded-xl bg-slate-800 text-slate-300 text-sm font-medium hover:bg-slate-700 transition-colors"
+                className="flex-1 rounded-xl bg-slate-800 py-2.5 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-700"
               >
                 取消
               </button>
               <button
                 onClick={handleDeleteConfirm}
                 disabled={!deleteReady || deleteLoading}
-                className="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                className="flex-1 rounded-xl bg-red-500 py-2.5 text-sm font-semibold text-white transition-all hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {deleteLoading ? '刪除中…' : '確認刪除'}
               </button>

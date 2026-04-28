@@ -1,17 +1,11 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 import {
   Camera,
   Apple,
@@ -25,8 +19,8 @@ import {
   Wheat,
   Droplets,
   Dumbbell,
-} from "lucide-react";
-import NutritionSummaryCard from "@/components/dashboard/NutritionSummaryCard";
+} from 'lucide-react';
+import NutritionSummaryCard from '@/components/dashboard/NutritionSummaryCard';
 
 // 介面定義
 interface NutritionTotals {
@@ -60,16 +54,16 @@ export default function DashboardPage() {
   });
   const [goals, setGoals] = useState<UserGoals | null>(null);
   const [weeklyData, setWeeklyData] = useState<WeeklyData[]>([]);
-  const [userName, setUserName] = useState<string>("");
+  const [userName, setUserName] = useState<string>('');
 
   // 載入使用者名稱
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await fetch("/api/users/me");
+        const res = await fetch('/api/users/me');
         if (res.ok) {
           const data = await res.json();
-          setUserName(data.data?.name || "");
+          setUserName(data.data?.name || '');
         }
       } catch {
         /* ignore */
@@ -104,7 +98,7 @@ export default function DashboardPage() {
         // 2. 一次拿目標
         const [weeklyResponse, goalsResponse] = await Promise.all([
           fetch(`/api/meals?startDate=${startDateStr}&endDate=${todayStr}`),
-          fetch("/api/goals"),
+          fetch('/api/goals'),
         ]);
 
         // 處理 7 天飲食：將 meals 依日期分組，累計每日卡路里
@@ -138,7 +132,7 @@ export default function DashboardPage() {
 
           // 累加每筆 meal 的食物營養素到對應日期
           for (const meal of meals) {
-            const dateKey = meal.mealDate.split("T")[0];
+            const dateKey = meal.mealDate.split('T')[0];
             if (!dailyMap[dateKey]) continue;
             for (const food of meal.foods) {
               dailyMap[dateKey].calories += food.calories;
@@ -164,7 +158,7 @@ export default function DashboardPage() {
             Object.entries(dailyMap).map(([date, v]) => ({
               date,
               calories: Math.round(v.calories),
-            })),
+            }))
           );
         }
 
@@ -176,7 +170,7 @@ export default function DashboardPage() {
 
         setIsLoading(false);
       } catch (error) {
-        console.error("Failed to fetch data:", error);
+        console.error('Failed to fetch data:', error);
         setIsLoading(false);
       }
     };
@@ -192,11 +186,11 @@ export default function DashboardPage() {
 
   // 取得進度顏色 (hex for SVG stroke)
   const getStrokeColor = (current: number, goal: number) => {
-    if (!goal) return "#10b981";
+    if (!goal) return '#10b981';
     const percentage = (current / goal) * 100;
-    if (percentage >= 90 && percentage <= 110) return "#10b981";
-    if (percentage > 110) return "#f97316";
-    return "#10b981";
+    if (percentage >= 90 && percentage <= 110) return '#10b981';
+    if (percentage > 110) return '#f97316';
+    return '#10b981';
   };
 
   // 取得狀態訊息
@@ -217,16 +211,13 @@ export default function DashboardPage() {
   // 週平均
   const weeklyAverage =
     weeklyData.length > 0
-      ? Math.round(
-          weeklyData.reduce((sum, day) => sum + day.calories, 0) /
-            weeklyData.length,
-        )
+      ? Math.round(weeklyData.reduce((sum, day) => sum + day.calories, 0) / weeklyData.length)
       : 0;
 
   // 最大值用於圖表比例
   const maxCalories = Math.max(
     ...weeklyData.map((d) => d.calories),
-    goals?.dailyCalorieGoal || 2000,
+    goals?.dailyCalorieGoal || 2000
   );
 
   if (isLoading) {
@@ -238,90 +229,88 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto space-y-6 p-6">
       {/* 頁首 */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">
             {getGreeting()}，{userName || t('greeting.suffix')}！👋
           </h1>
-          <p className="text-muted-foreground mt-1">
-            {t('description')}
-          </p>
+          <p className="mt-1 text-muted-foreground">{t('description')}</p>
         </div>
-        <Button onClick={() => router.push("/scan")} size="lg">
+        <Button onClick={() => router.push('/scan')} size="lg">
           <Camera className="mr-2 h-5 w-5" />
           {t('quickScan')}
         </Button>
       </div>
 
       {/* 快捷操作卡片 */}
-      <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+      <div className="scrollbar-hide flex gap-4 overflow-x-auto pb-2">
         {[
           {
-            href: "/scan",
+            href: '/scan',
             label: t('quickActions.scanFood'),
             desc: t('quickActions.scanFoodDesc'),
             icon: Camera,
-            iconBg: "bg-gray-100",
-            iconColor: "text-gray-700",
+            iconBg: 'bg-gray-100',
+            iconColor: 'text-gray-700',
           },
           {
-            href: "/meals",
+            href: '/meals',
             label: t('quickActions.viewMeals'),
             desc: t('quickActions.viewMealsDesc'),
             icon: Apple,
-            iconBg: "bg-green-100",
-            iconColor: "text-green-600",
+            iconBg: 'bg-green-100',
+            iconColor: 'text-green-600',
           },
           {
-            href: "/nutrition",
+            href: '/nutrition',
             label: t('quickActions.viewNutrition'),
             desc: t('quickActions.viewNutritionDesc'),
             icon: Activity,
-            iconBg: "bg-purple-100",
-            iconColor: "text-purple-600",
+            iconBg: 'bg-purple-100',
+            iconColor: 'text-purple-600',
           },
           {
-            href: "/analytics",
+            href: '/analytics',
             label: t('quickActions.viewAnalytics'),
             desc: t('quickActions.viewAnalyticsDesc'),
             icon: BarChart3,
-            iconBg: "bg-indigo-100",
-            iconColor: "text-indigo-600",
+            iconBg: 'bg-indigo-100',
+            iconColor: 'text-indigo-600',
           },
           {
-            href: "/goals",
+            href: '/goals',
             label: t('quickActions.viewGoals'),
             desc: t('quickActions.viewGoalsDesc'),
             icon: Target,
-            iconBg: "bg-orange-100",
-            iconColor: "text-orange-600",
+            iconBg: 'bg-orange-100',
+            iconColor: 'text-orange-600',
           },
         ].map((item) => (
           <Card
             key={item.href}
-            className="cursor-pointer hover:bg-accent transition-colors flex-shrink-0 min-w-[160px]"
+            className="min-w-[160px] flex-shrink-0 cursor-pointer transition-colors hover:bg-accent"
             onClick={() => router.push(item.href)}
           >
-            <CardContent className="p-5 flex items-center gap-4">
+            <CardContent className="flex items-center gap-4 p-5">
               <div
-                className={`w-12 h-12 rounded-full ${item.iconBg} flex items-center justify-center flex-shrink-0`}
+                className={`h-12 w-12 rounded-full ${item.iconBg} flex flex-shrink-0 items-center justify-center`}
               >
                 <item.icon className={`h-6 w-6 ${item.iconColor}`} />
               </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-sm">{item.label}</h3>
+              <div className="min-w-0 flex-1">
+                <h3 className="text-sm font-semibold">{item.label}</h3>
                 <p className="text-xs text-muted-foreground">{item.desc}</p>
               </div>
-              <ChevronRight className="h-4 w-4 text-gray-400 flex-shrink-0" />
+              <ChevronRight className="h-4 w-4 flex-shrink-0 text-gray-400" />
             </CardContent>
           </Card>
         ))}
       </div>
 
       {/* 今日進度 */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         {/* 卡路里圓形圖 */}
         <Card>
           <CardHeader>
@@ -332,8 +321,8 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent className="flex flex-col items-center">
             {/* SVG 圓形進度 */}
-            <div className="relative w-48 h-48">
-              <svg className="w-full h-full -rotate-90" viewBox="0 0 192 192">
+            <div className="relative h-48 w-48">
+              <svg className="h-full w-full -rotate-90" viewBox="0 0 192 192">
                 {/* 背景圓 */}
                 <circle
                   cx="96"
@@ -350,22 +339,14 @@ export default function DashboardPage() {
                   cy="96"
                   r="88"
                   fill="none"
-                  stroke={getStrokeColor(
-                    todayTotals.calories,
-                    goals?.dailyCalorieGoal || 2000,
-                  )}
+                  stroke={getStrokeColor(todayTotals.calories, goals?.dailyCalorieGoal || 2000)}
                   strokeWidth="12"
                   strokeDasharray={`${2 * Math.PI * 88}`}
                   strokeDashoffset={`${
                     2 *
                     Math.PI *
                     88 *
-                    (1 -
-                      getProgress(
-                        todayTotals.calories,
-                        goals?.dailyCalorieGoal || 2000,
-                      ) /
-                        100)
+                    (1 - getProgress(todayTotals.calories, goals?.dailyCalorieGoal || 2000) / 100)
                   }`}
                   strokeLinecap="round"
                 />
@@ -374,20 +355,13 @@ export default function DashboardPage() {
               <div className="absolute inset-0 flex flex-col items-center justify-center">
                 <p className="text-4xl font-bold">{todayTotals.calories}</p>
                 <p className="text-sm text-muted-foreground">kcal</p>
-                <p className="text-sm font-medium mt-1">
-                  {Math.round(
-                    (todayTotals.calories / (goals?.dailyCalorieGoal || 2000)) *
-                      100,
-                  )}
-                  %
+                <p className="mt-1 text-sm font-medium">
+                  {Math.round((todayTotals.calories / (goals?.dailyCalorieGoal || 2000)) * 100)}%
                 </p>
               </div>
             </div>
-            <p className="text-sm text-center mt-4 text-muted-foreground">
-              {getStatusMessage(
-                todayTotals.calories,
-                goals?.dailyCalorieGoal || 2000,
-              )}
+            <p className="mt-4 text-center text-sm text-muted-foreground">
+              {getStatusMessage(todayTotals.calories, goals?.dailyCalorieGoal || 2000)}
             </p>
           </CardContent>
         </Card>
@@ -403,7 +377,7 @@ export default function DashboardPage() {
               <>
                 {/* 蛋白質 */}
                 <div>
-                  <div className="flex justify-between mb-1">
+                  <div className="mb-1 flex justify-between">
                     <span className="text-sm font-medium">{t('macros.protein')}</span>
                     <span className="text-sm text-muted-foreground">
                       {todayTotals.protein}g / {goals.proteinGoal}g
@@ -418,7 +392,7 @@ export default function DashboardPage() {
 
                 {/* 碳水化合物 */}
                 <div>
-                  <div className="flex justify-between mb-1">
+                  <div className="mb-1 flex justify-between">
                     <span className="text-sm font-medium">{t('macros.carbs')}</span>
                     <span className="text-sm text-muted-foreground">
                       {todayTotals.carbs}g / {goals.carbsGoal}g
@@ -433,7 +407,7 @@ export default function DashboardPage() {
 
                 {/* 脂肪 */}
                 <div>
-                  <div className="flex justify-between mb-1">
+                  <div className="mb-1 flex justify-between">
                     <span className="text-sm font-medium">{t('macros.fat')}</span>
                     <span className="text-sm text-muted-foreground">
                       {todayTotals.fat}g / {goals.fatGoal}g
@@ -447,12 +421,10 @@ export default function DashboardPage() {
                 </div>
               </>
             ) : (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground text-sm">
-                  {t('nutritionGoalNotSet')}
-                </p>
+              <div className="py-8 text-center">
+                <p className="text-sm text-muted-foreground">{t('nutritionGoalNotSet')}</p>
                 <button
-                  onClick={() => router.push("/goals")}
+                  onClick={() => router.push('/goals')}
                   className="mt-2 text-sm text-primary underline-offset-2 hover:underline"
                 >
                   {t('goToGoals')}
@@ -470,32 +442,29 @@ export default function DashboardPage() {
       <Card>
         <CardHeader>
           <CardTitle>{t('weeklyTrend.title')}</CardTitle>
-          <CardDescription>
-            {t('weeklyAverageDesc', { avg: weeklyAverage })}
-          </CardDescription>
+          <CardDescription>{t('weeklyAverageDesc', { avg: weeklyAverage })}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
             {weeklyData.map((day, index) => {
               const date = new Date(day.date);
               const isToday = index === weeklyData.length - 1;
-              const dayLabel = new Intl.DateTimeFormat(undefined, { weekday: 'short', day: 'numeric' }).format(date);
+              const dayLabel = new Intl.DateTimeFormat(undefined, {
+                weekday: 'short',
+                day: 'numeric',
+              }).format(date);
 
               return (
                 <div key={day.date} className="space-y-1">
                   <div className="flex justify-between text-sm">
-                    <span className={isToday ? "font-semibold" : ""}>
+                    <span className={isToday ? 'font-semibold' : ''}>
                       {dayLabel} {isToday && `(${t('today')})`}
                     </span>
-                    <span className="text-muted-foreground">
-                      {day.calories} kcal
-                    </span>
+                    <span className="text-muted-foreground">{day.calories} kcal</span>
                   </div>
-                  <div className="relative h-6 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="relative h-6 overflow-hidden rounded-full bg-gray-100">
                     <div
-                      className={`h-full rounded-full ${
-                        isToday ? "bg-blue-600" : "bg-blue-400"
-                      }`}
+                      className={`h-full rounded-full ${isToday ? 'bg-blue-600' : 'bg-blue-400'}`}
                       style={{
                         width: `${Math.min((day.calories / maxCalories) * 100, 100)}%`,
                       }}
@@ -503,12 +472,12 @@ export default function DashboardPage() {
                     {/* 目標線 */}
                     {goals && isToday && (
                       <div
-                        className="absolute top-0 bottom-0 w-0.5 bg-emerald-500"
+                        className="absolute bottom-0 top-0 w-0.5 bg-emerald-500"
                         style={{
                           left: `${(goals.dailyCalorieGoal / maxCalories) * 100}%`,
                         }}
                       >
-                        <span className="absolute -top-5 -translate-x-1/2 bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full text-[10px] font-semibold whitespace-nowrap">
+                        <span className="absolute -top-5 -translate-x-1/2 whitespace-nowrap rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
                           {t('weeklyTrend.goalLine')}
                         </span>
                       </div>
@@ -522,7 +491,7 @@ export default function DashboardPage() {
           {/* 趨勢提示 */}
           <div className="mt-6 flex items-center justify-center gap-4 text-sm text-muted-foreground">
             {weeklyData.length >= 2 && (
-              <>  
+              <>
                 {weeklyData[weeklyData.length - 1].calories >
                 weeklyData[weeklyData.length - 2].calories ? (
                   <div className="flex items-center gap-1 text-orange-600">
