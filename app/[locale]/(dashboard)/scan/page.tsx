@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Camera, Loader2, Sparkles } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import { Button } from '@/components/ui/button';
@@ -13,6 +14,7 @@ import { compressImageFromSrc } from '@/lib/client-image-compress';
 
 export default function ScanPage() {
   const router = useRouter();
+  const t = useTranslations('scan');
   const [showCamera, setShowCamera] = useState(false);
   const [showBarcodeDialog, setShowBarcodeDialog] = useState(false);
   const [barcodeResult, setBarcodeResult] = useState<{ food: BarcodeFood; cached: boolean } | null>(
@@ -63,7 +65,7 @@ export default function ScanPage() {
       });
 
       if (!uploadResponse.ok) {
-        throw new Error('上傳失敗');
+        throw new Error(t('uploadFailed'));
       }
 
       setUploadStep('analyzing');
@@ -73,7 +75,7 @@ export default function ScanPage() {
       router.push(`/scan/result/${data.data.recognition.id}`);
     } catch (error) {
       console.error('Upload error:', error);
-      alert('上傳失敗，請重試');
+      alert(t('uploadFailed'));
       setUploadStep('idle');
     } finally {
       setIsUploading(false);
@@ -100,9 +102,9 @@ export default function ScanPage() {
   // Loading overlay
   if (isUploading) {
     const stepLabels = {
-      compressing: '正在壓縮圖片...',
-      uploading: '正在上傳圖片...',
-      analyzing: 'AI 正在分析食物...',
+      compressing: t('compressing'),
+      uploading: t('uploading'),
+      analyzing: t('analyzingStep'),
       idle: '',
     };
     return (
@@ -118,8 +120,8 @@ export default function ScanPage() {
             <h2 className="text-xl font-semibold">{stepLabels[uploadStep]}</h2>
             <p className="max-w-xs text-sm text-muted-foreground">
               {uploadStep === 'analyzing'
-                ? 'AI 正在辨識食物種類與計算營養資訊，請稍候...'
-                : '請稍候，即將為您分析食物'}
+                ? t('analyzingDetail')
+                : t('waitAnalyzing')}
             </p>
           </div>
           <div className="flex gap-2">
@@ -142,14 +144,14 @@ export default function ScanPage() {
   return (
     <div className="container mx-auto max-w-2xl space-y-6 p-6">
       <div>
-        <h1 className="mb-2 text-3xl font-bold">掃描食物</h1>
-        <p className="text-muted-foreground">拍照或上傳食物圖片，AI 將自動辨識營養資訊</p>
+        <h1 className="mb-2 text-3xl font-bold">{t('title')}</h1>
+        <p className="text-muted-foreground">{t('subtitle')}</p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>選擇方式</CardTitle>
-          <CardDescription>使用相機拍照或從相簿選擇圖片</CardDescription>
+          <CardTitle>{t('selectMethod')}</CardTitle>
+          <CardDescription>{t('selectMethodDesc')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <Button
@@ -159,7 +161,7 @@ export default function ScanPage() {
             disabled={isUploading}
           >
             <Camera className="mr-2 h-5 w-5" />
-            使用相機拍照
+            {t('takePhoto')}
           </Button>
 
           <div className="relative">
@@ -167,7 +169,7 @@ export default function ScanPage() {
               <span className="w-full border-t" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">或</span>
+              <span className="bg-background px-2 text-muted-foreground">{t('orSeparator')}</span>
             </div>
           </div>
 
