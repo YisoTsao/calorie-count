@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Plus, Utensils, Target, Edit, Trash2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
@@ -342,8 +343,27 @@ export default function MealsPage() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto max-w-6xl p-6">
-        <p className="text-center">{tc('loading')}</p>
+      <div className="container mx-auto max-w-6xl space-y-6 p-6">
+        {/* 頁首 */}
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <Skeleton className="h-9 w-40" />
+            <Skeleton className="h-4 w-56" />
+          </div>
+          <Skeleton className="h-10 w-28" />
+        </div>
+        {/* 日期選擇 */}
+        <Skeleton className="h-16 w-full rounded-xl" />
+        {/* 今日摘要 */}
+        <Skeleton className="h-36 w-full rounded-xl" />
+        {/* 餐點卡片 x4 */}
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="space-y-3 rounded-xl border p-4">
+            <Skeleton className="h-6 w-24" />
+            <Skeleton className="h-16 w-full" />
+            <Skeleton className="h-16 w-full" />
+          </div>
+        ))}
       </div>
     );
   }

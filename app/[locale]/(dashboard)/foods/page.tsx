@@ -7,7 +7,6 @@ import {
   Plus,
   Heart,
   Filter,
-  Loader2,
   Pencil,
   Trash2,
   Leaf,
@@ -25,6 +24,7 @@ import {
   UtensilsCrossed,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -1029,8 +1029,10 @@ export default function FoodsPage() {
 
       {/* Foods Grid */}
       {isLoading ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {[...Array(6)].map((_, i) => (
+            <Skeleton key={i} className="h-48 rounded-xl" />
+          ))}
         </div>
       ) : foods.length === 0 ? (
         <Card>

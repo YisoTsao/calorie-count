@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-
+import { Skeleton } from '@/components/ui/skeleton';
 import { useEffect, useState } from 'react';
 import TrendChart from '@/components/analytics/TrendChart';
 import AchievementWall from '@/components/analytics/AchievementWall';
@@ -60,8 +60,31 @@ export default function AnalyticsPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <p className="py-12 text-center text-gray-400">{tc('loading')}</p>
+      <div className="container mx-auto max-w-7xl px-4 py-8 space-y-8">
+        {/* 頁首 */}
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <Skeleton className="h-9 w-40" />
+            <Skeleton className="h-4 w-48" />
+          </div>
+          <Skeleton className="h-10 w-40 rounded-lg" />
+        </div>
+        {/* 摘要卡片 x4 */}
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} className="h-28 rounded-lg" />
+          ))}
+        </div>
+        {/* 圖表 */}
+        <Skeleton className="h-64 w-full rounded-lg" />
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <Skeleton className="h-56 rounded-lg" />
+          <Skeleton className="h-56 rounded-lg" />
+        </div>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <Skeleton className="h-56 rounded-lg" />
+          <Skeleton className="h-56 rounded-lg" />
+        </div>
       </div>
     );
   }

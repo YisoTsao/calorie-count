@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -222,8 +223,31 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto p-6">
-        <p className="text-center">{t('loading')}</p>
+      <div className="container mx-auto space-y-6 p-6">
+        {/* 頁首 */}
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <Skeleton className="h-9 w-64" />
+            <Skeleton className="h-4 w-48" />
+          </div>
+          <Skeleton className="h-10 w-32" />
+        </div>
+        {/* 快捷操作 */}
+        <div className="flex gap-4 overflow-hidden pb-2">
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} className="h-24 w-36 shrink-0 rounded-xl" />
+          ))}
+        </div>
+        {/* 卡路里進度卡 */}
+        <Skeleton className="h-48 w-full rounded-xl" />
+        {/* 營養素卡片 */}
+        <div className="grid grid-cols-3 gap-4">
+          {[...Array(3)].map((_, i) => (
+            <Skeleton key={i} className="h-28 rounded-xl" />
+          ))}
+        </div>
+        {/* 週趨勢 */}
+        <Skeleton className="h-48 w-full rounded-xl" />
       </div>
     );
   }
