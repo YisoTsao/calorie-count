@@ -1,5 +1,6 @@
-import sharp from 'sharp';
-import { put } from '@vercel/blob';
+import { createClient } from '@/utils/supabase/server';
+import { cookies } from 'next/headers';
+import { getStorageUrl } from '@/lib/storage-url';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -32,88 +33,60 @@ export function validateImageFile(file: File): { valid: boolean; error?: string 
 }
 
 /**
- * 壓縮圖片
+ * 壓縮圖片（伺服器端，使用 canvas-free approach）
  */
 export async function compressImage(
   buffer: Buffer,
   options: ImageUploadOptions = {}
 ): Promise<Buffer> {
-  const { maxWidth = 1920, maxHeight = 1920, quality = 80, format = 'webp' } = options;
-
-  let image = sharp(buffer);
-
-  // 取得圖片資訊
-  const metadata = await image.metadata();
-
-  // 如果圖片超過最大尺寸,進行縮放
-  if (
-    (metadata.width && metadata.width > maxWidth) ||
-    (metadata.height && metadata.height > maxHeight)
-  ) {
-    image = image.resize(maxWidth, maxHeight, {
-      fit: 'inside',
-      withoutEnlargement: true,
-    });
-  }
-
-  // 轉換格式並壓縮
-  if (format === 'jpeg') {
-    image = image.jpeg({ quality });
-  } else if (format === 'png') {
-    image = image.png({ quality });
-  } else {
-    image = image.webp({ quality });
-  }
-
-  return await image.toBuffer();
+  // 伺服器端不再做壓縮，壓縮在客戶端完成
+  // 此處保留介面相容性
+  return buffer;
 }
 
 /**
- * 處理頭像圖片 (正方形裁切)
+ * 處理頭像圖片（伺服器端不再做裁切，客戶端已壓縮）
  */
 export async function processAvatar(buffer: Buffer): Promise<Buffer> {
-  return await sharp(buffer)
-    .resize(AVATAR_SIZE, AVATAR_SIZE, {
-      fit: 'cover',
-      position: 'center',
-    })
-    .webp({ quality: 85 })
-    .toBuffer();
+  return buffer;
 }
 
 /**
- * 上傳圖片到 Vercel Blob
+ * 上傳圖片到 Supabase Storage
  */
 export async function uploadImage(
   file: File,
   folder: string = 'uploads'
 ): Promise<{ url: string; error?: string }> {
   try {
-    // 驗證檔案
     const validation = validateImageFile(file);
     if (!validation.valid) {
       return { url: '', error: validation.error };
     }
 
-    // 讀取檔案
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // 壓縮圖片
-    const compressedBuffer = await compressImage(buffer);
-
-    // 生成檔名
     const timestamp = Date.now();
-    const randomString = Math.random().toString(36).substring(7);
-    const filename = `${folder}/${timestamp}-${randomString}.webp`;
+    const uuid = crypto.randomUUID();
+    const path = `${folder}/${timestamp}-${uuid}.webp`;
 
-    // 上傳到 Vercel Blob
-    const blob = await put(filename, compressedBuffer, {
-      access: 'public',
-      contentType: 'image/webp',
-    });
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
 
-    return { url: blob.url };
+    const { error } = await supabase.storage
+      .from('food-scans')
+      .upload(path, buffer, {
+        contentType: file.type.startsWith('image/') ? 'image/webp' : file.type,
+        upsert: false,
+      });
+
+    if (error) {
+      console.error('圖片上傳失敗:', error.message);
+      return { url: '', error: '圖片上傳失敗,請稍後再試' };
+    }
+
+    return { url: getStorageUrl('food-scans', path) };
   } catch (error) {
     console.error('圖片上傳失敗:', error);
     return { url: '', error: '圖片上傳失敗,請稍後再試' };
@@ -121,35 +94,38 @@ export async function uploadImage(
 }
 
 /**
- * 上傳頭像
+ * 上傳頭像到 Supabase Storage avatars bucket
  */
-export async function uploadAvatar(file: File): Promise<{ url: string; error?: string }> {
+export async function uploadAvatar(file: File, userId?: string): Promise<{ url: string; error?: string }> {
   try {
-    // 驗證檔案
     const validation = validateImageFile(file);
     if (!validation.valid) {
       return { url: '', error: validation.error };
     }
 
-    // 讀取檔案
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // 處理頭像 (裁切成正方形並壓縮)
-    const processedBuffer = await processAvatar(buffer);
-
-    // 生成檔名
     const timestamp = Date.now();
-    const randomString = Math.random().toString(36).substring(7);
-    const filename = `avatars/${timestamp}-${randomString}.webp`;
+    const prefix = userId ?? 'unknown';
+    const path = `${prefix}/${timestamp}.webp`;
 
-    // 上傳到 Vercel Blob
-    const blob = await put(filename, processedBuffer, {
-      access: 'public',
-      contentType: 'image/webp',
-    });
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
 
-    return { url: blob.url };
+    const { error } = await supabase.storage
+      .from('avatars')
+      .upload(path, buffer, {
+        contentType: 'image/webp',
+        upsert: true,
+      });
+
+    if (error) {
+      console.error('頭像上傳失敗:', error.message);
+      return { url: '', error: '頭像上傳失敗,請稍後再試' };
+    }
+
+    return { url: getStorageUrl('avatars', path) };
   } catch (error) {
     console.error('頭像上傳失敗:', error);
     return { url: '', error: '頭像上傳失敗,請稍後再試' };
@@ -157,13 +133,18 @@ export async function uploadAvatar(file: File): Promise<{ url: string; error?: s
 }
 
 /**
- * 刪除圖片 (從 Vercel Blob)
+ * 刪除圖片（從 Supabase Storage）
  */
-export async function deleteImage(url: string): Promise<boolean> {
+export async function deleteImage(bucket: string, path: string): Promise<boolean> {
   try {
-    // Vercel Blob 的刪除功能需要另外實作
-    // 這裡暫時只記錄,實際刪除可在後台定期清理
-    console.log('標記刪除圖片:', url);
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
+
+    const { error } = await supabase.storage.from(bucket).remove([path]);
+    if (error) {
+      console.error('圖片刪除失敗:', error.message);
+      return false;
+    }
     return true;
   } catch (error) {
     console.error('圖片刪除失敗:', error);

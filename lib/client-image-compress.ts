@@ -143,3 +143,67 @@ export async function compressImageFromSrc(
     img.src = imageSrc;
   });
 }
+
+/**
+ * 頭像壓縮 preset（96×96px, WebP, ≤200KB）
+ */
+export async function compressForAvatar(file: File | Blob): Promise<Blob> {
+  try {
+    return await compressImage(file, {
+      maxWidth: 96,
+      maxHeight: 96,
+      quality: 0.9,
+      format: 'image/webp',
+    });
+  } catch {
+    // WebP 不支援時 fallback 為 JPEG
+    return await compressImage(file, {
+      maxWidth: 96,
+      maxHeight: 96,
+      quality: 0.85,
+      format: 'image/jpeg',
+    });
+  }
+}
+
+/**
+ * 掃描圖壓縮 preset（最長邊 1200px, WebP, ≤2MB）
+ */
+export async function compressForScan(file: File | Blob): Promise<Blob> {
+  try {
+    return await compressImage(file, {
+      maxWidth: 1200,
+      maxHeight: 1200,
+      quality: 0.8,
+      format: 'image/webp',
+    });
+  } catch {
+    return await compressImage(file, {
+      maxWidth: 1200,
+      maxHeight: 1200,
+      quality: 0.85,
+      format: 'image/jpeg',
+    });
+  }
+}
+
+/**
+ * 縮圖壓縮 preset（最長邊 400px, WebP, ≤200KB）
+ */
+export async function compressForThumbnail(file: File | Blob): Promise<Blob> {
+  try {
+    return await compressImage(file, {
+      maxWidth: 400,
+      maxHeight: 400,
+      quality: 0.8,
+      format: 'image/webp',
+    });
+  } catch {
+    return await compressImage(file, {
+      maxWidth: 400,
+      maxHeight: 400,
+      quality: 0.85,
+      format: 'image/jpeg',
+    });
+  }
+}

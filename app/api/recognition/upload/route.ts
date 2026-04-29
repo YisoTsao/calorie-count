@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { put } from '@vercel/blob';
+import { createClient } from '@/utils/supabase/server';
+import { cookies } from 'next/headers';
+import { getStorageUrl } from '@/lib/storage-url';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { recognizeFoodWithRetry, validateRecognitionResult } from '@/lib/ai/food-recognition';
@@ -10,8 +12,8 @@ import { createSuccessResponse, createErrorResponse } from '@/lib/api-response';
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
-// 檢查是否有 Vercel Blob token
-const hasVercelBlob = !!process.env.BLOB_READ_WRITE_TOKEN;
+// 檢查是否有 Supabase URL（決定使用 Supabase Storage 或本地）
+const hasSupabaseStorage = !!process.env.NEXT_PUBLIC_SUPABASE_URL;
 
 export async function POST(req: NextRequest) {
   try {
@@ -51,14 +53,27 @@ export async function POST(req: NextRequest) {
     let imageUrl: string;
 
     // 根據環境選擇儲存方式
-    if (hasVercelBlob) {
-      // 使用 Vercel Blob (生產環境)
-      const fileName = `food-recognition/${session.user.id}/${Date.now()}.webp`;
-      const blob = await put(fileName, buffer, {
-        access: 'public',
-        contentType: file.type,
-      });
-      imageUrl = blob.url;
+    if (hasSupabaseStorage) {
+      // 使用 Supabase Storage
+      const uuid = crypto.randomUUID();
+      const storagePath = `${session.user.id}/${Date.now()}-${uuid}.webp`;
+
+      const cookieStore = await cookies();
+      const supabase = createClient(cookieStore);
+
+      const { error: uploadError } = await supabase.storage
+        .from('food-scans')
+        .upload(storagePath, buffer, {
+          contentType: 'image/webp',
+          upsert: false,
+        });
+
+      if (uploadError) {
+        console.error('Supabase Storage upload error:', uploadError.message);
+        return NextResponse.json(createErrorResponse('INTERNAL_ERROR', '圖片上傳失敗'), { status: 500 });
+      }
+
+      imageUrl = getStorageUrl('food-scans', storagePath);
     } else {
       // 使用本地檔案系統 (開發環境)
       const publicDir = join(process.cwd(), 'public', 'uploads', 'food-recognition');
