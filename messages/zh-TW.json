@@ -776,9 +776,9 @@
       "streak_30": { "name": "習慣養成", "description": "連續記錄 30 天飲食" },
       "streak_100": { "name": "毅力大師", "description": "連續記錄 100 天飲食" },
       "total_100_meals": { "name": "百餐達人", "description": "累積記錄 100 餐飲食" },
-      "total_500_meals": { "name": "老餳", "description": "累積記錄 500 餐飲食" },
-      "app_30_days": { "name": "一個月用戶", "description": "使用 App 湀30 天" },
-      "app_180_days": { "name": "半年夥伴", "description": "使用 App 湀180 天" },
+      "total_500_meals": { "name": "老饕", "description": "累積記錄 500 餐飲食" },
+      "app_30_days": { "name": "一個月用戶", "description": "使用 App 滿 30 天" },
+      "app_180_days": { "name": "半年夥伴", "description": "使用 App 滿180 天" },
       "goal_hit_7": { "name": "精準控制", "description": "達成熱量目標 7 次" },
       "goal_hit_30": { "name": "均衡飲食", "description": "達成熱量目標 30 次" },
       "goal_hit_100": { "name": "卡路裡大師", "description": "達成熱量目標 100 次" }
