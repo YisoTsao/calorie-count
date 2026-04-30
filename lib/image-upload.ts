@@ -1,5 +1,4 @@
-import { createClient } from '@/utils/supabase/server';
-import { cookies } from 'next/headers';
+import { createAdminClient } from '@/utils/supabase/admin';
 import { getStorageUrl } from '@/lib/storage-url';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -71,8 +70,7 @@ export async function uploadImage(
     const uuid = crypto.randomUUID();
     const path = `${folder}/${timestamp}-${uuid}.webp`;
 
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
+    const supabase = createAdminClient();
 
     const { error } = await supabase.storage
       .from('food-scans')
@@ -95,6 +93,7 @@ export async function uploadImage(
 
 /**
  * 上傳頭像到 Supabase Storage avatars bucket
+ * 本機開發（未設定 NEXT_PUBLIC_SUPABASE_URL）時，退回使用本地檔案系統
  */
 export async function uploadAvatar(file: File, userId?: string): Promise<{ url: string; error?: string }> {
   try {
@@ -106,26 +105,37 @@ export async function uploadAvatar(file: File, userId?: string): Promise<{ url: 
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    const timestamp = Date.now();
+    // 使用固定路徑（不帶 timestamp）確保每次上傳覆蓋同一個 URL
+    // 這樣 user.image URL 永遠不變，不需更新資料庫
     const prefix = userId ?? 'unknown';
-    const path = `${prefix}/${timestamp}.webp`;
+    const storagePath = `${prefix}/avatar.webp`;
 
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
+    // 本機開發 fallback：無 Supabase 設定時寫入 public/uploads/avatars
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+      const { mkdir, writeFile } = await import('fs/promises');
+      const { join } = await import('path');
+      const dir = join(process.cwd(), 'public', 'uploads', 'avatars', prefix);
+      await mkdir(dir, { recursive: true });
+      // 本機用固定檔名 avatar.webp（瀏覽器會因路徑一致而快取，加 ?t= 讓客戶端知道更新）
+      await writeFile(join(dir, 'avatar.webp'), buffer);
+      return { url: `/uploads/avatars/${prefix}/avatar.webp?t=${Date.now()}` };
+    }
+
+    const supabase = createAdminClient();
 
     const { error } = await supabase.storage
       .from('avatars')
-      .upload(path, buffer, {
+      .upload(storagePath, buffer, {
         contentType: 'image/webp',
         upsert: true,
       });
 
     if (error) {
       console.error('頭像上傳失敗:', error.message);
-      return { url: '', error: '頭像上傳失敗,請稍後再試' };
+      return { url: '', error: `頭像上傳失敗: ${error.message}` };
     }
 
-    return { url: getStorageUrl('avatars', path) };
+    return { url: getStorageUrl('avatars', storagePath) + `?t=${Date.now()}` };
   } catch (error) {
     console.error('頭像上傳失敗:', error);
     return { url: '', error: '頭像上傳失敗,請稍後再試' };
@@ -137,9 +147,7 @@ export async function uploadAvatar(file: File, userId?: string): Promise<{ url: 
  */
 export async function deleteImage(bucket: string, path: string): Promise<boolean> {
   try {
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
-
+    const supabase = createAdminClient();
     const { error } = await supabase.storage.from(bucket).remove([path]);
     if (error) {
       console.error('圖片刪除失敗:', error.message);

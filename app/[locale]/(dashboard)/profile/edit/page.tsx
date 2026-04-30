@@ -28,7 +28,11 @@ export default async function EditProfilePage() {
 
   return (
     <div className="container max-w-2xl py-8">
-      <ProfileEditForm defaultValues={defaultValues} />
+      <ProfileEditForm
+        defaultValues={defaultValues}
+        currentImage={user.image}
+        userName={user.name}
+      />
     </div>
   );
 }

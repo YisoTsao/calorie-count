@@ -278,7 +278,10 @@
     "addAndContinue": "追加して続ける",
     "addAndFinish": "追加して完了",
     "addAndEdit": "追加して編集",
-    "servingsLabel": "サービング数:"
+    "servingsLabel": "サービング数:",
+    "editFood": "食物を編集",
+    "foodName": "食品名",
+    "portionSize": "1食分量"
   },
   "foods": {
     "title": "食品データベース",
@@ -469,7 +472,21 @@
         "networkFailed": "ネットワーク接続に失敗しました",
         "invalidFormat": "バーコードは8～14桁の数字である必要があります"
       }
-    }
+    },
+    "notFound": "認識記録が見つかりません",
+    "backToScan": "スキャンに戻る",
+    "noFoodDesc": "識別できる食品がありません。より鮮明な写真をお試しください。",
+    "addTo": "追加先",
+    "selectAll": "すべて選択",
+    "deselectAll": "すべて解除",
+    "changePhoto": "写真を変更",
+    "photoUpdateFailed": "写真の更新に失敗しました",
+    "minSelectError": "少なくとも1つの食品を選択してください",
+    "saveFailed": "保存に失敗しました。後でお試しください",
+    "caloriesUnit": "kcal",
+    "proteinShort": "タンパク質",
+    "carbsShort": "炭水化物",
+    "fatShort": "脂質"
   },
   "exercise": {
     "title": "運動記録",

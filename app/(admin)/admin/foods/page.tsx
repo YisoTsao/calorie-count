@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Icon } from '@iconify/react';
 
@@ -37,6 +38,7 @@ interface Food {
   fat: number;
   servingSize: number | null;
   servingUnit: string | null;
+  imageUrl: string | null;
   category: Category | null;
   createdAt: string;
 }
@@ -71,6 +73,7 @@ const EMPTY_FORM = {
   servingSize: 100,
   servingUnit: 'g',
   categoryId: '',
+  imageUrl: '',
 };
 
 /** Convert USDA ALL_CAPS description to Title Case */
@@ -90,9 +93,12 @@ export default function AdminFoodsPage() {
   const [debouncedQ, setDebouncedQ] = useState('');
   const [filterCat, setFilterCat] = useState('');
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [editing, setEditing] = useState<typeof EMPTY_FORM | null>(null);
   const [isNew, setIsNew] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [imgUploading, setImgUploading] = useState(false);
+  const imgInputRef = useRef<HTMLInputElement>(null);
   const [seeding, setSeeding] = useState(false);
   const [seedMsg, setSeedMsg] = useState('');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -150,18 +156,30 @@ export default function AdminFoodsPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const params = new URLSearchParams({
-      page: String(page),
-      limit: String(LIMIT),
-      ...(debouncedQ ? { q: debouncedQ } : {}),
-      ...(filterCat ? { categoryId: filterCat } : {}),
-    });
-    const res = await fetch(`/api/admin/foods?${params}`);
-    const data = await res.json();
-    setFoods(data.foods ?? []);
-    setTotal(data.total ?? 0);
-    if (data.categories) setCategories(data.categories);
-    setLoading(false);
+    setLoadError(null);
+    try {
+      const params = new URLSearchParams({
+        page: String(page),
+        limit: String(LIMIT),
+        ...(debouncedQ ? { q: debouncedQ } : {}),
+        ...(filterCat ? { categoryId: filterCat } : {}),
+      });
+      const res = await fetch(`/api/admin/foods?${params}`);
+      const data = await res.json();
+      if (!res.ok) {
+        setLoadError(`API 錯誤 ${res.status}: ${data.detail ?? data.error ?? '未知錯誤'}`);
+        setFoods([]);
+        setTotal(0);
+      } else {
+        setFoods(data.foods ?? []);
+        setTotal(data.total ?? 0);
+        if (data.categories) setCategories(data.categories);
+      }
+    } catch (err) {
+      setLoadError(err instanceof Error ? err.message : '載入失敗');
+    } finally {
+      setLoading(false);
+    }
   }, [page, debouncedQ, filterCat]);
 
   useEffect(() => {
@@ -396,6 +414,32 @@ export default function AdminFoodsPage() {
     load();
   };
 
+  const handleFoodImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!editing || !e.target.files?.[0]) return;
+    // 新食物必須先儲存才能上傳圖片
+    if (isNew) {
+      alert('請先儲存食物，再上傳圖片');
+      return;
+    }
+    setImgUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append('image', e.target.files[0]);
+      const res = await fetch(`/api/admin/foods/image?foodId=${editing.id}`, {
+        method: 'POST',
+        body: fd,
+      });
+      if (!res.ok) throw new Error('上傳失敗');
+      const data = await res.json();
+      setEditing({ ...editing, imageUrl: data.imageUrl });
+    } catch (err) {
+      alert((err as Error).message);
+    } finally {
+      setImgUploading(false);
+      if (imgInputRef.current) imgInputRef.current.value = '';
+    }
+  };
+
   const openNew = () => {
     setEditing({ ...EMPTY_FORM });
     setIsNew(true);
@@ -417,6 +461,7 @@ export default function AdminFoodsPage() {
       servingSize: f.servingSize ?? 100,
       servingUnit: f.servingUnit ?? 'g',
       categoryId: f.category?.id ?? '',
+      imageUrl: f.imageUrl ?? '',
     });
     setIsNew(false);
   };
@@ -538,7 +583,18 @@ export default function AdminFoodsPage() {
 
           {/* Table */}
           <div className="overflow-hidden rounded-2xl bg-slate-900/60">
-            {loading ? (
+            {loadError ? (
+              <div className="p-8 text-center">
+                <p className="mb-2 font-medium text-red-400">載入失敗</p>
+                <p className="text-sm text-slate-400">{loadError}</p>
+                <button
+                  onClick={load}
+                  className="mt-4 rounded-lg bg-slate-700 px-4 py-2 text-sm text-white hover:bg-slate-600"
+                >
+                  重試
+                </button>
+              </div>
+            ) : loading ? (
               <div className="space-y-3 p-6">
                 {[...Array(5)].map((_, i) => (
                   <div key={i} className="h-14 animate-pulse rounded-xl bg-slate-800/50" />
@@ -1211,6 +1267,61 @@ export default function AdminFoodsPage() {
                   </option>
                 ))}
               </select>
+            </div>
+
+            {/* 圖片 */}
+            <div>
+              <label className="mb-1 block text-xs text-slate-400">食物圖片</label>
+              <div className="flex items-center gap-3">
+                {editing.imageUrl ? (
+                  <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl border border-slate-700">
+                    <Image
+                      src={editing.imageUrl}
+                      alt={editing.name}
+                      fill
+                      className="object-cover"
+                      sizes="64px"
+                      unoptimized={editing.imageUrl.includes('?')}
+                    />
+                  </div>
+                ) : (
+                  <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-xl border border-dashed border-slate-700 bg-slate-800">
+                    <Icon icon="mdi:image-outline" className="text-2xl text-slate-600" />
+                  </div>
+                )}
+                <div className="flex flex-col gap-1.5">
+                  <input
+                    ref={imgInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={handleFoodImageUpload}
+                    className="hidden"
+                    id="food-img-input"
+                  />
+                  <label
+                    htmlFor="food-img-input"
+                    className={`flex cursor-pointer items-center gap-1.5 rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-slate-300 transition-colors hover:bg-slate-700 ${isNew ? 'pointer-events-none opacity-40' : ''}`}
+                  >
+                    <Icon
+                      icon={imgUploading ? 'mdi:loading' : 'mdi:upload-outline'}
+                      className={`text-sm ${imgUploading ? 'animate-spin' : ''}`}
+                    />
+                    {imgUploading ? '上傳中…' : '選擇圖片'}
+                  </label>
+                  {isNew && (
+                    <p className="text-xs text-slate-500">儲存食物後才能上傳圖片</p>
+                  )}
+                  {editing.imageUrl && !isNew && (
+                    <button
+                      onClick={() => setEditing({ ...editing, imageUrl: '' })}
+                      className="flex items-center gap-1 text-xs text-red-400 hover:text-red-300"
+                    >
+                      <Icon icon="mdi:delete-outline" className="text-sm" />
+                      移除圖片
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
 
             <button

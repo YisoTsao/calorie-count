@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { Camera, Upload, X, Loader2 } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import {
   Dialog,
   DialogContent,
@@ -37,6 +37,7 @@ export function PhotoUploadDialog({
   const streamRef = useRef<MediaStream | null>(null);
   const t = useTranslations('scan');
   const tCommon = useTranslations('common');
+  const locale = useLocale();
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -105,6 +106,7 @@ export function PhotoUploadDialog({
       const formData = new FormData();
       formData.append('image', blob, 'meal.jpg');
       formData.append('mealType', mealType);
+      formData.append('locale', locale);
 
       // Upload and analyze
       const uploadResponse = await fetch('/api/recognition/upload', {
@@ -119,7 +121,14 @@ export function PhotoUploadDialog({
       const data = await uploadResponse.json();
 
       if (data.data?.recognition?.id) {
-        onImageAnalyzed(data.data.recognition.id);
+        const recognitionId: string = data.data.recognition.id;
+        // 將圖片 base64 存入 sessionStorage，供後續上傳至 Supabase
+        try {
+          sessionStorage.setItem(`scan-img-${recognitionId}`, selectedImage);
+        } catch {
+          // ignore quota errors
+        }
+        onImageAnalyzed(recognitionId);
         handleClose();
       } else {
         throw new Error(t('recognitionFailed'));

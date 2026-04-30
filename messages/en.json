@@ -303,7 +303,10 @@
     "addAndContinue": "Add & Continue",
     "addAndFinish": "Add & Finish",
     "addAndEdit": "Add & Edit",
-    "servingsLabel": "Servings:"
+    "servingsLabel": "Servings:",
+    "editFood": "Edit Food",
+    "foodName": "Food Name",
+    "portionSize": "Portion Size"
   },
   "foods": {
     "title": "Food Database",
@@ -488,7 +491,21 @@
         "networkFailed": "Network connection failed",
         "invalidFormat": "Barcode must be 8\u201314 digits"
       }
-    }
+    },
+    "notFound": "Recognition record not found",
+    "backToScan": "Back to Scan",
+    "noFoodDesc": "No identifiable food found. Please try a clearer photo.",
+    "addTo": "Add to",
+    "selectAll": "Select All",
+    "deselectAll": "Deselect All",
+    "changePhoto": "Change Photo",
+    "photoUpdateFailed": "Photo update failed",
+    "minSelectError": "Please select at least one food",
+    "saveFailed": "Save failed, please try again",
+    "caloriesUnit": "kcal",
+    "proteinShort": "Protein",
+    "carbsShort": "Carbs",
+    "fatShort": "Fat"
   },
   "exercise": {
     "title": "Exercise Log",

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Edit } from 'lucide-react';
 import Link from 'next/link';
+import { AvatarUploader } from '@/components/profile/AvatarUploader';
 
 export default async function ProfilePage() {
   const t = await getTranslations('profile');
@@ -32,9 +33,13 @@ export default async function ProfilePage() {
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
-          <p className="text-muted-foreground">{t('subtitle')}</p>
+        <div className="flex items-center gap-5">
+          {/* 頭像：hover 顯示相機 icon，可直接點擊更換 */}
+          <AvatarUploader currentImage={user.image} userName={user.name} size={80} />
+          <div className="space-y-1">
+            <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
+            <p className="text-muted-foreground">{t('subtitle')}</p>
+          </div>
         </div>
         <Link href="/profile/edit">
           <Button>

@@ -40,6 +40,12 @@ const navItems = [
     icon: 'mdi:food-apple-outline',
     minRole: 'SUPPORT' as UserRole,
   },
+  {
+    href: '/admin/scans',
+    label: 'AI 掃描記錄',
+    icon: 'mdi:barcode-scan',
+    minRole: 'SUPPORT' as UserRole,
+  },
 ];
 
 export function AdminShell({ user, children }: AdminShellProps) {

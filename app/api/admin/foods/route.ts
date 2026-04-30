@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { checkAdminAccess } from '@/lib/rbac';
 import { z } from 'zod';
+import type { Prisma } from '@prisma/client';
 
 const foodSchema = z.object({
   name: z.string().min(1).max(100),
@@ -19,6 +20,7 @@ const foodSchema = z.object({
   servingSize: z.number().min(0).optional().nullable(),
   servingUnit: z.string().max(20).optional().nullable(),
   categoryId: z.string().optional().nullable(),
+  imageUrl: z.string().optional().nullable(),
   source: z.enum(['SYSTEM', 'USER', 'API']).optional(),
 });
 
@@ -37,6 +39,7 @@ const foodSelect = {
   sodium: true,
   servingSize: true,
   servingUnit: true,
+  imageUrl: true,
   source: true,
   createdAt: true,
   category: {
@@ -49,44 +52,55 @@ const foodSelect = {
 
 /** GET /api/admin/foods — list system foods (paginated) */
 export async function GET(req: NextRequest) {
-  const session = await auth();
-  const deny = checkAdminAccess(session, 'SUPPORT');
-  if (deny) return deny;
+  try {
+    const session = await auth();
+    const deny = checkAdminAccess(session, 'SUPPORT');
+    if (deny) return deny;
 
-  const { searchParams } = new URL(req.url);
-  const page = Math.max(1, parseInt(searchParams.get('page') ?? '1'));
-  const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') ?? '20')));
-  const q = searchParams.get('q')?.trim() ?? '';
-  const categoryId = searchParams.get('categoryId')?.trim() ?? '';
-  const skip = (page - 1) * limit;
+    const { searchParams } = new URL(req.url);
+    const page = Math.max(1, parseInt(searchParams.get('page') ?? '1'));
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') ?? '20')));
+    const q = searchParams.get('q')?.trim() ?? '';
+    const categoryId = searchParams.get('categoryId')?.trim() ?? '';
+    const skip = (page - 1) * limit;
 
-  const where: Record<string, unknown> = { source: { in: ['SYSTEM', 'API'] } };
-  if (q) {
-    where['OR'] = [
-      { name: { contains: q, mode: 'insensitive' } },
-      { nameEn: { contains: q, mode: 'insensitive' } },
-      { nameJa: { contains: q, mode: 'insensitive' } },
-    ];
+    const where: Prisma.FoodWhereInput = {
+      source: { in: ['SYSTEM', 'API'] },
+      ...(q
+        ? {
+            OR: [
+              { name: { contains: q, mode: 'insensitive' } },
+              { nameEn: { contains: q, mode: 'insensitive' } },
+              { nameJa: { contains: q, mode: 'insensitive' } },
+            ],
+          }
+        : {}),
+      ...(categoryId ? { categoryId } : {}),
+    };
+
+    const [total, foods, categories] = await Promise.all([
+      prisma.food.count({ where }),
+      prisma.food.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { name: 'asc' },
+        select: foodSelect,
+      }),
+      prisma.foodCategory.findMany({
+        orderBy: { name: 'asc' },
+        select: { id: true, name: true, nameEn: true, nameJa: true },
+      }),
+    ]);
+
+    return NextResponse.json({ foods, total, page, limit, categories });
+  } catch (error) {
+    console.error('Admin foods GET error:', error);
+    return NextResponse.json(
+      { error: '載入失敗', detail: error instanceof Error ? error.message : String(error) },
+      { status: 500 }
+    );
   }
-  if (categoryId) where['categoryId'] = categoryId;
-
-  const [total, foods] = await Promise.all([
-    prisma.food.count({ where }),
-    prisma.food.findMany({
-      where,
-      skip,
-      take: limit,
-      orderBy: { name: 'asc' },
-      select: foodSelect,
-    }),
-  ]);
-
-  const categories = await prisma.foodCategory.findMany({
-    orderBy: { name: 'asc' },
-    select: { id: true, name: true, nameEn: true, nameJa: true },
-  });
-
-  return NextResponse.json({ foods, total, page, limit, categories });
 }
 
 /** POST /api/admin/foods — create a new system food */

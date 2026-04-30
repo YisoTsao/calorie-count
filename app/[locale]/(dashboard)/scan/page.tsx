@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useRouter } from '@/i18n/navigation';
+import { useTranslations, useLocale } from 'next-intl';
 import { Camera, Loader2, Sparkles } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,7 @@ import { compressImageFromSrc } from '@/lib/client-image-compress';
 export default function ScanPage() {
   const router = useRouter();
   const t = useTranslations('scan');
+  const locale = useLocale();
   const [showCamera, setShowCamera] = useState(false);
   const [showBarcodeDialog, setShowBarcodeDialog] = useState(false);
   const [barcodeResult, setBarcodeResult] = useState<{ food: BarcodeFood; cached: boolean } | null>(
@@ -57,6 +58,7 @@ export default function ScanPage() {
       // 建立 FormData
       const formData = new FormData();
       formData.append('image', compressedBlob, 'food.webp');
+      formData.append('locale', locale);
 
       // 上傳圖片
       const uploadResponse = await fetch('/api/recognition/upload', {
@@ -70,16 +72,29 @@ export default function ScanPage() {
 
       setUploadStep('analyzing');
       const data = await uploadResponse.json();
+      const recognitionId: string = data.data.recognition.id;
 
-      // 跳轉到結果頁面
-      router.push(`/scan/result/${data.data.recognition.id}`);
+      // 將壓縮圖以 base64 存入 sessionStorage，供結果頁預覽及確認後上傳 Supabase
+      try {
+        const base64 = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (e) => resolve(e.target?.result as string);
+          reader.readAsDataURL(compressedBlob);
+        });
+        sessionStorage.setItem(`scan-img-${recognitionId}`, base64);
+      } catch {
+        // sessionStorage 不可用時忽略（結果頁將不顯示預覽圖）
+      }
+
+      // 跳轉到結果頁面（使用 i18n-aware router 保留 locale）
+      router.push(`/scan/result/${recognitionId}`);
     } catch (error) {
       console.error('Upload error:', error);
       alert(t('uploadFailed'));
       setUploadStep('idle');
-    } finally {
       setIsUploading(false);
     }
+    // 注意：不在 finally 重設 isUploading，讓動畫持續到頁面跳轉完成
   };
 
   if (showCamera) {

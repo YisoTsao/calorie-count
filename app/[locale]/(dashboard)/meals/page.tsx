@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Plus, Utensils, Target, Edit, Trash2 } from 'lucide-react';
+import { Plus, Utensils, Target, Edit, Trash2, ScanLine } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ import { FoodSearchDialog } from '@/components/meals/FoodSearchDialog';
 import { EditMealFoodDialog } from '@/components/meals/EditMealFoodDialog';
 import { PhotoUploadDialog } from '@/components/meals/PhotoUploadDialog';
 import { RecognitionResultDialog } from '@/components/meals/RecognitionResultDialog';
+import Image from 'next/image';
 
 interface RecognizedFood {
   id: string;
@@ -43,6 +44,9 @@ interface Meal {
   id: string;
   mealType: 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK' | 'OTHER';
   mealDate: string;
+  sourceRecognitionId?: string | null;
+  /** API 自動注入：從 FoodRecognition 取得的掃描圖片 URL */
+  scanImageUrl?: string | null;
   foods: MealFood[];
 }
 
@@ -70,7 +74,7 @@ export default function MealsPage() {
     LUNCH: t('types.lunch'),
     DINNER: t('types.dinner'),
     SNACK: t('types.snack'),
-    OTHER: tc('unknown'),
+    OTHER: t('other'),
   };
   const [meals, setMeals] = useState<Meal[]>([]);
   const [totals, setTotals] = useState<NutritionTotals>({
@@ -92,6 +96,7 @@ export default function MealsPage() {
   const [isPhotoUploadOpen, setIsPhotoUploadOpen] = useState(false);
   const [isRecognitionResultOpen, setIsRecognitionResultOpen] = useState(false);
   const [currentRecognitionId, setCurrentRecognitionId] = useState<string | null>(null);
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
 
   const fetchMeals = async () => {
     try {
@@ -243,18 +248,40 @@ export default function MealsPage() {
     setIsEditDialogOpen(true);
   };
 
+  const handleDeleteMeal = async (mealId: string) => {
+    if (!confirm(t('confirmDelete'))) return;
+    try {
+      const res = await fetch(`/api/meals/${mealId}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error(tc('error'));
+      await fetchMeals();
+    } catch (error) {
+      console.error('Delete meal error:', error);
+      alert(tc('error'));
+    }
+  };
+
   const handleDeleteFood = async (mealId: string, mealFoodId: string) => {
     if (!confirm(t('confirmDelete'))) {
       return;
     }
 
     try {
+      // 先判斷是否為 AI 掃描群組的最後一項食物
+      const parentMeal = meals.find((m) => m.id === mealId);
+      const isLastFoodInScanGroup =
+        parentMeal?.sourceRecognitionId && parentMeal.foods.length === 1;
+
       const response = await fetch(`/api/meals/${mealId}/foods?mealFoodId=${mealFoodId}`, {
         method: 'DELETE',
       });
 
       if (!response.ok) {
         throw new Error(tc('error'));
+      }
+
+      // 最後一項刪除後自動刪除整個 AI 掃描群組（meal）
+      if (isLastFoodInScanGroup) {
+        await fetch(`/api/meals/${mealId}`, { method: 'DELETE' });
       }
 
       await fetchMeals();
@@ -277,64 +304,61 @@ export default function MealsPage() {
     setIsRecognitionResultOpen(true);
   };
 
-  // 將辨識結果新增到餐點
+  // 將辨識結果新增到餐點（建立一個含 sourceRecognitionId 的新 meal，一次掃描 = 一個區塊）
   const handleAddRecognizedFoods = async (foods: RecognizedFood[]) => {
-    // 確保有選擇的餐點類型
-    let targetMealId = '';
-    const mealsOfType = getMealsByType(selectedMealType);
+    setIsRecognitionResultOpen(false);
+    if (foods.length === 0) return;
 
-    if (mealsOfType.length > 0) {
-      targetMealId = mealsOfType[0].id;
-    } else {
-      // 創建新餐點
-      try {
-        const response = await fetch('/api/meals', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            mealType: selectedMealType,
-            mealDate: selectedDate,
-          }),
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          targetMealId = data.data.meal.id;
-        }
-      } catch (error) {
-        console.error('Create meal error:', error);
-        alert('建立餐點失敗');
-        return;
-      }
-    }
-
-    // 將辨識的食物批量新增到餐點
     try {
-      for (const food of foods) {
-        const response = await fetch(`/api/meals/${targetMealId}/foods`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            foodName: food.name,
+      // 先嘗試上傳掃描圖片（從 sessionStorage 取得 base64）
+      if (currentRecognitionId) {
+        const stored = sessionStorage.getItem(`scan-img-${currentRecognitionId}`);
+        if (stored) {
+          try {
+            const blob = await fetch(stored).then((r) => r.blob());
+            const fd = new FormData();
+            fd.append('image', new File([blob], 'scan.webp', { type: 'image/webp' }));
+            const imgRes = await fetch(`/api/recognition/${currentRecognitionId}/image`, {
+              method: 'POST',
+              body: fd,
+            });
+            if (imgRes.ok) {
+              sessionStorage.removeItem(`scan-img-${currentRecognitionId}`);
+            }
+          } catch {
+            // 圖片上傳失敗不阻止建立餐點
+          }
+        }
+      }
+
+      // 建立含所有食物的新餐點（一次掃描 = 一個區塊）
+      const res = await fetch('/api/meals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mealType: selectedMealType,
+          mealDate: new Date(selectedDate).toISOString(),
+          sourceRecognitionId: currentRecognitionId || undefined,
+          foods: foods.map((food) => ({
+            name: food.name,
+            portion: `${food.portionSize} ${food.portionUnit}`,
+            portionSize: food.portionSize,
+            portionUnit: food.portionUnit,
             calories: food.calories,
             protein: food.protein,
             carbs: food.carbs,
             fat: food.fat,
-            servings: 1, // 辨識結果的營養值已經是完整份量,所以 servings 設為 1
-            portion: `${food.portionSize} ${food.portionUnit}`,
-            portionSize: food.portionSize,
-            portionUnit: food.portionUnit,
-          }),
-        });
+            servings: 1,
+          })),
+        }),
+      });
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          console.error('Failed to add food:', food.name, errorData);
-        }
+      if (!res.ok) {
+        const d = await res.json();
+        throw new Error(d.error?.message || tc('error'));
       }
 
       await fetchMeals();
-      setIsRecognitionResultOpen(false);
     } catch (error) {
       console.error('Add foods error:', error);
       alert(tc('error'));
@@ -518,7 +542,7 @@ export default function MealsPage() {
       </Card>
 
       {/* 各餐記錄 */}
-      {(['BREAKFAST', 'LUNCH', 'DINNER', 'SNACK'] as const).map((mealType) => {
+      {(['BREAKFAST', 'LUNCH', 'DINNER', 'SNACK', 'OTHER'] as const).map((mealType) => {
         const typeMeals = getMealsByType(mealType);
         const typeTotals = calculateMealTotals(typeMeals);
 
@@ -561,7 +585,48 @@ export default function MealsPage() {
               ) : (
                 <div className="space-y-4">
                   {typeMeals.map((meal) => (
-                    <div key={meal.id} className="space-y-2">
+                    <div
+                      key={meal.id}
+                      className={meal.sourceRecognitionId ? 'rounded-xl border border-border/60 p-3' : 'space-y-2'}
+                    >
+                      {/* AI 掃描群組 header：有 sourceRecognitionId 就顯示，含刪除按鈕 */}
+                      {meal.sourceRecognitionId && (
+                        <div className="mb-2 flex items-center gap-3 border-b border-border/40 pb-2">
+                          {meal.scanImageUrl ? (
+                            <button
+                              onClick={() => setLightboxSrc(meal.scanImageUrl!)}
+                              className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-md transition-opacity hover:opacity-80"
+                              title="點擊放大"
+                            >
+                              <Image
+                                src={meal.scanImageUrl}
+                                alt="掃描圖片"
+                                fill
+                                className="object-cover"
+                                sizes="48px"
+                              />
+                            </button>
+                          ) : (
+                            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-md bg-muted">
+                              <ScanLine className="h-5 w-5 text-muted-foreground" />
+                            </div>
+                          )}
+                          <div className="flex flex-1 items-center gap-1.5 text-xs text-muted-foreground">
+                            <ScanLine className="h-3.5 w-3.5" />
+                            <span>AI 掃描</span>
+                          </div>
+                          {/* 刪除整個掃描群組 */}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteMeal(meal.id)}
+                            className="ml-auto h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
+                            title={t('deleteMeal') ?? '刪除掃描記錄'}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
                       {meal.foods.map((food) => (
                         <div
                           key={food.id}
@@ -645,6 +710,30 @@ export default function MealsPage() {
         recognitionId={currentRecognitionId}
         onAddToMeal={handleAddRecognizedFoods}
       />
+
+      {/* Lightbox：點擊縮圖放大 */}
+      {lightboxSrc && (
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+          onClick={() => setLightboxSrc(null)}
+        >
+          <button
+            className="absolute right-4 top-4 rounded-full bg-black/50 p-2 text-white hover:bg-black/70"
+            onClick={() => setLightboxSrc(null)}
+          >
+            ✕
+          </button>
+          <div className="relative max-h-[90vh] max-w-[90vw]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={lightboxSrc}
+              alt="掃描圖片"
+              className="max-h-[90vh] max-w-[90vw] rounded-xl object-contain"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

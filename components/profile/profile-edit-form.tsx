@@ -11,17 +11,21 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
+import { AvatarUploader } from '@/components/profile/AvatarUploader';
 import type { z } from 'zod';
 
 type ProfileFormData = z.infer<typeof profileUpdateSchema>;
 
 interface ProfileEditFormProps {
   defaultValues?: Partial<ProfileFormData>;
+  currentImage?: string | null;
+  userName?: string | null;
 }
 
-export function ProfileEditForm({ defaultValues }: ProfileEditFormProps) {
+export function ProfileEditForm({ defaultValues, currentImage, userName }: ProfileEditFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pendingAvatarFile, setPendingAvatarFile] = useState<File | null>(null);
   const router = useRouter();
   const t = useTranslations('profile');
   const tCommon = useTranslations('common');
@@ -40,6 +44,18 @@ export function ProfileEditForm({ defaultValues }: ProfileEditFormProps) {
     setError(null);
 
     try {
+      // 1. 先上傳頭像（如果使用者選了新圖片）
+      if (pendingAvatarFile) {
+        const fd = new FormData();
+        fd.append('avatar', pendingAvatarFile);
+        const avatarRes = await fetch('/api/users/me/avatar', { method: 'POST', body: fd });
+        if (!avatarRes.ok) {
+          const d = await avatarRes.json();
+          throw new Error(d.error?.message || '頭像上傳失敗');
+        }
+      }
+
+      // 2. 儲存個人資料
       const response = await fetch('/api/users/me/profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -72,6 +88,17 @@ export function ProfileEditForm({ defaultValues }: ProfileEditFormProps) {
           {error && (
             <div className="rounded bg-destructive/15 px-4 py-3 text-destructive">{error}</div>
           )}
+
+          {/* 頭像上傳（deferred：選好圖後等 submit 才真正上傳） */}
+          <div className="flex justify-center pb-2">
+            <AvatarUploader
+              currentImage={currentImage}
+              userName={userName}
+              size={88}
+              mode="deferred"
+              onFileReady={(file) => setPendingAvatarFile(file)}
+            />
+          </div>
 
           <div className="space-y-2">
             <Label htmlFor="name">{t('name')}</Label>
