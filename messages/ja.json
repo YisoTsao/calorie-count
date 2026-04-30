@@ -729,7 +729,15 @@
     "recGoals": "目標達成優秀",
     "recGoalsDesc": "目標達成率 {pct}%。素晴らしい！",
     "daysLabel": "{days} 日",
-    "goalsMetLabel": "{met}/{total} 日"
+    "goalsMetLabel": "{met}/{total} 日",
+    "chartCalories": "カロリー",
+    "chartProtein": "タンパク質 (g)",
+    "chartCarbs": "炭水化物 (g)",
+    "chartFat": "脂質 (g)",
+    "chartWater": "水分摂取量 (ml)",
+    "chartExercise": "運動時間 (分)",
+    "chartWeight": "体重 (kg)",
+    "chartNoData": "データなし。記録を始めてトレンドを確認しよう"
   },
   "achievements": {
     "title": "実績",
@@ -739,6 +747,9 @@
     "progress": "進捗",
     "unlockedAt": "解除日",
     "noAchievements": "まだ実績がありません",
+    "wallTitle": "実績ウォール",
+    "viewAll": "すべて見る",
+    "keepTracking": "記録を続けて、もっと実績を解除しましょう！",
     "categories": {
       "streak": "ストリーク",
       "calories": "カロリー目標",
