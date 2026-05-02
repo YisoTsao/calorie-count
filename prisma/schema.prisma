@@ -385,6 +385,9 @@ model Food {
   openFoodFactsId  String? // Open Food Facts product ID
   openFoodFactsUrl String? // 原始來源 URL
 
+  // 圖片
+  imageUrl String? // 食物圖片 URL
+
   // 使用統計
   searchCount Int @default(0) // 搜尋次數
   useCount    Int @default(0) // 使用次數

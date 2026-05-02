@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { FileText, Download, Calendar } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   PieChart,
   Pie,
@@ -168,8 +169,36 @@ export default function ReportsPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="text-gray-500">{tc('loading')}</div>
+      <div className="space-y-6 p-6">
+        {/* 頁首 + 控制列 */}
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <Skeleton className="h-9 w-24" />
+            <Skeleton className="h-4 w-48" />
+          </div>
+          <div className="flex gap-2">
+            <Skeleton className="h-10 w-28" />
+            <Skeleton className="h-10 w-28" />
+          </div>
+        </div>
+        {/* 摘要卡片 x4 */}
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} className="h-24 rounded-xl" />
+          ))}
+        </div>
+        {/* 圖表 x2 */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <Skeleton className="h-56 rounded-xl" />
+          <Skeleton className="h-56 rounded-xl" />
+        </div>
+        {/* 資料表 */}
+        <div className="space-y-2">
+          <Skeleton className="h-10 w-full rounded" />
+          {[...Array(7)].map((_, i) => (
+            <Skeleton key={i} className="h-12 w-full rounded" />
+          ))}
+        </div>
       </div>
     );
   }

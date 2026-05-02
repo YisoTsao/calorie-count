@@ -41,13 +41,13 @@ function useNavItems() {
         { href: '/exercise', label: t('exercise'), icon: 'lucide:dumbbell' },
       ],
     },
-    {
-      section: t('sections.settings'),
-      items: [
-        { href: '/profile', label: t('profile'), icon: 'lucide:user' },
-        { href: '/settings', label: t('settings'), icon: 'lucide:settings' },
-      ],
-    },
+    // {
+    //   section: t('sections.settings'),
+    //   items: [
+    //     { href: '/profile', label: t('profile'), icon: 'lucide:user' },
+    //     { href: '/settings', label: t('settings'), icon: 'lucide:settings' },
+    //   ],
+    // },
   ];
 }
 

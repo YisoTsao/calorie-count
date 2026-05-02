@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Trophy } from 'lucide-react';
 import Link from 'next/link';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface AchievementItem {
   id: string;
@@ -50,8 +51,15 @@ export default function AchievementWall() {
   if (loading) {
     return (
       <div className="rounded-lg bg-white p-6 shadow-md">
-        <h3 className="mb-4 text-lg font-semibold">成就牆</h3>
-        <p className="py-8 text-center text-gray-400">載入中...</p>
+        <div className="mb-4 flex items-center justify-between">
+          <Skeleton className="h-6 w-20" />
+          <Skeleton className="h-4 w-24" />
+        </div>
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+          {[...Array(6)].map((i) => (
+            <Skeleton key={i} className="h-16 rounded-xl" />
+          ))}
+        </div>
       </div>
     );
   }

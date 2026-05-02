@@ -1,11 +1,11 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
-
-import { useEffect, useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState, useCallback, useRef } from 'react';
+import { useRouter } from '@/i18n/navigation';
 import Image from 'next/image';
-import { ArrowLeft, RefreshCw } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Camera, Loader2 } from 'lucide-react';
+import { compressForScan } from '@/lib/client-image-compress';
+import { useTranslations, useLocale } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { RecognitionLoading } from '@/components/scan/recognition-loading';
@@ -35,15 +35,8 @@ interface Recognition {
   }>;
 }
 
-const MEAL_OPTIONS = [
-  { value: 'BREAKFAST', label: '早餐' },
-  { value: 'LUNCH', label: '午餐' },
-  { value: 'DINNER', label: '晚餐' },
-  { value: 'SNACK', label: '點心' },
-  { value: 'OTHER', label: '其他' },
-] as const;
-
-type MealType = (typeof MEAL_OPTIONS)[number]['value'];
+const MEAL_TYPES = ['BREAKFAST', 'LUNCH', 'DINNER', 'SNACK', 'OTHER'] as const;
+type MealType = (typeof MEAL_TYPES)[number];
 
 const getDefaultMealType = (): MealType => {
   const h = new Date().getHours();
@@ -55,17 +48,45 @@ const getDefaultMealType = (): MealType => {
 
 export default function ScanResultPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
+  const t = useTranslations('scan');
+  const tm = useTranslations('meals');
+  const tc = useTranslations('common');
+  const locale = useLocale();
+
+  const MEAL_OPTIONS = [
+    { value: 'BREAKFAST' as MealType, label: tm('types.breakfast') },
+    { value: 'LUNCH' as MealType, label: tm('types.lunch') },
+    { value: 'DINNER' as MealType, label: tm('types.dinner') },
+    { value: 'SNACK' as MealType, label: tm('types.snack') },
+    { value: 'OTHER' as MealType, label: tm('other') },
+  ];
   const [recognition, setRecognition] = useState<Recognition | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [paramId, setParamId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isImageUploading, setIsImageUploading] = useState(false);
+  const [imageError, setImageError] = useState<string | null>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  /** 從 sessionStorage 讀取的本機預覽圖（base64），Supabase 上傳前使用 */
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [selectedMealType, setSelectedMealType] = useState<MealType>(getDefaultMealType);
   const [selectedFoodIds, setSelectedFoodIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     params.then(({ id }) => setParamId(id));
   }, [params]);
+
+  // 從 sessionStorage 讀取掃描圖預覽
+  useEffect(() => {
+    if (!paramId) return;
+    try {
+      const stored = sessionStorage.getItem(`scan-img-${paramId}`);
+      if (stored) setPreviewImage(stored);
+    } catch {
+      // ignore
+    }
+  }, [paramId]);
 
   useEffect(() => {
     if (!paramId) return;
@@ -91,7 +112,7 @@ export default function ScanResultPage({ params }: { params: Promise<{ id: strin
         }
       } catch (err) {
         console.error('Fetch error:', err);
-        setError('載入失敗');
+        setError(tc('error'));
         setIsLoading(false);
       }
     };
@@ -113,7 +134,7 @@ export default function ScanResultPage({ params }: { params: Promise<{ id: strin
       setIsLoading(false);
     } catch (err) {
       console.error('Fetch error:', err);
-      setError('載入失敗');
+      setError(tc('error'));
       setIsLoading(false);
     }
   }, [paramId]);
@@ -136,14 +157,59 @@ export default function ScanResultPage({ params }: { params: Promise<{ id: strin
     }
   };
 
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !paramId) return;
+    setImageError(null);
+    setIsImageUploading(true);
+    try {
+      const compressed = await compressForScan(file);
+      const webpFile = new File([compressed], 'scan.webp', { type: 'image/webp' });
+      const fd = new FormData();
+      fd.append('image', webpFile);
+      const res = await fetch(`/api/recognition/${paramId}/image`, { method: 'POST', body: fd });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error?.message || t('photoUpdateFailed'));
+      const newUrl: string = data.data.imageUrl;
+      setRecognition((prev) => prev ? { ...prev, imageUrl: newUrl } : prev);
+      setPreviewImage(null); // 已有正式 URL，清除本機預覽
+      try { sessionStorage.removeItem(`scan-img-${paramId}`); } catch { /* ignore */ }
+    } catch (err) {
+      setImageError(err instanceof Error ? err.message : t('photoUpdateFailed'));
+    } finally {
+      setIsImageUploading(false);
+      if (imageInputRef.current) imageInputRef.current.value = '';
+    }
+  };
+
   const handleSave = async () => {
     if (!recognition || !paramId) return;
     if (selectedFoodIds.size === 0) {
-      alert('請至少選擇一項食物');
+      alert(t('minSelectError'));
       return;
     }
     setIsSaving(true);
     try {
+      // 使用者確認加入飲食時，才將圖片上傳至 Supabase Storage
+      let finalImageUrl = recognition.imageUrl;
+      if (!finalImageUrl && previewImage) {
+        const blob = await fetch(previewImage).then((r) => r.blob());
+        const fd = new FormData();
+        fd.append('image', new File([blob], 'scan.webp', { type: 'image/webp' }));
+        const imgRes = await fetch(`/api/recognition/${paramId}/image`, {
+          method: 'POST',
+          body: fd,
+        });
+        if (imgRes.ok) {
+          const imgData = await imgRes.json();
+          finalImageUrl = imgData.data.imageUrl;
+          setRecognition((prev) =>
+            prev ? { ...prev, imageUrl: finalImageUrl ?? '' } : prev
+          );
+          // 清除 sessionStorage
+          try { sessionStorage.removeItem(`scan-img-${paramId}`); } catch { /* ignore */ }
+        }
+      }
       const response = await fetch('/api/meals', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -172,11 +238,11 @@ export default function ScanResultPage({ params }: { params: Promise<{ id: strin
       });
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error?.message || '儲存失敗');
+        throw new Error(errorData.error?.message || t('saveFailed'));
       }
       router.push('/meals');
     } catch (err) {
-      const msg = err instanceof Error ? err.message : '儲存失敗，請稍後再試';
+      const msg = err instanceof Error ? err.message : t('saveFailed');
       alert(msg);
     } finally {
       setIsSaving(false);
@@ -192,13 +258,13 @@ export default function ScanResultPage({ params }: { params: Promise<{ id: strin
       <div className="container mx-auto max-w-4xl p-6">
         <Card>
           <CardContent className="pt-6">
-            <p className="text-center text-destructive">{error || '找不到辨識記錄'}</p>
+            <p className="text-center text-destructive">{error || t('notFound')}</p>
             <Button
               variant="outline"
               onClick={() => router.push('/scan')}
               className="mx-auto mt-4 block"
             >
-              返回掃描頁面
+              {t('backToScan')}
             </Button>
           </CardContent>
         </Card>
@@ -211,20 +277,20 @@ export default function ScanResultPage({ params }: { params: Promise<{ id: strin
       <div className="container mx-auto max-w-4xl space-y-6 p-6">
         <Button variant="ghost" onClick={() => router.back()}>
           <ArrowLeft className="mr-2 h-4 w-4" />
-          返回
+          {tc('back')}
         </Button>
         <Card>
           <CardContent className="pt-6">
             <p className="mb-4 text-center text-destructive">
-              辨識失敗: {recognition.errorMessage || '未知錯誤'}
+              {t('recognitionFailed')}: {recognition.errorMessage || tc('unknown')}
             </p>
             <div className="flex justify-center gap-2">
               <Button variant="outline" onClick={() => router.push('/scan')}>
-                重新掃描
+                {t('rescan')}
               </Button>
               <Button onClick={handleRefresh}>
                 <RefreshCw className="mr-2 h-4 w-4" />
-                重試
+                {tc('retry')}
               </Button>
             </div>
           </CardContent>
@@ -233,41 +299,95 @@ export default function ScanResultPage({ params }: { params: Promise<{ id: strin
     );
   }
 
-  const allSelected = selectedFoodIds.size === recognition.foods.length;
+  const allSelected = selectedFoodIds.size > 0 && selectedFoodIds.size === recognition.foods.length;
+
+  // 辨識完成但未偵測到食物
+  if (recognition.status === 'COMPLETED' && recognition.foods.length === 0) {
+    return (
+      <div className="container mx-auto max-w-4xl space-y-6 p-6">
+        <Button variant="ghost" onClick={() => router.back()}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          {tc('back')}
+        </Button>
+        <Card>
+          <CardContent className="pt-6 text-center">
+            <p className="mb-2 text-lg font-semibold">{t('noFoodsRecognized')}</p>
+            <p className="mb-4 text-sm text-muted-foreground">
+              {t('noFoodDesc')}
+            </p>
+            <Button onClick={() => router.push('/scan')}>{t('rescan')}</Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto max-w-2xl space-y-4 p-4">
       {/* 頂部返回 */}
       <Button variant="ghost" size="sm" onClick={() => router.back()}>
         <ArrowLeft className="mr-1 h-4 w-4" />
-        返回
+        {tc('back')}
       </Button>
 
       {/* 食物圖片 */}
       <div
-        className="relative w-full overflow-hidden rounded-2xl bg-gray-100"
+        className="group relative w-full overflow-hidden rounded-2xl bg-gray-100"
         style={{ aspectRatio: '16/9' }}
       >
-        <Image src={recognition.imageUrl} alt="Food" fill className="object-cover" />
+        <Image
+          src={previewImage ?? (recognition.imageUrl || '/placeholder-food.png')}
+          alt="Food"
+          fill
+          className="object-cover"
+          unoptimized={!!(previewImage && previewImage.startsWith('data:'))}
+        />
         {recognition.confidence !== null && (
           <div className="absolute bottom-3 right-3">
             <span className="rounded-full bg-black/60 px-3 py-1 text-sm text-white">
-              辨識信心度 {Math.round(recognition.confidence * 100)}%
+              {t('confidenceLevel')} {Math.round(recognition.confidence * 100)}%
             </span>
           </div>
         )}
+        {/* 換圖按鈕 */}
+        <button
+          type="button"
+          onClick={() => !isImageUploading && imageInputRef.current?.click()}
+          disabled={isImageUploading}
+          className="absolute inset-0 flex cursor-pointer flex-col items-center justify-center gap-1 bg-black/50 opacity-0 transition-opacity group-hover:opacity-100"
+          aria-label={t('changePhoto')}
+        >
+          {isImageUploading ? (
+            <Loader2 className="h-8 w-8 animate-spin text-white" />
+          ) : (
+            <>
+              <Camera className="h-8 w-8 text-white" />
+              <span className="text-sm font-medium text-white">{t('changePhoto')}</span>
+            </>
+          )}
+        </button>
+        <input
+          ref={imageInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleImageChange}
+        />
       </div>
+      {imageError && (
+        <p className="-mt-2 text-center text-sm text-red-500">{imageError}</p>
+      )}
 
       {/* 食物列表 */}
       <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
           <div>
-            <p className="font-semibold text-gray-900">辨識結果</p>
-            <p className="text-xs text-gray-500">AI 已辨識出以下食物，請選擇要新增的項目</p>
+            <p className="font-semibold text-gray-900">{t('result')}</p>
+            <p className="text-xs text-gray-500">{t('resultDesc')}</p>
           </div>
           <button onClick={toggleAll} className="text-xs font-medium text-blue-600 hover:underline">
-            {allSelected ? '取消全選' : '全選'}
+            {allSelected ? t('deselectAll') : t('selectAll')}
           </button>
         </div>
 
@@ -306,8 +426,14 @@ export default function ScanResultPage({ params }: { params: Promise<{ id: strin
                 <div className="min-w-0 flex-1">
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <p className="font-semibold text-gray-900">{food.name}</p>
-                      {food.nameEn && <p className="text-sm text-gray-500">{food.nameEn}</p>}
+                      <p className="font-semibold text-gray-900">
+                        {locale === 'en' ? (food.nameEn || food.name) : food.name}
+                      </p>
+                      {food.nameEn && (
+                        <p className="text-sm text-gray-500">
+                          {locale === 'en' ? food.name : food.nameEn}
+                        </p>
+                      )}
                     </div>
                     {food.confidence != null && (
                       <span className="flex-shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-sm text-gray-600">
@@ -316,12 +442,12 @@ export default function ScanResultPage({ params }: { params: Promise<{ id: strin
                     )}
                   </div>
                   <p className="mt-1 text-sm text-gray-500">
-                    份量:&nbsp;<span className="text-gray-700">{food.portion}</span>
-                    &nbsp;&nbsp;熱量:&nbsp;
-                    <span className="font-medium text-gray-900">{food.calories} 卡</span>
+                    {t('servingLabel')}&nbsp;<span className="text-gray-700">{food.portion}</span>
+                    &nbsp;&nbsp;{t('caloriesLabel')}&nbsp;
+                    <span className="font-medium text-gray-900">{food.calories} {t('caloriesUnit')}</span>
                   </p>
                   <p className="mt-0.5 text-xs text-gray-400">
-                    蛋白質 {food.protein}g&nbsp;&nbsp;碳水 {food.carbs}g&nbsp;&nbsp;脂肪 {food.fat}g
+                    {t('proteinShort')} {food.protein}g&nbsp;&nbsp;{t('carbsShort')} {food.carbs}g&nbsp;&nbsp;{t('fatShort')} {food.fat}g
                   </p>
                 </div>
               </div>
@@ -332,7 +458,7 @@ export default function ScanResultPage({ params }: { params: Promise<{ id: strin
 
       {/* 餐別選擇 */}
       <div className="rounded-2xl border border-gray-200 bg-white px-4 py-3">
-        <p className="mb-2 text-sm font-medium text-gray-600">加入到</p>
+        <p className="mb-2 text-sm font-medium text-gray-600">{t('addTo')}</p>
         <div className="flex flex-wrap gap-2">
           {MEAL_OPTIONS.map(({ value, label }) => (
             <button
@@ -354,14 +480,14 @@ export default function ScanResultPage({ params }: { params: Promise<{ id: strin
       {/* 底部操作 */}
       <div className="flex gap-3 pb-4">
         <Button variant="outline" className="flex-1" onClick={() => router.back()}>
-          取消
+          {tc('cancel')}
         </Button>
         <Button
           className="flex-1"
           onClick={handleSave}
           disabled={isSaving || selectedFoodIds.size === 0}
         >
-          {isSaving ? '儲存中...' : `+ 新增 ${selectedFoodIds.size} 項食物`}
+          {isSaving ? tc('saving') : `+ ${t('addSelectedCount', { count: selectedFoodIds.size })}`}
         </Button>
       </div>
     </div>

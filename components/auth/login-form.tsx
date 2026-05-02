@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
-import { loginSchema, type LoginInput } from '@/lib/validations/auth';
+import { useTranslations } from 'next-intl';
+import { createLoginSchema, type LoginInput } from '@/lib/validations/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -23,22 +24,24 @@ import { ChevronDown, ChevronUp, Mail } from 'lucide-react';
 export const LoginForm: React.FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const t = useTranslations('auth.login');
+  const tv = useTranslations('validation');
   const [error, setError] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [showCredentials, setShowCredentials] = useState(false);
 
-  // 從 URL 讀取 callbackUrl
   const rawCallbackUrl = searchParams.get('callbackUrl');
   const callbackUrl =
     rawCallbackUrl && !rawCallbackUrl.startsWith('/auth/') ? rawCallbackUrl : '/dashboard';
 
+  const schema = useMemo(
+    () => createLoginSchema({ emailInvalid: tv('emailInvalid'), passwordRequired: tv('passwordRequired') }),
+    [tv]
+  );
+
   const form = useForm<LoginInput>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: '',
-      password: '',
-      rememberMe: false,
-    },
+    resolver: zodResolver(schema),
+    defaultValues: { email: '', password: '', rememberMe: false },
   });
 
   const onSubmit = async (data: LoginInput) => {
@@ -51,13 +54,13 @@ export const LoginForm: React.FC = () => {
         redirect: false,
       });
       if (result?.error) {
-        setError('Email 或密碼錯誤。若您尚未驗證 Email，請先點擊註冊信中的驗證連結。');
+        setError(t('errors.invalidCredentialsWithEmail'));
       } else {
         router.push(callbackUrl);
         router.refresh();
       }
     } catch {
-      setError('登入時發生錯誤，請稍後再試');
+      setError(t('errors.generic'));
     } finally {
       setIsLoading(false);
     }
@@ -82,7 +85,7 @@ export const LoginForm: React.FC = () => {
           disabled={isLoading}
         >
           <Icon icon="logos:google-icon" className="mr-3 h-5 w-5" />
-          使用 Google 繼續
+          {t('withGoogle')}
         </Button>
 
         {process.env.NEXT_PUBLIC_FACEBOOK_ENABLED === 'true' && (
@@ -94,7 +97,7 @@ export const LoginForm: React.FC = () => {
             disabled={isLoading}
           >
             <Icon icon="logos:facebook" className="mr-3 h-5 w-5" />
-            使用 Facebook 繼續
+            {t('withFacebook')}
           </Button>
         )}
 
@@ -107,7 +110,7 @@ export const LoginForm: React.FC = () => {
             disabled={isLoading}
           >
             <Icon icon="simple-icons:line" className="mr-3 h-5 w-5 text-[#00B900]" />
-            使用 LINE 繼續
+            {t('withLine')}
           </Button>
         )}
       </div>
@@ -124,7 +127,7 @@ export const LoginForm: React.FC = () => {
             className="inline-flex items-center gap-1 bg-white px-3 text-xs text-gray-400 transition-colors hover:text-gray-600"
           >
             <Mail className="h-3.5 w-3.5" />
-            使用 Email 登入
+            {t('useEmail')}
             {showCredentials ? (
               <ChevronUp className="h-3.5 w-3.5" />
             ) : (
@@ -144,7 +147,7 @@ export const LoginForm: React.FC = () => {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs text-gray-600">Email</FormLabel>
+                    <FormLabel className="text-xs text-gray-600">{t('email')}</FormLabel>
                     <FormControl>
                       <Input
                         type="email"
@@ -165,9 +168,9 @@ export const LoginForm: React.FC = () => {
                 render={({ field }) => (
                   <FormItem>
                     <div className="flex items-center justify-between">
-                      <FormLabel className="text-xs text-gray-600">密碼</FormLabel>
+                      <FormLabel className="text-xs text-gray-600">{t('password')}</FormLabel>
                       <a href="/forgot-password" className="text-xs text-primary hover:underline">
-                        忘記密碼？
+                        {t('forgotPassword')}
                       </a>
                     </div>
                     <FormControl>
@@ -185,7 +188,7 @@ export const LoginForm: React.FC = () => {
               />
 
               <Button type="submit" className="h-10 w-full rounded-xl" disabled={isLoading}>
-                {isLoading ? '登入中...' : '登入'}
+                {isLoading ? t('submitting') : t('submit')}
               </Button>
             </form>
           </Form>
@@ -193,11 +196,13 @@ export const LoginForm: React.FC = () => {
       )}
 
       <p className="pt-2 text-center text-sm text-gray-500">
-        還沒有帳號？{' '}
+        {t('noAccount')}{' '}
         <a href="/register" className="font-medium text-primary hover:underline">
-          立即註冊
+          {t('registerLink')}
         </a>
       </p>
     </div>
   );
 };
+
+

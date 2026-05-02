@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 上傳頭像
-    const { url, error } = await uploadAvatar(file);
+    const { url, error } = await uploadAvatar(file, session.user.id);
 
     if (error) {
       return NextResponse.json(createErrorResponse('UPLOAD_ERROR', error), { status: 500 });

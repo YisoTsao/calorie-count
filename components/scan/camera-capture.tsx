@@ -4,6 +4,7 @@ import { useRef, useState, useCallback } from 'react';
 import Webcam from 'react-webcam';
 import { Button } from '@/components/ui/button';
 import { Camera, SwitchCamera, X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface CameraCaptureProps {
   onCapture: (imageSrc: string) => void;
@@ -21,6 +22,8 @@ export function CameraCapture({ onCapture, onClose }: CameraCaptureProps) {
 
     return window.innerWidth < 768 || /Mobi|Android/i.test(window.navigator.userAgent);
   });
+
+  const t = useTranslations('scan');
 
   const capture = useCallback(() => {
     setFlashEffect(true);
@@ -102,7 +105,7 @@ export function CameraCapture({ onCapture, onClose }: CameraCaptureProps) {
       {/* 提示文字 */}
       <div className="absolute left-0 right-0 top-16 z-30 flex justify-center">
         <span className="rounded-full bg-black/40 px-3 py-1 text-xs text-white/80">
-          將食物置入框內拍照
+          {t('cameraHint')}
         </span>
       </div>
 

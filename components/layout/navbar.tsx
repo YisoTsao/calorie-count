@@ -78,12 +78,12 @@ export function Navbar({ user, role, isSidebarOpen = false, onToggleSidebar }: N
                     個人資料
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
+                {/* <DropdownMenuItem asChild>
                   <Link href="/settings" className="cursor-pointer">
                     <Icon icon="lucide:settings" className="mr-2 h-4 w-4" />
                     設定
                   </Link>
-                </DropdownMenuItem>
+                </DropdownMenuItem> */}
                 <DropdownMenuItem asChild>
                   <Link href="/achievements" className="cursor-pointer">
                     <Icon icon="lucide:trophy" className="mr-2 h-4 w-4" />

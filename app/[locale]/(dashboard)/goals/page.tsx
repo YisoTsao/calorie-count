@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-
+import { Skeleton } from '@/components/ui/skeleton';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Target, TrendingDown, TrendingUp, Minus, Calculator } from 'lucide-react';
@@ -180,8 +180,25 @@ export default function GoalsPage() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto max-w-4xl p-6">
-        <p className="text-center">{tc('loading')}</p>
+      <div className="container mx-auto max-w-4xl space-y-6 p-6">
+        {/* 頁首 */}
+        <div className="space-y-2">
+          <Skeleton className="h-9 w-44" />
+          <Skeleton className="h-4 w-48" />
+        </div>
+        {/* BMI 資訊卡 */}
+        <Skeleton className="h-36 w-full rounded-xl" />
+        {/* 目標類型選擇 */}
+        <Skeleton className="h-24 w-full rounded-xl" />
+        {/* 每日營養目標 */}
+        <div className="space-y-4 rounded-xl border p-6">
+          <Skeleton className="h-6 w-32" />
+          {[...Array(5)].map((_, i) => (
+            <Skeleton key={i} className="h-10 w-full" />
+          ))}
+        </div>
+        {/* 儲存按鈕 */}
+        <Skeleton className="h-10 w-32" />
       </div>
     );
   }

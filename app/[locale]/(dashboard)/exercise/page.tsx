@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Activity, Plus, Edit, Trash2, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   BarChart,
   Bar,
@@ -404,8 +405,27 @@ export default function ExercisePage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="text-gray-500">{tc('loading')}</div>
+      <div className="space-y-6">
+        {/* 頁首 */}
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <Skeleton className="h-9 w-44" />
+            <Skeleton className="h-4 w-56" />
+          </div>
+          <Skeleton className="h-10 w-28 rounded-lg" />
+        </div>
+        {/* 本週統計卡 x3 */}
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          {[...Array(3)].map((_, i) => (
+            <Skeleton key={i} className="h-24 rounded-xl" />
+          ))}
+        </div>
+        {/* 圖表區 */}
+        <Skeleton className="h-64 w-full rounded-xl" />
+        {/* 記錄列表 */}
+        {[...Array(5)].map((_, i) => (
+          <Skeleton key={i} className="h-16 w-full rounded-xl" />
+        ))}
       </div>
     );
   }

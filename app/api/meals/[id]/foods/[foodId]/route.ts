@@ -33,6 +33,14 @@ export async function PATCH(
     // Validate request body
     const updateSchema = z.object({
       servings: z.number().min(0.1).max(50),
+      // 可選：直接覆蓋各欄位（允許手動修正 AI 辨識結果）
+      name: z.string().min(1).max(200).optional(),
+      calories: z.number().min(0).optional(),
+      protein: z.number().min(0).optional(),
+      carbs: z.number().min(0).optional(),
+      fat: z.number().min(0).optional(),
+      portionSize: z.number().min(0).optional(),
+      portionUnit: z.string().max(20).optional(),
     });
 
     const body = await request.json();
@@ -45,7 +53,8 @@ export async function PATCH(
       );
     }
 
-    const { servings } = validation.data;
+    const { servings, name, calories, protein, carbs, fat, portionSize, portionUnit } =
+      validation.data;
 
     // Find meal food
     const mealFood = await prisma.mealFood.findFirst({
@@ -60,22 +69,27 @@ export async function PATCH(
     }
 
     // Calculate nutrition values based on new servings
-    const baseCalories = mealFood.calories / mealFood.servings;
-    const baseProtein = mealFood.protein / mealFood.servings;
-    const baseCarbs = mealFood.carbs / mealFood.servings;
-    const baseFat = mealFood.fat / mealFood.servings;
+    // 若有直接傳入 per-serving 值，使用傳入值；否則從原始記錄反推
+    const resolvedCalories = calories ?? mealFood.calories / mealFood.servings;
+    const resolvedProtein = protein ?? mealFood.protein / mealFood.servings;
+    const resolvedCarbs = carbs ?? mealFood.carbs / mealFood.servings;
+    const resolvedFat = fat ?? mealFood.fat / mealFood.servings;
+    const resolvedPortionSize = portionSize ?? mealFood.portionSize / mealFood.servings;
+    const resolvedPortionUnit = portionUnit ?? mealFood.portionUnit;
 
     // Update meal food
     const updated = await prisma.mealFood.update({
       where: { id: mealFoodId },
       data: {
+        ...(name !== undefined ? { name } : {}),
         servings,
-        portionSize: (mealFood.portionSize / mealFood.servings) * servings,
-        portion: `${((mealFood.portionSize / mealFood.servings) * servings).toFixed(0)} ${mealFood.portionUnit}`,
-        calories: baseCalories * servings,
-        protein: baseProtein * servings,
-        carbs: baseCarbs * servings,
-        fat: baseFat * servings,
+        portionSize: resolvedPortionSize * servings,
+        portionUnit: resolvedPortionUnit,
+        portion: `${(resolvedPortionSize * servings).toFixed(0)} ${resolvedPortionUnit}`,
+        calories: resolvedCalories * servings,
+        protein: resolvedProtein * servings,
+        carbs: resolvedCarbs * servings,
+        fat: resolvedFat * servings,
       },
     });
 

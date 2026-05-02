@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { Scale, Plus, TrendingDown, TrendingUp, Target, Edit, Trash2, X } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   LineChart,
   Line,
@@ -322,8 +323,25 @@ export default function WeightPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="text-gray-500">{tc('loading')}</div>
+      <div className="space-y-6">
+        {/* 頁首 */}
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <Skeleton className="h-9 w-36" />
+            <Skeleton className="h-4 w-48" />
+          </div>
+          <Skeleton className="h-10 w-28 rounded-lg" />
+        </div>
+        {/* 統計卡 x3 */}
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          {[...Array(3)].map((_, i) => (
+            <Skeleton key={i} className="h-28 rounded-xl" />
+          ))}
+        </div>
+        {/* 折線圖 */}
+        <Skeleton className="h-72 w-full rounded-xl" />
+        {/* 新增表單 */}
+        <Skeleton className="h-48 w-full rounded-xl" />
       </div>
     );
   }

@@ -101,8 +101,11 @@
       "withGoogle": "Continue with Google",
       "withLine": "Continue with LINE",
       "withGithub": "Continue with GitHub",
+      "withFacebook": "Continue with Facebook",
+      "useEmail": "Sign in with Email",
       "errors": {
         "invalidCredentials": "Invalid email or password",
+        "invalidCredentialsWithEmail": "Invalid email or password. If you haven't verified your email, please click the verification link in your registration email.",
         "generic": "An error occurred. Please try again."
       }
     },
@@ -118,12 +121,37 @@
       "submit": "Create Account",
       "submitting": "Creating...",
       "withGoogle": "Sign up with Google",
+      "withFacebook": "Sign up with Facebook",
+      "withLine": "Sign up with LINE",
       "orContinueWith": "Or continue with",
+      "orContinueWithSocial": "Or continue with social account",
       "alreadyHaveAccount": "Already have an account?",
       "loginLink": "Sign in",
+      "passwordPlaceholder": "At least 8 characters",
+      "confirmPasswordPlaceholder": "Re-enter password",
+      "agreeTerms": "I have read and agree to the",
+      "termsLink": "Terms of Service",
+      "privacyLink": "Privacy Policy",
+      "agreeTermsSuffix": ", including how this app collects and uses your personal health data.",
+      "emailVerification": {
+        "title": "Verification email sent!",
+        "desc": "We have sent a verification email to",
+        "stepsTitle": "Please complete the following steps:",
+        "step1": "Check your inbox for the verification email",
+        "step2": "Click the \"Verify Email\" button in the email",
+        "step3": "You can sign in after verification is complete",
+        "expiryNote": "If you didn't receive it, check your spam folder. The link is valid for 24 hours.",
+        "goToLogin": "Go to Sign In",
+        "resend": "Didn't receive the email? Resend",
+        "resending": "Sending...",
+        "resent": "\u2713 Resent",
+        "resendApiSuccess": "Verification email resent",
+        "resendApiFailed": "Sending failed, please try again"
+      },
       "errors": {
         "generic": "Registration failed. Please try again.",
-        "loginFailed": "Account created but login failed. Please sign in manually."
+        "loginFailed": "Account created but login failed. Please sign in manually.",
+        "emailExists": "This email is already registered. Please sign in or use a different email."
       }
     },
     "forgotPassword": {
@@ -275,7 +303,10 @@
     "addAndContinue": "Add & Continue",
     "addAndFinish": "Add & Finish",
     "addAndEdit": "Add & Edit",
-    "servingsLabel": "Servings:"
+    "servingsLabel": "Servings:",
+    "editFood": "Edit Food",
+    "foodName": "Food Name",
+    "portionSize": "Portion Size"
   },
   "foods": {
     "title": "Food Database",
@@ -428,7 +459,53 @@
       "angle": "Shoot from directly above",
       "distance": "Maintain appropriate distance",
       "background": "Use a plain background"
-    }
+    },
+    "cameraHint": "Place food within the frame",
+    "imageUpload": {
+      "invalidType": "Please upload an image file",
+      "tooLarge": "File size cannot exceed {maxSize}MB",
+      "dragOrClick": "Drag image here or click to upload",
+      "fileHint": "JPG, PNG, WebP supported (max {maxSize}MB)"
+    },
+    "barcode": {
+      "title": "Barcode Scan",
+      "openCamera": "Open Camera to Scan",
+      "openCameraManual": "Open Camera (Manual Entry)",
+      "noCameraWarning": "Camera unavailable, please enter barcode manually",
+      "orManualInput": "Or enter manually",
+      "querying": "Querying Open Food Facts...",
+      "cachedBadge": "Local Cache",
+      "attribution": "Data from: Open Food Facts",
+      "scanAnother": "Scan Another Barcode",
+      "notFoundTitle": "Product not found",
+      "notFoundDesc": "This product is not in the Open Food Facts database. Try AI scan or manual search.",
+      "rescan": "Rescan",
+      "browserNoSupport": "Auto-scan not supported in this browser. Please enter barcode manually.",
+      "aimAtCenter": "Align barcode with the center of the frame",
+      "retry": "Retry",
+      "manualPlaceholder": "Enter barcode number...",
+      "manualLabel": "Barcode Number",
+      "manualSubmit": "Search",
+      "errors": {
+        "queryFailed": "Query failed",
+        "networkFailed": "Network connection failed",
+        "invalidFormat": "Barcode must be 8\u201314 digits"
+      }
+    },
+    "notFound": "Recognition record not found",
+    "backToScan": "Back to Scan",
+    "noFoodDesc": "No identifiable food found. Please try a clearer photo.",
+    "addTo": "Add to",
+    "selectAll": "Select All",
+    "deselectAll": "Deselect All",
+    "changePhoto": "Change Photo",
+    "photoUpdateFailed": "Photo update failed",
+    "minSelectError": "Please select at least one food",
+    "saveFailed": "Save failed, please try again",
+    "caloriesUnit": "kcal",
+    "proteinShort": "Protein",
+    "carbsShort": "Carbs",
+    "fatShort": "Fat"
   },
   "exercise": {
     "title": "Exercise Log",
@@ -990,6 +1067,16 @@
     "zh-TW": "繁體中文",
     "en": "English",
     "ja": "日本語"
+  },
+  "validation": {
+    "emailInvalid": "Invalid email format",
+    "passwordMin": "Password must be at least 8 characters",
+    "passwordUpperCase": "Password must contain at least one uppercase letter",
+    "passwordLowerCase": "Password must contain at least one lowercase letter",
+    "passwordNumber": "Password must contain at least one number",
+    "nameRequired": "Name is required",
+    "passwordMismatch": "Passwords do not match",
+    "passwordRequired": "Please enter your password"
   },
   "errors": {
     "notFound": "Page Not Found",

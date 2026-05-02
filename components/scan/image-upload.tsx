@@ -4,6 +4,7 @@ import { useCallback, useState } from 'react';
 import Image from 'next/image';
 import { Upload, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useTranslations } from 'next-intl';
 
 interface ImageUploadProps {
   onUpload: (file: File) => void;
@@ -13,19 +14,20 @@ interface ImageUploadProps {
 export function ImageUpload({ onUpload, maxSize = 10 }: ImageUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
+  const t = useTranslations('scan');
 
   const handleFile = useCallback(
     (file: File) => {
       // 驗證檔案類型
       if (!file.type.startsWith('image/')) {
-        alert('請上傳圖片檔案');
+        alert(t('imageUpload.invalidType'));
         return;
       }
 
       // 驗證檔案大小
       const maxSizeBytes = maxSize * 1024 * 1024;
       if (file.size > maxSizeBytes) {
-        alert(`檔案大小不可超過 ${maxSize}MB`);
+        alert(t('imageUpload.tooLarge', { maxSize }));
         return;
       }
 
@@ -107,8 +109,8 @@ export function ImageUpload({ onUpload, maxSize = 10 }: ImageUploadProps) {
     >
       <label className="flex cursor-pointer flex-col items-center justify-center">
         <Upload className="mb-4 h-12 w-12 text-gray-400" />
-        <p className="mb-2 text-sm text-gray-600">拖曳圖片到此處或點擊上傳</p>
-        <p className="text-xs text-gray-500">支援 JPG, PNG, WebP (最大 {maxSize}MB)</p>
+        <p className="mb-2 text-sm text-gray-600">{t('imageUpload.dragOrClick')}</p>
+        <p className="text-xs text-gray-500">{t('imageUpload.fileHint', { maxSize })}</p>
         <input type="file" accept="image/*" onChange={handleFileInput} className="hidden" />
       </label>
     </div>

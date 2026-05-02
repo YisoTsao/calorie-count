@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import Image from 'next/image';
 import { Icon } from '@iconify/react';
 
 type Role = 'USER' | 'SUPPORT' | 'EDITOR' | 'ADMIN';
@@ -153,10 +154,21 @@ export default function AdminMembersPage() {
                 <tr key={m.id} className="transition-colors hover:bg-slate-800/30">
                   <td className="px-6 py-3">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-slate-700">
-                        <span className="text-xs font-medium text-slate-300">
-                          {(m.name ?? m.email ?? '?')[0].toUpperCase()}
-                        </span>
+                      <div className="relative flex h-8 w-8 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-700">
+                        {m.image ? (
+                          <Image
+                            src={m.image}
+                            alt={m.name ?? ''}
+                            fill
+                            className="object-cover"
+                            sizes="32px"
+                            unoptimized={m.image.includes('?')}
+                          />
+                        ) : (
+                          <span className="text-xs font-medium text-slate-300">
+                            {(m.name ?? m.email ?? '?')[0].toUpperCase()}
+                          </span>
+                        )}
                       </div>
                       <div className="min-w-0">
                         <p className="truncate font-medium text-white">{m.name ?? '未命名'}</p>

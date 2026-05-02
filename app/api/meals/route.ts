@@ -116,6 +116,29 @@ export async function GET(req: NextRequest) {
       orderBy: { mealDate: 'desc' },
     });
 
+    // 批次查詢掃描圖片 URL（避免 N+1，secondary query）
+    const recognitionIds = meals
+      .filter((m) => m.sourceRecognitionId)
+      .map((m) => m.sourceRecognitionId as string);
+
+    let recognitionImageMap: Record<string, string> = {};
+    if (recognitionIds.length > 0) {
+      const recognitions = await prisma.foodRecognition.findMany({
+        where: { id: { in: recognitionIds } },
+        select: { id: true, imageUrl: true },
+      });
+      recognitionImageMap = Object.fromEntries(
+        recognitions.map((r) => [r.id, r.imageUrl])
+      );
+    }
+
+    const mealsWithImages = meals.map((meal) => ({
+      ...meal,
+      scanImageUrl: meal.sourceRecognitionId
+        ? (recognitionImageMap[meal.sourceRecognitionId] || null)
+        : null,
+    }));
+
     // 計算總營養素
     // 注意: 資料庫中的營養值已經是 baseValue * servings 的結果,不需要再乘
     const totals = meals.reduce(
@@ -136,7 +159,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(
       createSuccessResponse({
-        meals,
+        meals: mealsWithImages,
         totals,
         count: meals.length,
       })

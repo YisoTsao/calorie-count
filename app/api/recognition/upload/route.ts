@@ -1,17 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { put } from '@vercel/blob';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
 import { recognizeFoodWithRetry, validateRecognitionResult } from '@/lib/ai/food-recognition';
 import { createSuccessResponse, createErrorResponse } from '@/lib/api-response';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
-
-// 檢查是否有 Vercel Blob token
-const hasVercelBlob = !!process.env.BLOB_READ_WRITE_TOKEN;
 
 export async function POST(req: NextRequest) {
   try {
@@ -24,6 +18,8 @@ export async function POST(req: NextRequest) {
     // 解析表單資料
     const formData = await req.formData();
     const file = formData.get('image') as File;
+    // 從 formData 取得 locale（由客戶端 PhotoUploadDialog 附帶）
+    const locale = (formData.get('locale') as string | null) ?? 'zh-TW';
 
     if (!file) {
       return NextResponse.json(createErrorResponse('VALIDATION_ERROR', '請上傳圖片'), {
@@ -45,50 +41,24 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 直接使用上傳的檔案（前端已壓縮）
     const buffer = Buffer.from(await file.arrayBuffer());
 
-    let imageUrl: string;
+    // 轉為 base64 data URL 供 AI 分析（不上傳至 Storage，避免 AI 無法存取 localhost）
+    const mimeType = ALLOWED_TYPES.includes(file.type) ? file.type : 'image/webp';
+    const imageDataUrl = `data:${mimeType};base64,${buffer.toString('base64')}`;
 
-    // 根據環境選擇儲存方式
-    if (hasVercelBlob) {
-      // 使用 Vercel Blob (生產環境)
-      const fileName = `food-recognition/${session.user.id}/${Date.now()}.webp`;
-      const blob = await put(fileName, buffer, {
-        access: 'public',
-        contentType: file.type,
-      });
-      imageUrl = blob.url;
-    } else {
-      // 使用本地檔案系統 (開發環境)
-      const publicDir = join(process.cwd(), 'public', 'uploads', 'food-recognition');
-      const userDir = join(publicDir, session.user.id);
-
-      // 確保目錄存在
-      await mkdir(userDir, { recursive: true });
-
-      const ext = file.type.split('/')[1] || 'jpg';
-      const fileName = `${Date.now()}.${ext}`;
-      const filePath = join(userDir, fileName);
-
-      // 儲存檔案
-      await writeFile(filePath, buffer);
-
-      // 生成公開 URL
-      imageUrl = `/uploads/food-recognition/${session.user.id}/${fileName}`;
-    }
-
-    // 建立辨識記錄
+    // 建立辨識記錄（imageUrl 留空，等使用者確認加入飲食後才上傳至 Supabase）
     const recognition = await prisma.foodRecognition.create({
       data: {
         userId: session.user.id,
-        imageUrl: imageUrl,
+        imageUrl: '',
+
         status: 'PROCESSING',
       },
     });
 
-    // 異步處理 AI 辨識 (不阻塞回應)
-    processRecognition(recognition.id, imageUrl).catch(console.error);
+    // 異步處理 AI 辨識（傳入 base64 data URL，不依賴外部可存取的 URL）
+    processRecognition(recognition.id, imageDataUrl, locale).catch(console.error);
 
     return NextResponse.json(
       createSuccessResponse({
@@ -97,7 +67,7 @@ export async function POST(req: NextRequest) {
           imageUrl: recognition.imageUrl,
           status: recognition.status,
         },
-        message: '圖片上傳成功,正在辨識中...',
+        message: '圖片已接收，正在辨識中...',
       })
     );
   } catch (error) {
@@ -107,26 +77,19 @@ export async function POST(req: NextRequest) {
 }
 
 /**
- * 異步處理食物辨識
+ * 異步處理食物辨識（使用 base64 data URL，OpenAI 原生支援此格式）
  */
-async function processRecognition(recognitionId: string, imageUrl: string) {
+async function processRecognition(recognitionId: string, imageDataUrl: string, locale = 'zh-TW') {
   try {
-    // 如果是相對 URL，轉換為完整 URL
-    let fullImageUrl = imageUrl;
-    if (imageUrl.startsWith('/')) {
-      const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
-      fullImageUrl = `${baseUrl}${imageUrl}`;
-    }
-
-    // 呼叫 AI 辨識
-    const result = await recognizeFoodWithRetry(fullImageUrl);
+    // 直接傳 base64 data URL 給 OpenAI，無需外部可存取的 URL
+    const result = await recognizeFoodWithRetry(imageDataUrl, 2, locale);
 
     // 驗證結果
     if (!validateRecognitionResult(result)) {
-      throw new Error('Invalid recognition result');
+      throw new Error('AI 回傳格式錯誤，請重試');
     }
 
-    // 儲存辨識結果
+    // 儲存辨識結果（foods 為空表示圖片中未偵測到食物）
     await prisma.foodRecognition.update({
       where: { id: recognitionId },
       data: {

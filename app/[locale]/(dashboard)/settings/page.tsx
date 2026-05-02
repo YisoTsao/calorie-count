@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Settings,
   Palette,
@@ -234,8 +235,20 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="text-gray-500">{tc('loading')}</div>
+      <div className="space-y-6">
+        {/* 頁首 */}
+        <div className="space-y-2">
+          <Skeleton className="h-9 w-24" />
+          <Skeleton className="h-4 w-48" />
+        </div>
+        {/* 設定分區 x4 */}
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="space-y-4 rounded-xl bg-white p-6 shadow-sm">
+            <Skeleton className="h-6 w-32" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+        ))}
       </div>
     );
   }

@@ -101,8 +101,11 @@
       "withGoogle": "使用 Google 登入",
       "withLine": "使用 LINE 登入",
       "withGithub": "使用 GitHub 登入",
+      "withFacebook": "使用 Facebook 登入",
+      "useEmail": "使用 Email 登入",
       "errors": {
         "invalidCredentials": "Email 或密碼錯誤",
+        "invalidCredentialsWithEmail": "Email 或密碼錯誤。若您尚未驗證 Email，請先點擊註冊信中的驗證連結。",
         "generic": "登入時發生錯誤，請稍後再試"
       }
     },
@@ -118,12 +121,37 @@
       "submit": "建立帳號",
       "submitting": "建立中...",
       "withGoogle": "使用 Google 註冊",
+      "withFacebook": "使用 Facebook 註冊",
+      "withLine": "使用 LINE 註冊",
       "orContinueWith": "或使用以下方式",
+      "orContinueWithSocial": "或使用社群帳號註冊",
       "alreadyHaveAccount": "已有帳號？",
       "loginLink": "立即登入",
+      "passwordPlaceholder": "至少 8 個字元",
+      "confirmPasswordPlaceholder": "再次輸入密碼",
+      "agreeTerms": "我已閱讀並同意",
+      "termsLink": "服務條款",
+      "privacyLink": "隱私權政策",
+      "agreeTermsSuffix": "，包括本系統對個人健康資料的收集與使用方式。",
+      "emailVerification": {
+        "title": "驗證信已發送！",
+        "desc": "我們已發送驗證信到",
+        "stepsTitle": "請完成以下步驟：",
+        "step1": "前往您的信箱查收驗證信",
+        "step2": "點擊信中的「驗證 Email」按鈕",
+        "step3": "驗證完成後即可登入",
+        "expiryNote": "若未收到，請查看垃圾郵件資料夾。連結 24 小時內有效。",
+        "goToLogin": "前往登入",
+        "resend": "沒收到驗證信？重新發送",
+        "resending": "發送中...",
+        "resent": "✓ 已重新發送",
+        "resendApiSuccess": "驗證信已重新發送",
+        "resendApiFailed": "發送失敗，請稍後再試"
+      },
       "errors": {
         "generic": "註冊失敗，請稍後再試",
-        "loginFailed": "註冊成功但登入失敗，請嘗試手動登入"
+        "loginFailed": "註冊成功但登入失敗，請嘗試手動登入",
+        "emailExists": "此 Email 已被註冊，請直接登入或使用其他 Email。"
       }
     },
     "forgotPassword": {
@@ -275,7 +303,10 @@
     "addAndContinue": "加入並繼續",
     "addAndFinish": "加入並完成",
     "addAndEdit": "加入並編輯",
-    "servingsLabel": "份數:"
+    "servingsLabel": "份數:",
+    "editFood": "編輯食物",
+    "foodName": "食物名稱",
+    "portionSize": "份量大小"
   },
   "foods": {
     "title": "食物資料庫",
@@ -434,7 +465,53 @@
       "angle": "從正上方拍攝",
       "distance": "保持適當距離",
       "background": "使用純色背景"
-    }
+    },
+    "cameraHint": "將食物置入框內拍照",
+    "imageUpload": {
+      "invalidType": "請上傳圖片檔案",
+      "tooLarge": "檔案大小不可超過 {maxSize}MB",
+      "dragOrClick": "拖曳圖片到此處或點擊上傳",
+      "fileHint": "支援 JPG, PNG, WebP（最大 {maxSize}MB）"
+    },
+    "barcode": {
+      "title": "條碼掃描",
+      "openCamera": "開啟相機掃描條碼",
+      "openCameraManual": "開啟相機（手動輸入）",
+      "noCameraWarning": "無法使用相機，請手動輸入條碼",
+      "orManualInput": "或手動輸入",
+      "querying": "正在查詢 Open Food Facts...",
+      "cachedBadge": "本地快取",
+      "attribution": "資料來源：Open Food Facts",
+      "scanAnother": "掃描其他條碼",
+      "notFoundTitle": "找不到此條碼的商品資訊",
+      "notFoundDesc": "Open Food Facts 資料庫尚無此商品，請改用 AI 掃描或手動搜尋食物。",
+      "rescan": "重新掃描",
+      "browserNoSupport": "此瀏覽器不支援自動掃描，請手動輸入條碼",
+      "aimAtCenter": "將條碼對準畫面中央",
+      "retry": "重新嘗試",
+      "manualPlaceholder": "輸入條碼號碼...",
+      "manualLabel": "條碼號碼",
+      "manualSubmit": "查詢",
+      "errors": {
+        "queryFailed": "查詢失敗",
+        "networkFailed": "網路連線失敗",
+        "invalidFormat": "條碼需為 8–14 位數字"
+      }
+    },
+    "notFound": "找不到辨識記錄",
+    "backToScan": "返回掃描頁面",
+    "noFoodDesc": "圖片中沒有可辨識的食物，請嘗試拍攝更清晰的照片。",
+    "addTo": "加入到",
+    "selectAll": "全選",
+    "deselectAll": "取消全選",
+    "changePhoto": "更換照片",
+    "photoUpdateFailed": "照片更換失敗",
+    "minSelectError": "請至少選擇一項食物",
+    "saveFailed": "儲存失敗，請稍後再試",
+    "caloriesUnit": "卡",
+    "proteinShort": "蛋白質",
+    "carbsShort": "碳水",
+    "fatShort": "脂肪"
   },
   "exercise": {
     "title": "運動記錄",
@@ -716,9 +793,9 @@
       "streak_30": { "name": "習慣養成", "description": "連續記錄 30 天飲食" },
       "streak_100": { "name": "毅力大師", "description": "連續記錄 100 天飲食" },
       "total_100_meals": { "name": "百餐達人", "description": "累積記錄 100 餐飲食" },
-      "total_500_meals": { "name": "老餳", "description": "累積記錄 500 餐飲食" },
-      "app_30_days": { "name": "一個月用戶", "description": "使用 App 湀30 天" },
-      "app_180_days": { "name": "半年夥伴", "description": "使用 App 湀180 天" },
+      "total_500_meals": { "name": "老饕", "description": "累積記錄 500 餐飲食" },
+      "app_30_days": { "name": "一個月用戶", "description": "使用 App 滿 30 天" },
+      "app_180_days": { "name": "半年夥伴", "description": "使用 App 滿180 天" },
       "goal_hit_7": { "name": "精準控制", "description": "達成熱量目標 7 次" },
       "goal_hit_30": { "name": "均衡飲食", "description": "達成熱量目標 30 次" },
       "goal_hit_100": { "name": "卡路裡大師", "description": "達成熱量目標 100 次" }
@@ -987,6 +1064,16 @@
     "zh-TW": "繁體中文",
     "en": "English",
     "ja": "日本語"
+  },
+  "validation": {
+    "emailInvalid": "Email 格式不正確",
+    "passwordMin": "密碼至少需要 8 個字元",
+    "passwordUpperCase": "密碼需包含至少一個大寫字母",
+    "passwordLowerCase": "密碼需包含至少一個小寫字母",
+    "passwordNumber": "密碼需包含至少一個數字",
+    "nameRequired": "姓名為必填項目",
+    "passwordMismatch": "密碼不一致",
+    "passwordRequired": "請輸入密碼"
   },
   "errors": {
     "notFound": "頁面不存在",

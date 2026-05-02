@@ -44,24 +44,40 @@ export function EditMealFoodDialog({
   mealId,
   onUpdate,
 }: EditMealFoodDialogProps) {
+  // 每份（1 serving）的基準值
+  const [name, setName] = useState('');
   const [servings, setServings] = useState(1);
+  const [caloriesPerServing, setCaloriesPerServing] = useState(0);
+  const [proteinPerServing, setProteinPerServing] = useState(0);
+  const [carbsPerServing, setCarbsPerServing] = useState(0);
+  const [fatPerServing, setFatPerServing] = useState(0);
+  const [portionSizePerServing, setPortionSizePerServing] = useState(0);
+  const [portionUnit, setPortionUnit] = useState('g');
   const [isUpdating, setIsUpdating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const t = useTranslations('meals');
   const tc = useTranslations('common');
   const locale = useLocale();
 
-  const getLocalizedName = (name: string, nameEn?: string | null, nameJa?: string | null) => {
-    if (locale === 'ja') return nameJa || nameEn || name;
-    if (locale === 'en') return nameEn || name;
-    return name;
+  const getLocalizedName = (mf: MealFood) => {
+    if (locale === 'en') return mf.nameEn || mf.name;
+    return mf.name;
   };
 
-  // 每次打開對話框時重置為原始值
+  // 每次打開時重置為原始值（轉換為每份基準）
   useEffect(() => {
     if (open && mealFood) {
-      setServings(mealFood.servings);
+      const s = mealFood.servings;
+      setName(getLocalizedName(mealFood));
+      setServings(s);
+      setCaloriesPerServing(+(mealFood.calories / s).toFixed(2));
+      setProteinPerServing(+(mealFood.protein / s).toFixed(2));
+      setCarbsPerServing(+(mealFood.carbs / s).toFixed(2));
+      setFatPerServing(+(mealFood.fat / s).toFixed(2));
+      setPortionSizePerServing(+(mealFood.portionSize / s).toFixed(2));
+      setPortionUnit(mealFood.portionUnit);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, mealFood]);
 
   if (!mealFood) return null;
@@ -72,7 +88,16 @@ export function EditMealFoodDialog({
       const response = await fetch(`/api/meals/${mealId}/foods/${mealFood.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ servings }),
+        body: JSON.stringify({
+          servings,
+          name,
+          calories: caloriesPerServing,
+          protein: proteinPerServing,
+          carbs: carbsPerServing,
+          fat: fatPerServing,
+          portionSize: portionSizePerServing,
+          portionUnit,
+        }),
       });
 
       if (!response.ok) {
@@ -114,11 +139,6 @@ export function EditMealFoodDialog({
     }
   };
 
-  const baseCalories = mealFood.calories / mealFood.servings;
-  const baseProtein = mealFood.protein / mealFood.servings;
-  const baseCarbs = mealFood.carbs / mealFood.servings;
-  const baseFat = mealFood.fat / mealFood.servings;
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
@@ -128,21 +148,19 @@ export function EditMealFoodDialog({
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* 食物資訊 */}
-          <div className="space-y-2">
-            <div>
-              <p className="text-lg font-medium">
-                {getLocalizedName(mealFood.name, mealFood.nameEn)}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                {t('perServingUnit')} {mealFood.portionSize / mealFood.servings}{' '}
-                {mealFood.portionUnit}
-              </p>
-            </div>
+          {/* 食物名稱 */}
+          <div className="space-y-1.5">
+            <Label htmlFor="food-name">{t('foodName') || '食物名稱'}</Label>
+            <Input
+              id="food-name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              disabled={isUpdating}
+            />
           </div>
 
           {/* 份數調整 */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label htmlFor="servings">{t('quantityLabel')}</Label>
             <div className="flex items-center gap-2">
               <Button
@@ -171,30 +189,112 @@ export function EditMealFoodDialog({
               >
                 +
               </Button>
-              <span className="ml-2 text-sm text-muted-foreground">
-                = {((mealFood.portionSize / mealFood.servings) * servings).toFixed(0)}{' '}
-                {mealFood.portionUnit}
+              <span className="ml-1 text-sm text-muted-foreground">
+                = {(portionSizePerServing * servings).toFixed(0)} {portionUnit}
               </span>
             </div>
           </div>
 
-          {/* 營養資訊預覽 */}
+          {/* 份量單位 */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="portion-size">{t('portionSize') || '每份份量'}</Label>
+              <div className="flex gap-1.5">
+                <Input
+                  id="portion-size"
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={portionSizePerServing}
+                  onChange={(e) =>
+                    setPortionSizePerServing(Math.max(0, parseFloat(e.target.value) || 0))
+                  }
+                  disabled={isUpdating}
+                />
+                <Input
+                  value={portionUnit}
+                  onChange={(e) => setPortionUnit(e.target.value)}
+                  className="w-16"
+                  placeholder="g"
+                  disabled={isUpdating}
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="calories-ps">{t('calories')} (kcal/份)</Label>
+              <Input
+                id="calories-ps"
+                type="number"
+                min="0"
+                step="1"
+                value={caloriesPerServing}
+                onChange={(e) =>
+                  setCaloriesPerServing(Math.max(0, parseFloat(e.target.value) || 0))
+                }
+                disabled={isUpdating}
+              />
+            </div>
+          </div>
+
+          {/* 三大營養素 */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="protein-ps">{t('protein')} (g/份)</Label>
+              <Input
+                id="protein-ps"
+                type="number"
+                min="0"
+                step="0.1"
+                value={proteinPerServing}
+                onChange={(e) =>
+                  setProteinPerServing(Math.max(0, parseFloat(e.target.value) || 0))
+                }
+                disabled={isUpdating}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="carbs-ps">{t('carbs')} (g/份)</Label>
+              <Input
+                id="carbs-ps"
+                type="number"
+                min="0"
+                step="0.1"
+                value={carbsPerServing}
+                onChange={(e) => setCarbsPerServing(Math.max(0, parseFloat(e.target.value) || 0))}
+                disabled={isUpdating}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="fat-ps">{t('fat')} (g/份)</Label>
+              <Input
+                id="fat-ps"
+                type="number"
+                min="0"
+                step="0.1"
+                value={fatPerServing}
+                onChange={(e) => setFatPerServing(Math.max(0, parseFloat(e.target.value) || 0))}
+                disabled={isUpdating}
+              />
+            </div>
+          </div>
+
+          {/* 總計預覽 */}
           <div className="grid grid-cols-2 gap-3 rounded-lg bg-muted p-4">
             <div>
-              <p className="mb-1 text-xs text-muted-foreground">{t('calories')}</p>
-              <p className="font-medium">{(baseCalories * servings).toFixed(0)} kcal</p>
+              <p className="mb-1 text-xs text-muted-foreground">{t('calories')} 合計</p>
+              <p className="font-medium">{(caloriesPerServing * servings).toFixed(0)} kcal</p>
             </div>
             <div>
-              <p className="mb-1 text-xs text-muted-foreground">{t('protein')}</p>
-              <p className="font-medium">{(baseProtein * servings).toFixed(1)} g</p>
+              <p className="mb-1 text-xs text-muted-foreground">{t('protein')} 合計</p>
+              <p className="font-medium">{(proteinPerServing * servings).toFixed(1)} g</p>
             </div>
             <div>
-              <p className="mb-1 text-xs text-muted-foreground">{t('carbs')}</p>
-              <p className="font-medium">{(baseCarbs * servings).toFixed(1)} g</p>
+              <p className="mb-1 text-xs text-muted-foreground">{t('carbs')} 合計</p>
+              <p className="font-medium">{(carbsPerServing * servings).toFixed(1)} g</p>
             </div>
             <div>
-              <p className="mb-1 text-xs text-muted-foreground">{t('fat')}</p>
-              <p className="font-medium">{(baseFat * servings).toFixed(1)} g</p>
+              <p className="mb-1 text-xs text-muted-foreground">{t('fat')} 合計</p>
+              <p className="font-medium">{(fatPerServing * servings).toFixed(1)} g</p>
             </div>
           </div>
         </div>
@@ -227,3 +327,5 @@ export function EditMealFoodDialog({
     </Dialog>
   );
 }
+
+

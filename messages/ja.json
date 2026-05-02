@@ -101,8 +101,11 @@
       "withGoogle": "Googleでログイン",
       "withLine": "LINEでログイン",
       "withGithub": "GitHubでログイン",
+      "withFacebook": "Facebookで続ける",
+      "useEmail": "メールアドレスでログイン",
       "errors": {
         "invalidCredentials": "メールアドレスまたはパスワードが違います",
+        "invalidCredentialsWithEmail": "メールアドレスまたはパスワードが違います。まだメールを確認していない場合は、登録メールの確認リンクをクリックしてください。",
         "generic": "エラーが発生しました。後でもう一度お試しください。"
       }
     },
@@ -275,7 +278,10 @@
     "addAndContinue": "追加して続ける",
     "addAndFinish": "追加して完了",
     "addAndEdit": "追加して編集",
-    "servingsLabel": "サービング数:"
+    "servingsLabel": "サービング数:",
+    "editFood": "食物を編集",
+    "foodName": "食品名",
+    "portionSize": "1食分量"
   },
   "foods": {
     "title": "食品データベース",
@@ -434,7 +440,53 @@
       "angle": "真上から撮影する",
       "distance": "適切な距離を保つ",
       "background": "無地の背景を使用する"
-    }
+    },
+    "cameraHint": "食品をフレーム内に入れて撮影",
+    "imageUpload": {
+      "invalidType": "画像ファイルをアップロードしてください",
+      "tooLarge": "ファイルサイズは{maxSize}MB以下にしてください",
+      "dragOrClick": "画像をここにドラッグするか、クリックしてアップロード",
+      "fileHint": "JPG、PNG、WebP対応（最大{maxSize}MB）"
+    },
+    "barcode": {
+      "title": "バーコードスキャン",
+      "openCamera": "カメラを開いてスキャン",
+      "openCameraManual": "カメラを開く（手動入力）",
+      "noCameraWarning": "カメラが使用できません。バーコードを手動で入力してください",
+      "orManualInput": "または手動で入力",
+      "querying": "Open Food Factsを検索中...",
+      "cachedBadge": "ローカルキャッシュ",
+      "attribution": "データ提供: Open Food Facts",
+      "scanAnother": "別のバーコードをスキャン",
+      "notFoundTitle": "商品が見つかりません",
+      "notFoundDesc": "この商品はOpen Food Factsデータベースにありません。AIスキャンか手動検索をお試しください。",
+      "rescan": "再スキャン",
+      "browserNoSupport": "このブラウザは自動スキャンに対応していません。バーコードを手動で入力してください。",
+      "aimAtCenter": "バーコードをフレームの中央に合わせてください",
+      "retry": "再試行",
+      "manualPlaceholder": "バーコード番号を入力...",
+      "manualLabel": "バーコード番号",
+      "manualSubmit": "検索",
+      "errors": {
+        "queryFailed": "検索に失敗しました",
+        "networkFailed": "ネットワーク接続に失敗しました",
+        "invalidFormat": "バーコードは8～14桁の数字である必要があります"
+      }
+    },
+    "notFound": "認識記録が見つかりません",
+    "backToScan": "スキャンに戻る",
+    "noFoodDesc": "識別できる食品がありません。より鮮明な写真をお試しください。",
+    "addTo": "追加先",
+    "selectAll": "すべて選択",
+    "deselectAll": "すべて解除",
+    "changePhoto": "写真を変更",
+    "photoUpdateFailed": "写真の更新に失敗しました",
+    "minSelectError": "少なくとも1つの食品を選択してください",
+    "saveFailed": "保存に失敗しました。後でお試しください",
+    "caloriesUnit": "kcal",
+    "proteinShort": "タンパク質",
+    "carbsShort": "炭水化物",
+    "fatShort": "脂質"
   },
   "exercise": {
     "title": "運動記録",
@@ -985,6 +1037,16 @@
     "zh-TW": "繁體中文",
     "en": "English",
     "ja": "日本語"
+  },
+  "validation": {
+    "emailInvalid": "メールアドレスの形式が正しくありません",
+    "passwordMin": "パスワードは8文字以上必要です",
+    "passwordUpperCase": "パスワードには大文字を含める必要があります",
+    "passwordLowerCase": "パスワードには小文字を含める必要があります",
+    "passwordNumber": "パスワードには数字を含める必要があります",
+    "nameRequired": "お名前は必須です",
+    "passwordMismatch": "パスワードが一致しません",
+    "passwordRequired": "パスワードを入力してください"
   },
   "errors": {
     "notFound": "ページが見つかりません",
