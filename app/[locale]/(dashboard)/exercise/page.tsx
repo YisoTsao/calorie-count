@@ -63,7 +63,8 @@ function ExerciseChartTooltip({ active, payload, label }: any) {
       <p className="mb-1.5 font-semibold text-gray-900">📅 {label}</p>
       <div className="space-y-1">
         {filtered.map((entry: any) => {
-          const typeInfo = EXERCISE_TYPES.find((t) => t.value === entry.dataKey);
+          const typeInfo = EXERCISE_TYPES.find((et) => et.value === entry.dataKey);
+          const typeName = typeInfo ? t(`types.${entry.dataKey}`) : entry.dataKey;
           return (
             <div key={entry.dataKey} className="flex items-center gap-2">
               <span
@@ -71,7 +72,7 @@ function ExerciseChartTooltip({ active, payload, label }: any) {
                 style={{ backgroundColor: entry.fill }}
               />
               <span>
-                {typeInfo?.icon || '🏃'} {entry.dataKey}: {entry.value} {t('minutesUnit')}
+                {typeInfo?.icon || '🏃'} {typeName}: {entry.value} {t('minutesUnit')}
               </span>
             </div>
           );
@@ -529,14 +530,14 @@ export default function ExercisePage() {
                 {t('allTypes')}
               </button>
               {uniqueTypes.map((type) => {
-                const info = EXERCISE_TYPES.find((t) => t.value === type);
+                const info = EXERCISE_TYPES.find((et) => et.value === type);
                 return (
                   <button
                     key={type}
                     onClick={() => setSelectedType(type)}
                     className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${selectedType === type ? 'bg-amber-600 text-white' : 'bg-amber-50 text-amber-700 hover:bg-amber-100'}`}
                   >
-                    {info?.icon || '🏃'} {type}
+                    {info?.icon || '🏃'} {getTypeName(type)}
                   </button>
                 );
               })}

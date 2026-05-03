@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { Trophy } from 'lucide-react';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useTranslations, useLocale } from 'next-intl';
 
 interface AchievementItem {
   id: string;
@@ -25,6 +26,8 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 export default function AchievementWall() {
+  const t = useTranslations('achievements');
+  const locale = useLocale();
   const [earned, setEarned] = useState<AchievementItem[]>([]);
   const [total, setTotal] = useState(0);
   const [earnedCount, setEarnedCount] = useState(0);
@@ -65,15 +68,15 @@ export default function AchievementWall() {
   }
 
   return (
-    <div className="rounded-lg bg-white p-6 shadow-md">
+    <div className="rounded-lg bg-white p-4 shadow-md sm:p-6">
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-lg font-semibold">成就牆</h3>
+        <h3 className="text-base font-semibold sm:text-lg">{t('wallTitle')}</h3>
         <div className="flex items-center gap-3">
           <span className="text-sm text-gray-500">
             {earnedCount} / {total}
           </span>
           <Link href="/achievements" className="text-sm text-primary hover:underline">
-            查看全部 →
+            {t('viewAll')} →
           </Link>
         </div>
       </div>
@@ -81,11 +84,11 @@ export default function AchievementWall() {
       {earned.length === 0 ? (
         <div className="rounded-lg bg-gray-50 py-10 text-center">
           <Trophy className="mx-auto mb-3 h-14 w-14 text-gray-300" />
-          <p className="text-sm text-gray-500">尚未獲得任何成就</p>
-          <p className="mt-1 text-xs text-gray-400">持續記錄，解鎖更多成就！</p>
+          <p className="text-sm text-gray-500">{t('noAchievements')}</p>
+          <p className="mt-1 text-xs text-gray-400">{t('keepTracking')}</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {earned.map((a) => (
             <div
               key={a.id}
@@ -99,7 +102,7 @@ export default function AchievementWall() {
                 <p className="mt-0.5 line-clamp-2 text-xs opacity-75">{a.description}</p>
                 {a.earnedAt && (
                   <p className="mt-1 text-xs opacity-50">
-                    {new Date(a.earnedAt).toLocaleDateString('zh-TW', {
+                    {new Date(a.earnedAt).toLocaleDateString(locale === 'zh-TW' ? 'zh-TW' : locale === 'ja' ? 'ja-JP' : 'en-US', {
                       month: '2-digit',
                       day: '2-digit',
                       year: 'numeric',

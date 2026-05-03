@@ -393,16 +393,16 @@ export default function MealsPage() {
   }
 
   return (
-    <div className="container mx-auto max-w-6xl space-y-6 p-6">
+    <div className="container mx-auto max-w-6xl space-y-4 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
       {/* 頁首 */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">{t('title')}</h1>
-          <p className="mt-1 text-muted-foreground">{t('subtitle')}</p>
+          <h1 className="text-2xl font-bold sm:text-3xl">{t('title')}</h1>
+          <p className="mt-0.5 text-sm text-muted-foreground sm:mt-1 sm:text-base">{t('subtitle')}</p>
         </div>
-        <Button onClick={() => router.push('/scan')}>
-          <Plus className="mr-2 h-4 w-4" />
-          {t('addFood')}
+        <Button onClick={() => router.push('/scan')} size="sm" className="sm:size-auto">
+          <Plus className="h-4 w-4 sm:mr-2" />
+          <span className="hidden sm:inline py-2">{t('addFood')}</span>
         </Button>
       </div>
 
@@ -554,8 +554,8 @@ export default function MealsPage() {
                   <Utensils className="h-5 w-5" />
                   <CardTitle>{MEAL_TYPE_LABELS[mealType]}</CardTitle>
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="text-sm text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  <div className="text-xs text-muted-foreground sm:text-sm">
                     {Math.round(typeTotals.calories)} kcal
                   </div>
                   <Button
@@ -563,18 +563,20 @@ export default function MealsPage() {
                     size="sm"
                     onClick={() => handleOpenPhotoUpload(mealType)}
                     disabled={isAddingFood}
+                    className="h-8 px-2 sm:px-3"
                   >
-                    <Plus className="mr-1 h-4 w-4" />
-                    {t('takePhoto')}
+                    <Plus className="h-3.5 w-3.5 sm:mr-1" />
+                    <span className="hidden sm:inline">{t('takePhoto')}</span>
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => handleOpenSearch(mealType)}
                     disabled={isAddingFood}
+                    className="h-8 px-2 sm:px-3"
                   >
-                    <Plus className="mr-1 h-4 w-4" />
-                    {t('addFood')}
+                    <Plus className="h-3.5 w-3.5 sm:mr-1" />
+                    <span className="hidden sm:inline">{t('addFood')}</span>
                   </Button>
                 </div>
               </div>
@@ -647,7 +649,7 @@ export default function MealsPage() {
                                 {Math.round(food.fat)}g
                               </p>
                             </div>
-                            <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                            <div className="flex gap-1 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -714,21 +716,34 @@ export default function MealsPage() {
       {/* Lightbox：點擊縮圖放大 */}
       {lightboxSrc && (
         <div
-          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-[200] flex flex-col bg-black/92 backdrop-blur-sm"
           onClick={() => setLightboxSrc(null)}
         >
-          <button
-            className="absolute right-4 top-4 rounded-full bg-black/50 p-2 text-white hover:bg-black/70"
-            onClick={() => setLightboxSrc(null)}
+          {/* 關閉按鈕列 */}
+          <div
+            className="flex shrink-0 items-center justify-end px-4 py-3"
+            style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 12px)' }}
           >
-            ✕
-          </button>
-          <div className="relative max-h-[90vh] max-w-[90vw]">
+            <button
+              className="rounded-full bg-white/20 p-2.5 text-white hover:bg-white/30 active:bg-white/40"
+              onClick={(e) => { e.stopPropagation(); setLightboxSrc(null); }}
+              aria-label="關閉"
+            >
+              ✕
+            </button>
+          </div>
+          {/* 圖片置中 */}
+          <div className="flex min-h-0 flex-1 items-center justify-center p-4">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={lightboxSrc}
               alt="掃描圖片"
-              className="max-h-[90vh] max-w-[90vw] rounded-xl object-contain"
+              className="rounded-xl object-contain"
+              style={{
+                minWidth: 'min(50vw, calc(100vw - 32px))',
+                maxWidth: 'calc(100vw - 32px)',
+                maxHeight: 'calc(100vh - 100px)',
+              }}
               onClick={(e) => e.stopPropagation()}
             />
           </div>

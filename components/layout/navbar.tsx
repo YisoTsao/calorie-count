@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import Image from 'next/image';
 import { signOut } from 'next-auth/react';
 import { Icon } from '@iconify/react';
@@ -32,9 +32,11 @@ export function Navbar({ user, role, isSidebarOpen = false, onToggleSidebar }: N
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <Icon icon="lucide:apple" className="h-8 w-8 text-primary" />
-            <span className="text-xl font-bold">CalorieCount</span>
+          <Link href="/dashboard" className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-emerald-500 shadow-sm">
+              <Icon icon="lucide:apple" className="h-4.5 w-4.5 text-white" style={{ fontSize: '18px' }} />
+            </div>
+            <span className="text-xl font-bold tracking-tight">CalorieCount</span>
           </Link>
 
           {/* User Menu */}

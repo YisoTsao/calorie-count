@@ -507,7 +507,7 @@ export default function AdminFoodsPage() {
           [
             { key: 'system', label: '系統食物庫', icon: 'mdi:database-outline' },
             { key: 'usda', label: 'USDA 匯入', icon: 'mdi:database-import-outline' },
-            { key: 'fatsecret', label: 'FatSecret 匯入', icon: 'mdi:food-variant' },
+            // { key: 'fatsecret', label: 'FatSecret 匯入', icon: 'mdi:food-variant' },
           ] as const
         ).map((t) => (
           <button

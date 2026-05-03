@@ -80,8 +80,8 @@ export async function uploadImage(
       });
 
     if (error) {
-      console.error('圖片上傳失敗:', error.message);
-      return { url: '', error: '圖片上傳失敗,請稍後再試' };
+      console.error('圖片上傳失敗:', error.message, '| bucket: food-scans | path:', path);
+      return { url: '', error: `圖片上傳失敗: ${error.message}` };
     }
 
     return { url: getStorageUrl('food-scans', path) };

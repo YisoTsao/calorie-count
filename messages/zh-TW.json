@@ -754,7 +754,15 @@
     "recGoals": "目標達成優秀",
     "recGoalsDesc": "目標達成率 {pct}%，表現很好！",
     "daysLabel": "{days} 天",
-    "goalsMetLabel": "{met}/{total} 天"
+    "goalsMetLabel": "{met}/{total} 天",
+    "chartCalories": "卡路里",
+    "chartProtein": "蛋白質 (g)",
+    "chartCarbs": "碳水 (g)",
+    "chartFat": "脂肪 (g)",
+    "chartWater": "飲水量 (ml)",
+    "chartExercise": "運動時長 (分)",
+    "chartWeight": "體重 (kg)",
+    "chartNoData": "尚無資料，開始記錄後顯示趨勢圖"
   },
   "achievements": {
     "title": "成就",
@@ -764,6 +772,9 @@
     "progress": "進度",
     "unlockedAt": "解鎖時間",
     "noAchievements": "尚無成就",
+    "wallTitle": "成就牆",
+    "viewAll": "查看全部",
+    "keepTracking": "持續記錄，解鎖更多成就！",
     "categories": {
       "streak": "打卡",
       "calories": "卡路里目標",

@@ -748,7 +748,15 @@
     "recGoals": "Great Goal Achievement",
     "recGoalsDesc": "{pct}% goal rate. Excellent!",
     "daysLabel": "{days} days",
-    "goalsMetLabel": "{met}/{total} days"
+    "goalsMetLabel": "{met}/{total} days",
+    "chartCalories": "Calories",
+    "chartProtein": "Protein (g)",
+    "chartCarbs": "Carbs (g)",
+    "chartFat": "Fat (g)",
+    "chartWater": "Water (ml)",
+    "chartExercise": "Exercise (min)",
+    "chartWeight": "Weight (kg)",
+    "chartNoData": "No data yet. Start logging to see trends."
   },
   "achievements": {
     "title": "Achievements",
@@ -758,6 +766,9 @@
     "progress": "Progress",
     "unlockedAt": "Unlocked on",
     "noAchievements": "No achievements yet",
+    "wallTitle": "Achievement Wall",
+    "viewAll": "View All",
+    "keepTracking": "Keep logging to unlock more achievements!",
     "categories": {
       "streak": "Streak",
       "calories": "Calorie Goals",
