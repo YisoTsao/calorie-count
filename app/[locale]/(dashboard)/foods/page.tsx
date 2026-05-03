@@ -541,7 +541,7 @@ export default function FoodsPage() {
                     {categories.map((category) => (
                       <SelectItem key={category.id} value={category.id}>
                         <span className="inline-flex items-center gap-1.5">
-                          <CategoryIcon name={category.name} className="h-4 w-4" /> {category.name}
+                          <CategoryIcon name={category.name} className="h-4 w-4" /> {getLocalizedName(category.name, category.nameEn, category.nameJa)}
                         </span>
                       </SelectItem>
                     ))}
@@ -774,7 +774,7 @@ export default function FoodsPage() {
                     {categories.map((category) => (
                       <SelectItem key={category.id} value={category.id}>
                         <span className="inline-flex items-center gap-1.5">
-                          <CategoryIcon name={category.name} className="h-4 w-4" /> {category.name}
+                          <CategoryIcon name={category.name} className="h-4 w-4" /> {getLocalizedName(category.name, category.nameEn, category.nameJa)}
                         </span>
                       </SelectItem>
                     ))}

@@ -402,7 +402,7 @@ export default function MealsPage() {
         </div>
         <Button onClick={() => router.push('/scan')} size="sm" className="sm:size-auto">
           <Plus className="h-4 w-4 sm:mr-2" />
-          <span className="hidden sm:inline">{t('addFood')}</span>
+          <span className="hidden sm:inline py-2">{t('addFood')}</span>
         </Button>
       </div>
 
@@ -716,12 +716,14 @@ export default function MealsPage() {
       {/* Lightbox：點擊縮圖放大 */}
       {lightboxSrc && (
         <div
-          className="fixed inset-0 z-[200] flex flex-col bg-black/90 backdrop-blur-sm"
-          style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
+          className="fixed inset-0 z-[200] flex flex-col bg-black/92 backdrop-blur-sm"
           onClick={() => setLightboxSrc(null)}
         >
           {/* 關閉按鈕列 */}
-          <div className="flex shrink-0 items-center justify-end px-4 py-3">
+          <div
+            className="flex shrink-0 items-center justify-end px-4 py-3"
+            style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 12px)' }}
+          >
             <button
               className="rounded-full bg-white/20 p-2.5 text-white hover:bg-white/30 active:bg-white/40"
               onClick={(e) => { e.stopPropagation(); setLightboxSrc(null); }}
@@ -731,12 +733,17 @@ export default function MealsPage() {
             </button>
           </div>
           {/* 圖片置中 */}
-          <div className="flex min-h-0 flex-1 items-center justify-center px-4 pb-8">
+          <div className="flex min-h-0 flex-1 items-center justify-center p-4">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={lightboxSrc}
               alt="掃描圖片"
-              className="max-h-full max-w-full rounded-xl object-contain"
+              className="rounded-xl object-contain"
+              style={{
+                minWidth: 'min(50vw, calc(100vw - 32px))',
+                maxWidth: 'calc(100vw - 32px)',
+                maxHeight: 'calc(100vh - 100px)',
+              }}
               onClick={(e) => e.stopPropagation()}
             />
           </div>

@@ -616,7 +616,7 @@ export default function WeightPage() {
               </div>
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">
-                  {t('weight')} (kg) *
+                  {t('weight')} *
                 </label>
                 <input
                   type="number"
@@ -629,7 +629,7 @@ export default function WeightPage() {
               </div>
               <div>
                 <label className="mb-1 block text-sm font-medium text-gray-700">
-                  {t('bodyFat')} (%)
+                  {t('bodyFat')} 
                 </label>
                 <input
                   type="number"

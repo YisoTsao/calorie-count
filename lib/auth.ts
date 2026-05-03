@@ -122,11 +122,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         try {
           const dbUser = await prisma.user.findUnique({
             where: { id: userId },
-            select: { role: true, isActive: true },
+            select: { role: true, isActive: true, image: true, name: true },
           });
           session.user.id = userId;
           session.user.role = (dbUser?.role ?? token.role ?? 'USER') as string;
           session.user.isActive = dbUser?.isActive ?? (token.isActive as boolean) ?? true;
+          // 每次請求都從 DB 同步最新頭像與名稱，確保上傳新頭像後立即生效
+          if (dbUser?.image) session.user.image = dbUser.image;
+          if (dbUser?.name) session.user.name = dbUser.name;
         } catch {
           // Fallback to JWT cache if DB is unreachable
           session.user.id = userId;

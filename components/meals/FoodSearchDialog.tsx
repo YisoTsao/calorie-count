@@ -52,6 +52,7 @@ interface Category {
   id: string;
   name: string;
   nameEn?: string;
+  nameJa?: string;
   icon?: string;
   _count: {
     foods: number;
@@ -326,7 +327,7 @@ export function FoodSearchDialog({
                       size="sm"
                       onClick={() => setSelectedCategory(category.id)}
                     >
-                      {category.icon} {category.name}
+                      {category.icon} {getLocalizedName(category.name, category.nameEn, category.nameJa)}
                     </Button>
                   ))}
                 </div>

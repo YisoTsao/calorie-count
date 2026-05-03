@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Trophy } from 'lucide-react';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useTranslations, useLocale } from 'next-intl';
 
