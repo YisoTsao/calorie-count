@@ -64,12 +64,12 @@ export default async function ProfilePage() {
               <p className="text-sm font-medium">{t('email')}</p>
               <p className="text-sm text-muted-foreground">{user.email}</p>
             </div>
-            <div>
+            {/* <div>
               <p className="text-sm font-medium">{t('emailStatus')}</p>
               <p className="text-sm text-muted-foreground">
                 {user.emailVerified ? t('verified') : t('unverified')}
               </p>
-            </div>
+            </div> */}
           </CardContent>
         </Card>
 
@@ -133,7 +133,7 @@ export default async function ProfilePage() {
           </CardContent>
         </Card>
 
-        <Card>
+        {/* <Card>
           <CardHeader>
             <CardTitle>{t('preferences')}</CardTitle>
             <CardDescription>{t('preferencesDesc')}</CardDescription>
@@ -154,7 +154,7 @@ export default async function ProfilePage() {
               <p className="text-sm text-muted-foreground">{user.preferences?.units || 'METRIC'}</p>
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
     </div>
   );
