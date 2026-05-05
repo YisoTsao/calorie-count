@@ -155,6 +155,7 @@ export default function FoodsPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingFood, setEditingFood] = useState<Food | null>(null);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [newFood, setNewFood] = useState({
     name: '',
     nameEn: '',
@@ -257,6 +258,7 @@ export default function FoodsPage() {
   };
 
   const handleCreateFood = async () => {
+    if (isSubmitting) return;
     // 先驗證
     const errors = validateForm(newFood);
     setFormErrors(errors);
@@ -265,6 +267,7 @@ export default function FoodsPage() {
       return;
     }
 
+    setIsSubmitting(true);
     try {
       const response = await fetch('/api/foods', {
         method: 'POST',
@@ -297,6 +300,8 @@ export default function FoodsPage() {
     } catch (error) {
       console.error('Failed to create food:', error);
       alert(t('addFailed', { error: '?' }));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -401,7 +406,7 @@ export default function FoodsPage() {
 
   // 編輯食物
   const handleEditFood = async () => {
-    if (!editingFood) return;
+    if (!editingFood || isSubmitting) return;
 
     const errors = validateForm(newFood);
     setFormErrors(errors);
@@ -410,6 +415,7 @@ export default function FoodsPage() {
       return;
     }
 
+    setIsSubmitting(true);
     try {
       const response = await fetch(`/api/foods/${editingFood.id}`, {
         method: 'PUT',
@@ -443,6 +449,8 @@ export default function FoodsPage() {
     } catch (error) {
       console.error('Failed to edit food:', error);
       alert(t('updateFailed', { error: '?' }));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -558,7 +566,8 @@ export default function FoodsPage() {
                   <Input
                     id="servingSize"
                     type="number"
-                    value={newFood.servingSize}
+                    value={newFood.servingSize || ''}
+                    onFocus={(e) => e.target.select()}
                     onChange={(e) => {
                       setNewFood({
                         ...newFood,
@@ -603,7 +612,8 @@ export default function FoodsPage() {
                       id="calories"
                       type="number"
                       step="0.1"
-                      value={newFood.calories}
+                      value={newFood.calories || ''}
+                      onFocus={(e) => e.target.select()}
                       onChange={(e) => {
                         setNewFood({
                           ...newFood,
@@ -625,7 +635,8 @@ export default function FoodsPage() {
                       id="protein"
                       type="number"
                       step="0.1"
-                      value={newFood.protein}
+                      value={newFood.protein || ''}
+                      onFocus={(e) => e.target.select()}
                       onChange={(e) => {
                         setNewFood({
                           ...newFood,
@@ -647,7 +658,8 @@ export default function FoodsPage() {
                       id="carbs"
                       type="number"
                       step="0.1"
-                      value={newFood.carbs}
+                      value={newFood.carbs || ''}
+                      onFocus={(e) => e.target.select()}
                       onChange={(e) => {
                         setNewFood({
                           ...newFood,
@@ -667,7 +679,8 @@ export default function FoodsPage() {
                       id="fat"
                       type="number"
                       step="0.1"
-                      value={newFood.fat}
+                      value={newFood.fat || ''}
+                      onFocus={(e) => e.target.select()}
                       onChange={(e) => {
                         setNewFood({
                           ...newFood,
@@ -687,7 +700,8 @@ export default function FoodsPage() {
                       id="fiber"
                       type="number"
                       step="0.1"
-                      value={newFood.fiber}
+                      value={newFood.fiber || ''}
+                      onFocus={(e) => e.target.select()}
                       onChange={(e) =>
                         setNewFood({
                           ...newFood,
@@ -710,8 +724,8 @@ export default function FoodsPage() {
                 >
                   {tc('cancel')}
                 </Button>
-                <Button onClick={handleCreateFood} className="flex-1">
-                  {t('addButton')}
+                <Button onClick={handleCreateFood} disabled={isSubmitting} className="flex-1">
+                  {isSubmitting ? tc('loading') : t('addButton')}
                 </Button>
               </div>
             </div>
@@ -791,7 +805,8 @@ export default function FoodsPage() {
                   <Input
                     id="edit-servingSize"
                     type="number"
-                    value={newFood.servingSize}
+                    value={newFood.servingSize || ''}
+                    onFocus={(e) => e.target.select()}
                     onChange={(e) => {
                       setNewFood({
                         ...newFood,
@@ -836,7 +851,8 @@ export default function FoodsPage() {
                       id="edit-calories"
                       type="number"
                       step="0.1"
-                      value={newFood.calories}
+                      value={newFood.calories || ''}
+                      onFocus={(e) => e.target.select()}
                       onChange={(e) => {
                         setNewFood({
                           ...newFood,
@@ -858,7 +874,8 @@ export default function FoodsPage() {
                       id="edit-protein"
                       type="number"
                       step="0.1"
-                      value={newFood.protein}
+                      value={newFood.protein || ''}
+                      onFocus={(e) => e.target.select()}
                       onChange={(e) => {
                         setNewFood({
                           ...newFood,
@@ -880,7 +897,8 @@ export default function FoodsPage() {
                       id="edit-carbs"
                       type="number"
                       step="0.1"
-                      value={newFood.carbs}
+                      value={newFood.carbs || ''}
+                      onFocus={(e) => e.target.select()}
                       onChange={(e) => {
                         setNewFood({
                           ...newFood,
@@ -900,7 +918,8 @@ export default function FoodsPage() {
                       id="edit-fat"
                       type="number"
                       step="0.1"
-                      value={newFood.fat}
+                      value={newFood.fat || ''}
+                      onFocus={(e) => e.target.select()}
                       onChange={(e) => {
                         setNewFood({
                           ...newFood,
@@ -920,7 +939,8 @@ export default function FoodsPage() {
                       id="edit-fiber"
                       type="number"
                       step="0.1"
-                      value={newFood.fiber}
+                      value={newFood.fiber || ''}
+                      onFocus={(e) => e.target.select()}
                       onChange={(e) =>
                         setNewFood({
                           ...newFood,
@@ -944,8 +964,8 @@ export default function FoodsPage() {
                 >
                   {tc('cancel')}
                 </Button>
-                <Button onClick={handleEditFood} className="flex-1">
-                  {t('saveChanges')}
+                <Button onClick={handleEditFood} disabled={isSubmitting} className="flex-1">
+                  {isSubmitting ? tc('loading') : t('saveChanges')}
                 </Button>
               </div>
             </div>

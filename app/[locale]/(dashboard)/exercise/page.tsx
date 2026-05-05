@@ -406,7 +406,7 @@ export default function ExercisePage() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 p-6">
         {/* 頁首 */}
         <div className="flex items-center justify-between">
           <div className="space-y-2">
@@ -432,7 +432,7 @@ export default function ExercisePage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

@@ -31,7 +31,7 @@ export default async function ProfilePage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 p-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-5">
           {/* 頭像：hover 顯示相機 icon，可直接點擊更換 */}
