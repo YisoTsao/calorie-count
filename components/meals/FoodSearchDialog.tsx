@@ -476,7 +476,7 @@ export function FoodSearchDialog({
                 >
                   {tMeals('addAndFinish')}
                 </Button>
-                {onSelectFoodAndEdit && (
+                {/* {onSelectFoodAndEdit && (
                   <Button
                     onClick={() => {
                       if (selectedFood) {
@@ -488,7 +488,7 @@ export function FoodSearchDialog({
                   >
                     {tMeals('addAndEdit')}
                   </Button>
-                )}
+                )} */}
               </div>
             </div>
           </div>

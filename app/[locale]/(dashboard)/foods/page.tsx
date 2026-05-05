@@ -27,6 +27,7 @@ import type { LucideIcon } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { NumberInput } from '@/components/ui/number-input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -501,7 +502,7 @@ export default function FoodsPage() {
               <p className="rounded-md bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
                 {t('customFoodNote')}
               </p>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label htmlFor="name">{t('foodName')} *</Label>
                   <Input
@@ -560,22 +561,15 @@ export default function FoodsPage() {
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label htmlFor="servingSize">{t('servingSizeLabel')}</Label>
-                  <Input
+                  <NumberInput
                     id="servingSize"
-                    type="number"
-                    value={newFood.servingSize || ''}
-                    onFocus={(e) => e.target.select()}
-                    onChange={(e) => {
-                      setNewFood({
-                        ...newFood,
-                        servingSize: parseFloat(e.target.value) || 0,
-                      });
-                      if (formErrors.servingSize) {
-                        setFormErrors({ ...formErrors, servingSize: '' });
-                      }
+                    value={newFood.servingSize}
+                    onValueChange={(v) => {
+                      setNewFood({ ...newFood, servingSize: v });
+                      if (formErrors.servingSize) setFormErrors({ ...formErrors, servingSize: '' });
                     }}
                     className={formErrors.servingSize ? 'border-red-500' : ''}
                   />
@@ -605,23 +599,15 @@ export default function FoodsPage() {
 
               <div className="border-t pt-4">
                 <h4 className="mb-3 font-medium">{t('nutritionInfo')}</h4>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-2">
                     <Label htmlFor="calories">{t('caloriesLabel')}</Label>
-                    <Input
+                    <NumberInput
                       id="calories"
-                      type="number"
-                      step="0.1"
-                      value={newFood.calories || ''}
-                      onFocus={(e) => e.target.select()}
-                      onChange={(e) => {
-                        setNewFood({
-                          ...newFood,
-                          calories: parseFloat(e.target.value) || 0,
-                        });
-                        if (formErrors.calories) {
-                          setFormErrors({ ...formErrors, calories: '' });
-                        }
+                      value={newFood.calories}
+                      onValueChange={(v) => {
+                        setNewFood({ ...newFood, calories: v });
+                        if (formErrors.calories) setFormErrors({ ...formErrors, calories: '' });
                       }}
                       className={formErrors.calories ? 'border-red-500' : ''}
                     />
@@ -631,20 +617,12 @@ export default function FoodsPage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="protein">{t('proteinLabel')}</Label>
-                    <Input
+                    <NumberInput
                       id="protein"
-                      type="number"
-                      step="0.1"
-                      value={newFood.protein || ''}
-                      onFocus={(e) => e.target.select()}
-                      onChange={(e) => {
-                        setNewFood({
-                          ...newFood,
-                          protein: parseFloat(e.target.value) || 0,
-                        });
-                        if (formErrors.protein) {
-                          setFormErrors({ ...formErrors, protein: '' });
-                        }
+                      value={newFood.protein}
+                      onValueChange={(v) => {
+                        setNewFood({ ...newFood, protein: v });
+                        if (formErrors.protein) setFormErrors({ ...formErrors, protein: '' });
                       }}
                       className={formErrors.protein ? 'border-red-500' : ''}
                     />
@@ -654,20 +632,12 @@ export default function FoodsPage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="carbs">{t('carbsLabel')}</Label>
-                    <Input
+                    <NumberInput
                       id="carbs"
-                      type="number"
-                      step="0.1"
-                      value={newFood.carbs || ''}
-                      onFocus={(e) => e.target.select()}
-                      onChange={(e) => {
-                        setNewFood({
-                          ...newFood,
-                          carbs: parseFloat(e.target.value) || 0,
-                        });
-                        if (formErrors.carbs) {
-                          setFormErrors({ ...formErrors, carbs: '' });
-                        }
+                      value={newFood.carbs}
+                      onValueChange={(v) => {
+                        setNewFood({ ...newFood, carbs: v });
+                        if (formErrors.carbs) setFormErrors({ ...formErrors, carbs: '' });
                       }}
                       className={formErrors.carbs ? 'border-red-500' : ''}
                     />
@@ -675,20 +645,12 @@ export default function FoodsPage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="fat">{t('fatLabel')}</Label>
-                    <Input
+                    <NumberInput
                       id="fat"
-                      type="number"
-                      step="0.1"
-                      value={newFood.fat || ''}
-                      onFocus={(e) => e.target.select()}
-                      onChange={(e) => {
-                        setNewFood({
-                          ...newFood,
-                          fat: parseFloat(e.target.value) || 0,
-                        });
-                        if (formErrors.fat) {
-                          setFormErrors({ ...formErrors, fat: '' });
-                        }
+                      value={newFood.fat}
+                      onValueChange={(v) => {
+                        setNewFood({ ...newFood, fat: v });
+                        if (formErrors.fat) setFormErrors({ ...formErrors, fat: '' });
                       }}
                       className={formErrors.fat ? 'border-red-500' : ''}
                     />
@@ -696,18 +658,10 @@ export default function FoodsPage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="fiber">{t('fiberLabel')}</Label>
-                    <Input
+                    <NumberInput
                       id="fiber"
-                      type="number"
-                      step="0.1"
-                      value={newFood.fiber || ''}
-                      onFocus={(e) => e.target.select()}
-                      onChange={(e) =>
-                        setNewFood({
-                          ...newFood,
-                          fiber: parseFloat(e.target.value) || 0,
-                        })
-                      }
+                      value={newFood.fiber}
+                      onValueChange={(v) => setNewFood({ ...newFood, fiber: v })}
                     />
                   </div>
                 </div>
@@ -740,7 +694,7 @@ export default function FoodsPage() {
               <DialogDescription>{t('editFoodDesc')}</DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label htmlFor="edit-name">{t('foodName')} *</Label>
                   <Input
@@ -799,22 +753,15 @@ export default function FoodsPage() {
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label htmlFor="edit-servingSize">{t('servingSizeLabel')}</Label>
-                  <Input
+                  <NumberInput
                     id="edit-servingSize"
-                    type="number"
-                    value={newFood.servingSize || ''}
-                    onFocus={(e) => e.target.select()}
-                    onChange={(e) => {
-                      setNewFood({
-                        ...newFood,
-                        servingSize: parseFloat(e.target.value) || 0,
-                      });
-                      if (formErrors.servingSize) {
-                        setFormErrors({ ...formErrors, servingSize: '' });
-                      }
+                    value={newFood.servingSize}
+                    onValueChange={(v) => {
+                      setNewFood({ ...newFood, servingSize: v });
+                      if (formErrors.servingSize) setFormErrors({ ...formErrors, servingSize: '' });
                     }}
                     className={formErrors.servingSize ? 'border-red-500' : ''}
                   />
@@ -844,23 +791,15 @@ export default function FoodsPage() {
 
               <div className="border-t pt-4">
                 <h4 className="mb-3 font-medium">{t('nutritionInfo')}</h4>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-2">
                     <Label htmlFor="edit-calories">{t('caloriesLabel')}</Label>
-                    <Input
+                    <NumberInput
                       id="edit-calories"
-                      type="number"
-                      step="0.1"
-                      value={newFood.calories || ''}
-                      onFocus={(e) => e.target.select()}
-                      onChange={(e) => {
-                        setNewFood({
-                          ...newFood,
-                          calories: parseFloat(e.target.value) || 0,
-                        });
-                        if (formErrors.calories) {
-                          setFormErrors({ ...formErrors, calories: '' });
-                        }
+                      value={newFood.calories}
+                      onValueChange={(v) => {
+                        setNewFood({ ...newFood, calories: v });
+                        if (formErrors.calories) setFormErrors({ ...formErrors, calories: '' });
                       }}
                       className={formErrors.calories ? 'border-red-500' : ''}
                     />
@@ -870,20 +809,12 @@ export default function FoodsPage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="edit-protein">{t('proteinLabel')}</Label>
-                    <Input
+                    <NumberInput
                       id="edit-protein"
-                      type="number"
-                      step="0.1"
-                      value={newFood.protein || ''}
-                      onFocus={(e) => e.target.select()}
-                      onChange={(e) => {
-                        setNewFood({
-                          ...newFood,
-                          protein: parseFloat(e.target.value) || 0,
-                        });
-                        if (formErrors.protein) {
-                          setFormErrors({ ...formErrors, protein: '' });
-                        }
+                      value={newFood.protein}
+                      onValueChange={(v) => {
+                        setNewFood({ ...newFood, protein: v });
+                        if (formErrors.protein) setFormErrors({ ...formErrors, protein: '' });
                       }}
                       className={formErrors.protein ? 'border-red-500' : ''}
                     />
@@ -893,20 +824,12 @@ export default function FoodsPage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="edit-carbs">{t('carbsLabel')}</Label>
-                    <Input
+                    <NumberInput
                       id="edit-carbs"
-                      type="number"
-                      step="0.1"
-                      value={newFood.carbs || ''}
-                      onFocus={(e) => e.target.select()}
-                      onChange={(e) => {
-                        setNewFood({
-                          ...newFood,
-                          carbs: parseFloat(e.target.value) || 0,
-                        });
-                        if (formErrors.carbs) {
-                          setFormErrors({ ...formErrors, carbs: '' });
-                        }
+                      value={newFood.carbs}
+                      onValueChange={(v) => {
+                        setNewFood({ ...newFood, carbs: v });
+                        if (formErrors.carbs) setFormErrors({ ...formErrors, carbs: '' });
                       }}
                       className={formErrors.carbs ? 'border-red-500' : ''}
                     />
@@ -914,20 +837,12 @@ export default function FoodsPage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="edit-fat">{t('fatLabel')}</Label>
-                    <Input
+                    <NumberInput
                       id="edit-fat"
-                      type="number"
-                      step="0.1"
-                      value={newFood.fat || ''}
-                      onFocus={(e) => e.target.select()}
-                      onChange={(e) => {
-                        setNewFood({
-                          ...newFood,
-                          fat: parseFloat(e.target.value) || 0,
-                        });
-                        if (formErrors.fat) {
-                          setFormErrors({ ...formErrors, fat: '' });
-                        }
+                      value={newFood.fat}
+                      onValueChange={(v) => {
+                        setNewFood({ ...newFood, fat: v });
+                        if (formErrors.fat) setFormErrors({ ...formErrors, fat: '' });
                       }}
                       className={formErrors.fat ? 'border-red-500' : ''}
                     />
@@ -935,18 +850,10 @@ export default function FoodsPage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="edit-fiber">{t('fiberLabel')}</Label>
-                    <Input
+                    <NumberInput
                       id="edit-fiber"
-                      type="number"
-                      step="0.1"
-                      value={newFood.fiber || ''}
-                      onFocus={(e) => e.target.select()}
-                      onChange={(e) =>
-                        setNewFood({
-                          ...newFood,
-                          fiber: parseFloat(e.target.value) || 0,
-                        })
-                      }
+                      value={newFood.fiber}
+                      onValueChange={(v) => setNewFood({ ...newFood, fiber: v })}
                     />
                   </div>
                 </div>

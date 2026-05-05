@@ -46,6 +46,12 @@ const navItems = [
     icon: 'mdi:barcode-scan',
     minRole: 'SUPPORT' as UserRole,
   },
+  {
+    href: '/admin/nutrition',
+    label: '營養分析',
+    icon: 'mdi:chart-pie-outline',
+    minRole: 'SUPPORT' as UserRole,
+  },
 ];
 
 export function AdminShell({ user, children }: AdminShellProps) {

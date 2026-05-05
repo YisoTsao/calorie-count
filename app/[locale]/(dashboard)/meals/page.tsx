@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Plus, Utensils, Target, Edit, Trash2, ScanLine } from 'lucide-react';
+import { Plus, Utensils, Target, Edit, Trash2, ScanLine, Camera } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -400,9 +400,13 @@ export default function MealsPage() {
           <h1 className="text-2xl font-bold sm:text-3xl">{t('title')}</h1>
           <p className="mt-0.5 text-sm text-muted-foreground sm:mt-1 sm:text-base">{t('subtitle')}</p>
         </div>
-        <Button onClick={() => router.push('/scan')} size="sm" className="sm:size-auto">
-          <Plus className="h-4 w-4 sm:mr-2" />
-          <span className="hidden sm:inline py-2">{t('addFood')}</span>
+        <Button onClick={() => router.push('/scan')} size="sm" className="gap-1 sm:gap-2">
+          {/* mobile: scan icon + plus */}
+          <ScanLine className="h-4 w-4 sm:hidden" />
+          <Plus className="h-3 w-3 sm:hidden" />
+          {/* desktop: plus + text */}
+          <Plus className="hidden h-4 w-4 sm:block sm:mr-1" />
+          <span className="hidden sm:inline">{t('addFood')}</span>
         </Button>
       </div>
 
@@ -563,9 +567,9 @@ export default function MealsPage() {
                     size="sm"
                     onClick={() => handleOpenPhotoUpload(mealType)}
                     disabled={isAddingFood}
-                    className="h-8 gap-1.5 px-2 sm:px-3"
+                    className="h-8 gap-1 px-2 sm:gap-1.5 sm:px-3"
                   >
-                    <Plus className="h-3.5 w-3.5" />
+                    <Camera className="h-3.5 w-3.5" />
                     <span className="hidden sm:inline">{t('takePhoto')}</span>
                   </Button>
                   <Button
@@ -573,9 +577,13 @@ export default function MealsPage() {
                     size="sm"
                     onClick={() => handleOpenSearch(mealType)}
                     disabled={isAddingFood}
-                    className="h-8 gap-1.5 px-2 sm:px-3"
+                    className="h-8 gap-0.5 px-2 sm:gap-1.5 sm:px-3"
                   >
-                    <Plus className="h-3.5 w-3.5" />
+                    {/* mobile: utensils + plus */}
+                    <Utensils className="h-3 w-3 sm:hidden" />
+                    <Plus className="h-3 w-3 sm:hidden" />
+                    {/* desktop: plus + text */}
+                    <Plus className="hidden h-3.5 w-3.5 sm:block" />
                     <span className="hidden sm:inline">{t('addFood')}</span>
                   </Button>
                 </div>
