@@ -167,6 +167,10 @@ export default function WeightTracker() {
     ? getBMIStatus(stats.current)
     : { text: '-', color: 'text-gray-500' };
 
+  const sortedChartData = [...chartData].sort(
+    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+  );
+
   return (
     <div className="rounded-lg bg-white p-6 shadow-md">
       {/* Header */}
@@ -246,7 +250,7 @@ export default function WeightTracker() {
               <p className="mb-3 text-sm text-gray-600">{t('weightTrend')}</p>
               <div className="h-48">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={chartData}>
+                  <LineChart data={sortedChartData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                     <XAxis dataKey="date" tick={{ fontSize: 12 }} stroke="#888" />
                     <YAxis
@@ -299,7 +303,9 @@ export default function WeightTracker() {
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">{t('bodyFatLabel')}</label>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                    {t('bodyFatLabel')}
+                  </label>
                   <input
                     type="number"
                     value={bodyFat}
@@ -315,7 +321,9 @@ export default function WeightTracker() {
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">{t('notesLabel')}</label>
+                <label className="mb-1 block text-sm font-medium text-gray-700">
+                  {t('notesLabel')}
+                </label>
                 <input
                   type="text"
                   value={notes}
@@ -370,7 +378,11 @@ export default function WeightTracker() {
                                 BMI: {record.bmi.toFixed(1)} ({recordBMI.text})
                               </span>
                             )}
-                            {record.bodyFat && <span>{t('bodyFatLabel').replace(' (%)', '')}: {record.bodyFat}%</span>}
+                            {record.bodyFat && (
+                              <span>
+                                {t('bodyFatLabel').replace(' (%)', '')}: {record.bodyFat}%
+                              </span>
+                            )}
                           </div>
                           {record.notes && (
                             <p className="mt-1 text-xs text-gray-400">{record.notes}</p>

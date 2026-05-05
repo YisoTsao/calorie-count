@@ -323,7 +323,7 @@ export default function WeightPage() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 p-6">
         {/* 頁首 */}
         <div className="flex items-center justify-between">
           <div className="space-y-2">
@@ -347,7 +347,7 @@ export default function WeightPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="flex items-center gap-3 text-3xl font-bold text-gray-900">

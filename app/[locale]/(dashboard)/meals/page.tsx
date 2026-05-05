@@ -393,7 +393,7 @@ export default function MealsPage() {
   }
 
   return (
-    <div className="container mx-auto max-w-6xl space-y-4 px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6">
+    <div className="container mx-auto max-w-6xl space-y-4 px-6 py-6 sm:space-y-6 sm:px-6 sm:py-6">
       {/* 頁首 */}
       <div className="flex items-center justify-between">
         <div>
@@ -563,9 +563,9 @@ export default function MealsPage() {
                     size="sm"
                     onClick={() => handleOpenPhotoUpload(mealType)}
                     disabled={isAddingFood}
-                    className="h-8 px-2 sm:px-3"
+                    className="h-8 gap-1.5 px-2 sm:px-3"
                   >
-                    <Plus className="h-3.5 w-3.5 sm:mr-1" />
+                    <Plus className="h-3.5 w-3.5" />
                     <span className="hidden sm:inline">{t('takePhoto')}</span>
                   </Button>
                   <Button
@@ -573,9 +573,9 @@ export default function MealsPage() {
                     size="sm"
                     onClick={() => handleOpenSearch(mealType)}
                     disabled={isAddingFood}
-                    className="h-8 px-2 sm:px-3"
+                    className="h-8 gap-1.5 px-2 sm:px-3"
                   >
-                    <Plus className="h-3.5 w-3.5 sm:mr-1" />
+                    <Plus className="h-3.5 w-3.5" />
                     <span className="hidden sm:inline">{t('addFood')}</span>
                   </Button>
                 </div>
@@ -632,42 +632,42 @@ export default function MealsPage() {
                       {meal.foods.map((food) => (
                         <div
                           key={food.id}
-                          className="group flex items-center justify-between rounded-lg bg-muted/50 p-3 transition-colors hover:bg-muted/70"
+                          className="group rounded-lg border bg-card p-3 transition-colors hover:bg-muted/30"
                         >
-                          <div className="flex-1">
-                            <p className="font-medium">{food.name}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {food.portion}
-                              {food.servings !== 1 && ` × ${food.servings}`}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <div className="text-right">
-                              <p className="font-semibold">{Math.round(food.calories)} kcal</p>
-                              <p className="text-xs text-muted-foreground">
-                                P: {Math.round(food.protein)}g | C: {Math.round(food.carbs)}g | F:{' '}
-                                {Math.round(food.fat)}g
+                          <div className="flex items-start gap-2">
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate font-medium leading-snug">{food.name}</p>
+                              <p className="mt-0.5 text-xs text-muted-foreground">
+                                {food.portion}
+                                {food.servings !== 1 && ` × ${food.servings}`}
                               </p>
                             </div>
-                            <div className="flex gap-1 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
+                            <div className="flex shrink-0 gap-0.5 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100">
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleEditFood(meal.id, food)}
                                 title={tc('edit')}
+                                className="h-7 w-7 p-0"
                               >
-                                <Edit className="h-4 w-4" />
+                                <Edit className="h-3.5 w-3.5" />
                               </Button>
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleDeleteFood(meal.id, food.id)}
                                 title={tc('delete')}
-                                className="text-destructive hover:text-destructive"
+                                className="h-7 w-7 p-0 text-destructive hover:text-destructive"
                               >
-                                <Trash2 className="h-4 w-4" />
+                                <Trash2 className="h-3.5 w-3.5" />
                               </Button>
                             </div>
+                          </div>
+                          <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs">
+                            <span className="font-semibold">{Math.round(food.calories)} kcal</span>
+                            <span className="text-muted-foreground">{t('protein')} {Math.round(food.protein)}g</span>
+                            <span className="text-muted-foreground">{t('carbs')} {Math.round(food.carbs)}g</span>
+                            <span className="text-muted-foreground">{t('fat')} {Math.round(food.fat)}g</span>
                           </div>
                         </div>
                       ))}
