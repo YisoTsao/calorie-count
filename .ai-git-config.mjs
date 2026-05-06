@@ -7,7 +7,7 @@
 export default {
   // AI 相關配置
   ai: {
-    model: 'gpt-5.4', // AI 模型
+    model: 'gpt-4.1', // AI 模型
     maxDiffLength: 8000, // 最大 diff 長度
     maxRetries: 3, // 最大重試次數
   },

@@ -40,8 +40,8 @@ export function DashboardShell({ user, children }: DashboardShellProps) {
       <div className="flex">
         {/* Desktop sidebar - always visible on lg+ */}
         <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-        <main className="min-w-0 flex-1">
-          <div className="container mx-auto">{children}</div>
+        <main className="min-w-0 flex-1 lg:ml-64">
+          {children}
         </main>
       </div>
     </div>
