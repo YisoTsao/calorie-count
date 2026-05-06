@@ -157,7 +157,7 @@ export default function SettingsPage() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `calorie-count-data-${new Date().toISOString().split('T')[0]}.json`;
+      a.download = `calorie-count-data-${new Date().toLocaleDateString('en-CA', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone })}.json`;
       a.click();
     } catch (error) {
       console.error('Failed to export data:', error);

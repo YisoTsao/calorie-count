@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Plus, Utensils, Target, Edit, Trash2, ScanLine, Camera } from 'lucide-react';
+import { Plus, Utensils, Target, Edit, Trash2, ScanLine, Camera, Loader2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +14,7 @@ import { EditMealFoodDialog } from '@/components/meals/EditMealFoodDialog';
 import { PhotoUploadDialog } from '@/components/meals/PhotoUploadDialog';
 import { RecognitionResultDialog } from '@/components/meals/RecognitionResultDialog';
 import Image from 'next/image';
+import { getTaipeiToday, getLocalUTCOffset } from '@/lib/date';
 
 interface RecognizedFood {
   id: string;
@@ -85,7 +87,7 @@ export default function MealsPage() {
   });
   const [goals, setGoals] = useState<UserGoals | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(getTaipeiToday);
   const [isSearchDialogOpen, setIsSearchDialogOpen] = useState(false);
   const [selectedMealType, setSelectedMealType] = useState<Meal['mealType']>('BREAKFAST');
   const [isAddingFood, setIsAddingFood] = useState(false);
@@ -97,6 +99,8 @@ export default function MealsPage() {
   const [isRecognitionResultOpen, setIsRecognitionResultOpen] = useState(false);
   const [currentRecognitionId, setCurrentRecognitionId] = useState<string | null>(null);
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
+  // 紀錄哪個 meal type 正在 loading（新增食物中）
+  const [loadingMealType, setLoadingMealType] = useState<Meal['mealType'] | null>(null);
 
   const fetchMeals = async () => {
     try {
@@ -154,10 +158,14 @@ export default function MealsPage() {
 
   const handleAddFood = async (food: { id: string }, servings: number) => {
     setIsAddingFood(true);
+    setLoadingMealType(selectedMealType);
     try {
-      // First, get or create meal for the selected type and date
+      // 尋找同類型、同日期且不是 AI 掃描結果的 meal
       let targetMeal = meals.find(
-        (m) => m.mealType === selectedMealType && m.mealDate.startsWith(selectedDate)
+        (m) =>
+          m.mealType === selectedMealType &&
+          m.mealDate.startsWith(selectedDate) &&
+          !m.sourceRecognitionId
       );
 
       if (!targetMeal) {
@@ -167,7 +175,7 @@ export default function MealsPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             mealType: selectedMealType,
-            mealDate: new Date(selectedDate).toISOString(),
+            mealDate: new Date(selectedDate + `T12:00:00${getLocalUTCOffset()}`).toISOString(),
             foods: [],
           }),
         });
@@ -209,14 +217,15 @@ export default function MealsPage() {
         setEditingMealId(targetMeal.id);
       }
 
-      // Refresh meals data (不關閉 modal,讓使用者可以繼續新增)
+      // Refresh meals data (不關閉 modal，讓使用者可以繼續新增)
       await fetchMeals();
     } catch (error) {
       console.error('Add food error:', error);
       const errorMessage = error instanceof Error ? error.message : tc('error');
-      alert(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsAddingFood(false);
+      setLoadingMealType(null);
     }
   };
 
@@ -256,7 +265,7 @@ export default function MealsPage() {
       await fetchMeals();
     } catch (error) {
       console.error('Delete meal error:', error);
-      alert(tc('error'));
+      toast.error(tc('error'));
     }
   };
 
@@ -287,7 +296,7 @@ export default function MealsPage() {
       await fetchMeals();
     } catch (error) {
       console.error('Delete error:', error);
-      alert(tc('error'));
+      toast.error(tc('error'));
     }
   };
 
@@ -337,7 +346,7 @@ export default function MealsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           mealType: selectedMealType,
-          mealDate: new Date(selectedDate).toISOString(),
+          mealDate: new Date(selectedDate + 'T12:00:00+08:00').toISOString(),
           sourceRecognitionId: currentRecognitionId || undefined,
           foods: foods.map((food) => ({
             name: food.name,
@@ -361,7 +370,7 @@ export default function MealsPage() {
       await fetchMeals();
     } catch (error) {
       console.error('Add foods error:', error);
-      alert(tc('error'));
+      toast.error(tc('error'));
     }
   };
 
@@ -560,7 +569,11 @@ export default function MealsPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="text-xs text-muted-foreground sm:text-sm">
-                    {Math.round(typeTotals.calories)} kcal
+                    {loadingMealType === mealType ? (
+                      <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                    ) : (
+                      `${Math.round(typeTotals.calories)} kcal`
+                    )}
                   </div>
                   <Button
                     variant="outline"
@@ -694,6 +707,7 @@ export default function MealsPage() {
         onOpenChange={setIsSearchDialogOpen}
         onSelectFood={handleAddFood}
         onSelectFoodAndEdit={handleAddFoodAndEdit}
+        isAdding={loadingMealType !== null}
       />
 
       {/* Edit Meal Food Dialog */}

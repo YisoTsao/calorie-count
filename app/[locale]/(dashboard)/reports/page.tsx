@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { FileText, Download, Calendar } from 'lucide-react';
+import { getTaipeiToday } from '@/lib/date';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   PieChart,
@@ -56,7 +57,7 @@ export default function ReportsPage() {
     d.setDate(d.getDate() - 29);
     return d.toLocaleDateString('en-CA');
   });
-  const [customEndDate, setCustomEndDate] = useState(() => new Date().toLocaleDateString('en-CA'));
+  const [customEndDate, setCustomEndDate] = useState(() => getTaipeiToday());
 
   const loadReport = async () => {
     setLoading(true);
@@ -70,8 +71,8 @@ export default function ReportsPage() {
         url = `/api/stats?startDate=${customStartDate}&endDate=${customEndDate}`;
       } else {
         const days = reportType === 'month' ? 30 : 7;
-        const endDate = new Date().toLocaleDateString('en-CA');
-        const startDate = new Date(Date.now() - (days - 1) * 86400000).toLocaleDateString('en-CA');
+        const endDate = getTaipeiToday();
+        const startDate = new Date(Date.now() - (days - 1) * 86400000).toLocaleDateString('en-CA', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone });
         url = `/api/stats?startDate=${startDate}&endDate=${endDate}`;
       }
 
@@ -163,7 +164,7 @@ export default function ReportsPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `report-${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `report-${getTaipeiToday()}.csv`;
     a.click();
   };
 
@@ -320,7 +321,7 @@ export default function ReportsPage() {
               type="date"
               value={customEndDate}
               min={customStartDate}
-              max={new Date().toISOString().split('T')[0]}
+              max={getTaipeiToday()}
               onChange={(e) => setCustomEndDate(e.target.value)}
               className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
             />
