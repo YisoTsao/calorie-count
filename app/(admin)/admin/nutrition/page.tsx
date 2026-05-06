@@ -500,7 +500,8 @@ export default function AdminNutritionPage() {
                 <p className="border-b border-slate-800/60 px-5 py-3 font-semibold text-white">
                   每日明細
                 </p>
-                <table className="w-full text-sm">
+                <div className="overflow-x-auto">
+                <table className="w-full min-w-[480px] text-sm">
                   <thead>
                     <tr className="border-b border-slate-800/60 text-left text-slate-500">
                       <th className="px-5 py-2.5">日期</th>
@@ -535,6 +536,7 @@ export default function AdminNutritionPage() {
                     ))}
                   </tbody>
                 </table>
+                </div>
               </div>
             </>
           )}
