@@ -102,31 +102,18 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         },
       });
 
-      // Update food search count
-      await prisma.food.update({
-        where: { id: foodId },
-        data: { searchCount: { increment: 1 } },
-      });
-
-      // Update or create user favorite food
-      await prisma.userFavoriteFood.upsert({
-        where: {
-          userId_foodId: {
-            userId: session.user.id,
-            foodId,
-          },
-        },
-        create: {
-          userId: session.user.id,
-          foodId,
-          useCount: 1,
-          lastUsed: new Date(),
-        },
-        update: {
-          useCount: { increment: 1 },
-          lastUsed: new Date(),
-        },
-      });
+      // 並行執行 searchCount 更新和 favorite upsert（不阻塞回應）
+      void Promise.all([
+        prisma.food.update({
+          where: { id: foodId },
+          data: { searchCount: { increment: 1 } },
+        }),
+        prisma.userFavoriteFood.upsert({
+          where: { userId_foodId: { userId: session.user.id, foodId } },
+          create: { userId: session.user.id, foodId, useCount: 1, lastUsed: new Date() },
+          update: { useCount: { increment: 1 }, lastUsed: new Date() },
+        }),
+      ]);
 
       return NextResponse.json({
         success: true,
