@@ -105,7 +105,7 @@ export default function WeightTracker() {
           weight: weightNum,
           bodyFat: bodyFatNum,
           notes: notes || undefined,
-          date: new Date().toLocaleDateString('en-CA'),
+          date: new Date().toLocaleDateString('en-CA', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }),
         }),
       });
 

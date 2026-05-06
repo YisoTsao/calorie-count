@@ -75,7 +75,7 @@ export default function WeightPage() {
     weight: '',
     bodyFat: '',
     note: '',
-    date: new Date().toLocaleDateString('en-CA'),
+    date: new Date().toLocaleDateString('en-CA', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }),
   });
 
   const [dateRange, setDateRange] = useState<'30d' | '3m' | '6m' | '1y' | '2y' | 'all' | 'custom'>(
@@ -111,7 +111,7 @@ export default function WeightPage() {
         weight: '',
         bodyFat: '',
         note: '',
-        date: new Date().toLocaleDateString('en-CA'),
+        date: new Date().toLocaleDateString('en-CA', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }),
       });
       setReloadKey((k) => k + 1);
     } catch (error) {
@@ -148,7 +148,7 @@ export default function WeightPage() {
         weight: '',
         bodyFat: '',
         note: '',
-        date: new Date().toLocaleDateString('en-CA'),
+        date: new Date().toLocaleDateString('en-CA', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }),
       });
       setReloadKey((k) => k + 1);
     } catch (error) {
@@ -363,7 +363,7 @@ export default function WeightPage() {
               weight: '',
               bodyFat: '',
               note: '',
-              date: new Date().toLocaleDateString('en-CA'),
+              date: new Date().toLocaleDateString('en-CA', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }),
             });
             setShowAddModal(true);
           }}
@@ -658,7 +658,7 @@ export default function WeightPage() {
                       weight: '',
                       bodyFat: '',
                       note: '',
-                      date: new Date().toLocaleDateString('en-CA'),
+                      date: new Date().toLocaleDateString('en-CA', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }),
                     });
                   }}
                   className="flex-1 rounded-lg border border-gray-300 px-4 py-2 transition-colors hover:bg-gray-50"

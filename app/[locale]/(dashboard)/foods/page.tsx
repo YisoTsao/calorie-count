@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
+import { toast } from 'sonner';
 import {
   Search,
   Plus,
@@ -277,7 +278,7 @@ export default function FoodsPage() {
       });
 
       if (response.ok) {
-        alert(t('addSuccess'));
+        toast.success(t('addSuccess'));
         setIsCreateDialogOpen(false);
         setFormErrors({});
         fetchFoods();
@@ -296,11 +297,11 @@ export default function FoodsPage() {
         });
       } else {
         const error = await response.json();
-        alert(t('addFailed', { error: error.error || '?' }));
+        toast.error(t('addFailed', { error: error.error || '?' }));
       }
     } catch (error) {
       console.error('Failed to create food:', error);
-      alert(t('addFailed', { error: '?' }));
+      toast.error(t('addFailed', { error: '?' }));
     } finally {
       setIsSubmitting(false);
     }
@@ -425,7 +426,7 @@ export default function FoodsPage() {
       });
 
       if (response.ok) {
-        alert(t('updateSuccess'));
+        toast.success(t('updateSuccess'));
         setIsEditDialogOpen(false);
         setEditingFood(null);
         setFormErrors({});
@@ -445,11 +446,11 @@ export default function FoodsPage() {
         });
       } else {
         const error = await response.json();
-        alert(t('updateFailed', { error: error.error || '?' }));
+        toast.error(t('updateFailed', { error: error.error || '?' }));
       }
     } catch (error) {
       console.error('Failed to edit food:', error);
-      alert(t('updateFailed', { error: '?' }));
+      toast.error(t('updateFailed', { error: '?' }));
     } finally {
       setIsSubmitting(false);
     }
@@ -465,15 +466,15 @@ export default function FoodsPage() {
       });
 
       if (response.ok) {
-        alert(t('deleteSuccess'));
+        toast.success(t('deleteSuccess'));
         fetchFoods();
       } else {
         const error = await response.json();
-        alert(t('deleteFailed', { error: error.error || '?' }));
+        toast.error(t('deleteFailed', { error: error.error || '?' }));
       }
     } catch (error) {
       console.error('Failed to delete food:', error);
-      alert(t('deleteFailed', { error: '?' }));
+      toast.error(t('deleteFailed', { error: '?' }));
     }
   };
 
@@ -492,12 +493,13 @@ export default function FoodsPage() {
               {t('addCustomFood')}
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-h-[80vh] max-w-2xl overflow-y-auto">
-            <DialogHeader>
+          <DialogContent className="flex flex-col max-h-[85vh] max-w-2xl gap-0 p-0">
+            <DialogHeader className="flex-shrink-0 px-6 pt-6 pb-4 border-b">
               <DialogTitle>{t('addCustomFood')}</DialogTitle>
               <DialogDescription>{t('addCustomFoodDesc')}</DialogDescription>
             </DialogHeader>
-            <div className="space-y-4 py-4">
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+            <div className="space-y-4">
               {/* Multilingual note */}
               <p className="rounded-md bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
                 {t('customFoodNote')}
@@ -667,7 +669,7 @@ export default function FoodsPage() {
                 </div>
               </div>
 
-              <div className="flex gap-2 pt-4">
+              <div className="flex gap-2 pt-2">
                 <Button
                   variant="outline"
                   onClick={() => {
@@ -683,17 +685,19 @@ export default function FoodsPage() {
                 </Button>
               </div>
             </div>
+            </div>
           </DialogContent>
         </Dialog>
 
         {/* Edit Food Dialog */}
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className="max-h-[80vh] max-w-2xl overflow-y-auto">
-            <DialogHeader>
+          <DialogContent className="flex flex-col max-h-[85vh] max-w-2xl gap-0 p-0">
+            <DialogHeader className="flex-shrink-0 px-6 pt-6 pb-4 border-b">
               <DialogTitle>{t('editFoodTitle')}</DialogTitle>
               <DialogDescription>{t('editFoodDesc')}</DialogDescription>
             </DialogHeader>
-            <div className="space-y-4 py-4">
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+            <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label htmlFor="edit-name">{t('foodName')} *</Label>
@@ -859,7 +863,7 @@ export default function FoodsPage() {
                 </div>
               </div>
 
-              <div className="flex gap-2 pt-4">
+              <div className="flex gap-2 pt-2">
                 <Button
                   variant="outline"
                   onClick={() => {
@@ -875,6 +879,7 @@ export default function FoodsPage() {
                   {isSubmitting ? tc('loading') : t('saveChanges')}
                 </Button>
               </div>
+            </div>
             </div>
           </DialogContent>
         </Dialog>

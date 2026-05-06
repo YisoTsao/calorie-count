@@ -210,7 +210,7 @@ export default function ExercisePage() {
           type: effectiveType,
           duration,
           calories,
-          date: new Date().toLocaleDateString('en-CA'), // local YYYY-MM-DD, avoids UTC offset
+          date: new Date().toLocaleDateString('en-CA', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }), // Taipei YYYY-MM-DD
           notes: formData.notes || undefined,
         }),
       });

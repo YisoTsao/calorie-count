@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import TrendChart from '@/components/analytics/TrendChart';
 import AchievementWall from '@/components/analytics/AchievementWall';
 import { TrendingUp, Target, Calendar, Flame } from 'lucide-react';
+import { getTaipeiToday } from '@/lib/date';
 
 interface DailyStats {
   date: string;
@@ -41,9 +42,9 @@ export default function AnalyticsPage() {
     const loadStats = async () => {
       try {
         setLoading(true);
-        const endDate = new Date().toLocaleDateString('en-CA');
+        const endDate = getTaipeiToday();
         const days = parseInt(period);
-        const startDate = new Date(Date.now() - (days - 1) * 86400000).toLocaleDateString('en-CA');
+        const startDate = new Date(Date.now() - (days - 1) * 86400000).toLocaleDateString('en-CA', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone });
         const response = await fetch(`/api/stats?startDate=${startDate}&endDate=${endDate}`);
         if (!response.ok) throw new Error('載入失敗');
         const data = await response.json();

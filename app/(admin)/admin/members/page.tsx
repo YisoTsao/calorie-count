@@ -40,6 +40,14 @@ export default function AdminMembersPage() {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const LIMIT = 20;
 
+  // 開啟 modal 時鎖定背景捲動
+  useEffect(() => {
+    if (editing || deleting) {
+      document.body.style.overflow = 'hidden';
+      return () => { document.body.style.overflow = ''; };
+    }
+  }, [editing, deleting]);
+
   // Debounce search
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQ(q), 400);
@@ -139,7 +147,8 @@ export default function AdminMembersPage() {
             <p>找不到會員</p>
           </div>
         ) : (
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[640px] text-sm">
             <thead>
               <tr className="border-b border-slate-800/60">
                 <th className="px-6 py-3 text-left font-medium text-slate-500">會員</th>
@@ -219,6 +228,7 @@ export default function AdminMembersPage() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 
@@ -252,7 +262,7 @@ export default function AdminMembersPage() {
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setEditing(null)}
           />
-          <div className="relative w-full max-w-sm space-y-5 rounded-2xl bg-slate-900/90 p-6 shadow-2xl backdrop-blur-[12px]">
+          <div className="relative w-full max-w-sm space-y-5 rounded-2xl bg-slate-900/90 p-6 shadow-2xl backdrop-blur-[12px] max-h-[90dvh] overflow-y-auto">
             <div className="flex items-center justify-between">
               <h2 className="font-['Manrope',sans-serif] font-semibold text-white">編輯會員</h2>
               <button
@@ -329,7 +339,7 @@ export default function AdminMembersPage() {
             className="absolute inset-0 bg-black/70 backdrop-blur-sm"
             onClick={() => setDeleting(null)}
           />
-          <div className="relative w-full max-w-md space-y-5 rounded-2xl border border-red-500/20 bg-slate-900/95 p-6 shadow-2xl backdrop-blur-[12px]">
+          <div className="relative w-full max-w-md space-y-5 rounded-2xl border border-red-500/20 bg-slate-900/95 p-6 shadow-2xl backdrop-blur-[12px] max-h-[90dvh] overflow-y-auto">
             {/* Header */}
             <div className="flex items-start gap-3">
               <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-red-500/10">

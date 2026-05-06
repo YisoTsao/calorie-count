@@ -149,6 +149,14 @@ export default function AdminFoodsPage() {
   } | null>(null);
   const [catSaving, setCatSaving] = useState(false);
 
+  // 開啟 modal 時鎖定背景捲動
+  useEffect(() => {
+    if (editing || catDrawer) {
+      document.body.style.overflow = 'hidden';
+      return () => { document.body.style.overflow = ''; };
+    }
+  }, [editing, catDrawer]);
+
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQ(q), 400);
     return () => clearTimeout(t);
@@ -1164,13 +1172,13 @@ export default function AdminFoodsPage() {
 
       {/* Edit / Create modal */}
       {editing && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setEditing(null)}
           />
-          <div className="relative my-4 w-full max-w-lg space-y-5 rounded-2xl bg-slate-900/90 p-6 shadow-2xl backdrop-blur-[12px]">
-            <div className="flex items-center justify-between">
+          <div className="relative w-full max-w-lg max-h-[90dvh] flex flex-col rounded-2xl bg-slate-900/90 shadow-2xl backdrop-blur-[12px]">
+            <div className="flex-shrink-0 flex items-center justify-between px-6 pt-5 pb-4 border-b border-slate-800/60">
               <h2 className="font-['Manrope',sans-serif] font-semibold text-white">
                 {isNew ? '新增食物' : '編輯食物'}
               </h2>
@@ -1181,6 +1189,8 @@ export default function AdminFoodsPage() {
                 <Icon icon="mdi:close" />
               </button>
             </div>
+
+            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               {(
@@ -1331,6 +1341,7 @@ export default function AdminFoodsPage() {
             >
               {saving ? '儲存中…' : isNew ? '新增食物' : '儲存變更'}
             </button>
+            </div>
           </div>
         </div>
       )}

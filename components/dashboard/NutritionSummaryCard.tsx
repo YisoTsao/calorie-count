@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Droplet, Activity, Scale, TrendingUp, TrendingDown } from 'lucide-react';
 import Link from 'next/link';
+import { getTaipeiToday } from '@/lib/date';
 
 interface NutritionSummary {
   water: {
@@ -34,7 +35,7 @@ export default function NutritionSummaryCard() {
 
   const loadSummary = async () => {
     try {
-      const today = new Date().toISOString().split('T')[0];
+      const today = getTaipeiToday();
 
       // 並行請求所有資料
       const [waterRes, exerciseRes, weightRes] = await Promise.all([

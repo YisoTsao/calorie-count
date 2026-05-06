@@ -50,7 +50,7 @@ export default function ExerciseLogger({ dailyCalorieGoal = 300 }: ExerciseLogge
   const loadTodayRecords = async () => {
     try {
       setLoading(true);
-      const today = new Date().toLocaleDateString('en-CA');
+      const today = new Date().toLocaleDateString('en-CA', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone });
       const response = await fetch(`/api/exercise?date=${today}`);
 
       if (!response.ok) throw new Error('載入失敗');
@@ -86,7 +86,7 @@ export default function ExerciseLogger({ dailyCalorieGoal = 300 }: ExerciseLogge
         body: JSON.stringify({
           type: selectedType,
           duration: durationNum,
-          date: new Date().toLocaleDateString('en-CA'),
+          date: new Date().toLocaleDateString('en-CA', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }),
         }),
       });
 

@@ -254,8 +254,8 @@ export default function AdminScansPage() {
 
               {/* Expanded food list */}
               {expanded === rec.id && rec.foods.length > 0 && (
-                <div className="border-t border-slate-800/60">
-                  <table className="w-full text-sm">
+                <div className="border-t border-slate-800/60 overflow-x-auto">
+                  <table className="w-full min-w-[540px] text-sm">
                     <thead>
                       <tr className="bg-slate-800/40">
                         <th className="px-5 py-2 text-left text-xs font-medium text-slate-500">食物名稱</th>

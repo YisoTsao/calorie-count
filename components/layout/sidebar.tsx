@@ -5,6 +5,7 @@ import { Link, usePathname } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import { Icon } from '@iconify/react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getTaipeiToday } from '@/lib/date';
 import { cn } from '@/lib/utils';
 
 interface SidebarProps {
@@ -58,7 +59,7 @@ function QuickStats() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const today = new Date().toISOString().split('T')[0];
+        const today = getTaipeiToday();
         const [mealsRes, goalsRes] = await Promise.all([
           fetch(`/api/meals?startDate=${today}&endDate=${today}`),
           fetch('/api/goals'),

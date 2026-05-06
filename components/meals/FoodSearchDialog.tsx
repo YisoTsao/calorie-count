@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Search, X, Loader2 } from 'lucide-react';
 import { useTranslations, useLocale } from 'next-intl';
 import {
@@ -65,6 +65,7 @@ interface FoodSearchDialogProps {
   mealType?: 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK' | 'OTHER';
   onSelectFood: (food: Food, servings: number) => void;
   onSelectFoodAndEdit?: (food: Food, servings: number) => void;
+  isAdding?: boolean;
 }
 
 export function FoodSearchDialog({
@@ -73,6 +74,7 @@ export function FoodSearchDialog({
   mealType,
   onSelectFood,
   onSelectFoodAndEdit,
+  isAdding = false,
 }: FoodSearchDialogProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
@@ -83,6 +85,7 @@ export function FoodSearchDialog({
   const [isFetchingFavorites, setIsFetchingFavorites] = useState(false);
   const [selectedFood, setSelectedFood] = useState<Food | null>(null);
   const [servings, setServings] = useState(1);
+  const pendingReset = useRef(false);
   const [activeTab, setActiveTab] = useState<'search' | 'favorites'>('search');
   const tMeals = useTranslations('meals');
   const tFoods = useTranslations('foods');
@@ -166,12 +169,20 @@ export function FoodSearchDialog({
     setServings(1);
   };
 
+  // 當 isAdding 完成後重置 selectedFood
+  useEffect(() => {
+    if (!isAdding && pendingReset.current) {
+      pendingReset.current = false;
+      setSelectedFood(null);
+      setServings(1);
+    }
+  }, [isAdding]);
+
   const handleConfirm = () => {
     if (selectedFood) {
       onSelectFood(selectedFood, servings);
-      // 重置選擇但保持 dialog 開啟,讓使用者可以繼續新增
-      setSelectedFood(null);
-      setServings(1);
+      // 等待 API 完成後再重置（見 useEffect）
+      pendingReset.current = true;
     }
   };
 
@@ -198,8 +209,8 @@ export function FoodSearchDialog({
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              {food.category.icon && (
-                <span className="flex-shrink-0 text-base sm:text-lg">{food.category.icon}</span>
+              {food?.category?.icon && (
+                <span className="flex-shrink-0 text-base sm:text-lg">{food?.category?.icon}</span>
               )}
               <h4 className="truncate text-sm font-medium sm:text-base">
                 {getLocalizedName(food.name, food.nameEn, food.nameJa)}
@@ -327,7 +338,7 @@ export function FoodSearchDialog({
                       size="sm"
                       onClick={() => setSelectedCategory(category.id)}
                     >
-                      {category.icon} {getLocalizedName(category.name, category.nameEn, category.nameJa)}
+                      {category?.icon} {getLocalizedName(category.name, category.nameEn, category.nameJa)}
                     </Button>
                   ))}
                 </div>
@@ -458,11 +469,13 @@ export function FoodSearchDialog({
 
             <div className="flex flex-col gap-2">
               <div className="flex gap-2">
-                <Button variant="outline" onClick={() => setSelectedFood(null)} className="flex-1">
+                <Button variant="outline" onClick={() => setSelectedFood(null)} className="flex-1" disabled={isAdding}>
                   {tMeals('reselect')}
                 </Button>
-                <Button onClick={handleConfirm} className="flex-1">
-                  {tMeals('addAndContinue')}
+                <Button onClick={handleConfirm} className="flex-1" disabled={isAdding}>
+                  {isAdding ? (
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{tMeals('addAndContinue')}</>
+                  ) : tMeals('addAndContinue')}
                 </Button>
               </div>
               <div className="flex gap-2">
@@ -473,8 +486,11 @@ export function FoodSearchDialog({
                   }}
                   variant="default"
                   className="flex-1"
+                  disabled={isAdding}
                 >
-                  {tMeals('addAndFinish')}
+                  {isAdding ? (
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{tMeals('addAndFinish')}</>
+                  ) : tMeals('addAndFinish')}
                 </Button>
                 {/* {onSelectFoodAndEdit && (
                   <Button
