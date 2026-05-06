@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 
+import { getTaipeiToday } from '@/lib/date';
+
 interface QuickStats {
   waterMl: number | null;
   exerciseKcal: number | null;
@@ -18,7 +20,7 @@ export default function NutritionQuickStats() {
   });
 
   useEffect(() => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getTaipeiToday();
 
     Promise.allSettled([
       fetch(`/api/water?date=${today}`).then((r) => r.json()),
