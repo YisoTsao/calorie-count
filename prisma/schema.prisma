@@ -48,6 +48,7 @@ model User {
   weightRecords WeightRecord[] // 體重記錄
   achievements  UserAchievement[] // 成就記錄
   dailyStats    DailyStats[] // 每日統計
+  aiUsageLogs   AiUsageLog[] // AI 用量記錄
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -610,6 +611,30 @@ model DailyStats {
   @@unique([userId, date])
   @@index([userId, date])
   @@map("daily_stats")
+}
+
+// ==================== AI Usage Tracking ====================
+
+model AiUsageLog {
+  id               String   @id @default(cuid())
+  userId           String
+  feature          String   // 'food_recognition', 'nutrition_chat' 等
+  model            String   // 例: 'gpt-4o-mini'
+  promptTokens     Int
+  completionTokens Int
+  totalTokens      Int
+  estimatedCostUsd Decimal  @db.Decimal(10, 8)
+  locale           String?  // 使用的語言
+  recognitionId    String?  // 關聯的 FoodRecognition（可選）
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([userId, createdAt])
+  @@index([feature])
+  @@map("ai_usage_logs")
 }
 
 // ==================== Admin Audit Logs ====================
