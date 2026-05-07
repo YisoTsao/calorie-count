@@ -26,19 +26,32 @@ export async function GET() {
 
     // 如果沒有目標，建立預設目標
     if (!goals) {
-      const defaultGoals = await prisma.userGoals.create({
-        data: {
-          userId: session.user.id,
-          goalType: 'MAINTAIN',
-          dailyCalorieGoal: 2000,
-          proteinGoal: 50,
-          carbsGoal: 250,
-          fatGoal: 65,
-          waterGoal: 2000,
-        },
-      });
+      const defaultGoalData = {
+        userId: session.user.id,
+        goalType: 'MAINTAIN' as GoalType,
+        dailyCalorieGoal: 2000,
+        proteinGoal: 50,
+        carbsGoal: 250,
+        fatGoal: 65,
+        waterGoal: 2000,
+        targetDate: null,
+      };
 
-      return NextResponse.json(createSuccessResponse({ goals: defaultGoals, profile }));
+      try {
+        const defaultGoals = await prisma.userGoals.create({ data: defaultGoalData });
+        return NextResponse.json(createSuccessResponse({ goals: defaultGoals, profile }));
+      } catch (e) {
+        // P2003: 使用者不存在於 DB（JWT 仍有效但本機無對應記錄），回傳預設值不寫入
+        if ((e as { code?: string }).code === 'P2003') {
+          return NextResponse.json(
+            createSuccessResponse({
+              goals: { id: '', ...defaultGoalData, createdAt: new Date(), updatedAt: new Date() },
+              profile,
+            })
+          );
+        }
+        throw e;
+      }
     }
 
     return NextResponse.json(createSuccessResponse({ goals, profile }));
@@ -105,7 +118,7 @@ export async function POST(req: NextRequest) {
         },
       });
     } else {
-      // 建立新目標
+      // 建立新目標（若 user 不存在 DB 則回傳 P2003，向上拋出）
       goals = await prisma.userGoals.create({
         data: {
           userId: session.user.id,
@@ -117,6 +130,9 @@ export async function POST(req: NextRequest) {
           waterGoal: waterGoal || 2000,
           ...(targetDate && { targetDate: new Date(targetDate) }),
         },
+      }).catch((e: { code?: string }) => {
+        if (e.code === 'P2003') throw Object.assign(new Error('用戶不存在，無法儲存目標'), { status: 404 });
+        throw e;
       });
     }
 
