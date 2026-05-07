@@ -128,6 +128,7 @@ export async function uploadAvatar(file: File, userId?: string): Promise<{ url: 
       .upload(storagePath, buffer, {
         contentType: 'image/webp',
         upsert: true,
+        cacheControl: '0', // 停用 CDN 快取，確保覆蓋後立即生效
       });
 
     if (error) {
