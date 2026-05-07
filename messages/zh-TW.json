@@ -81,7 +81,8 @@
     "logout": "登出",
     "myProfile": "個人資料",
     "mySettings": "設定",
-    "myAchievements": "成就"
+    "myAchievements": "成就",
+    "adminPanel": "後台管理"
   },
   "auth": {
     "login": {
@@ -1095,6 +1096,13 @@
     "forbidden": "權限不足",
     "networkError": "網路連線失敗",
     "backHome": "返回首頁"
+  },
+  "admin": {
+    "overview": "總覽",
+    "members": "會員管理",
+    "foods": "食物資料庫",
+    "scans": "AI 掃描記錄",
+    "nutrition": "營養分析"
   },
   "metadata": {
     "appName": "CalorieCount",

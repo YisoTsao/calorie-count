@@ -34,12 +34,13 @@ interface DailyRow {
   fat: number;
   fiber: number;
   meals: number;
+  water: number;
 }
 
 interface NutritionData {
   user: MemberOption;
   daily: DailyRow[];
-  totals: { calories: number; protein: number; carbs: number; fat: number; fiber: number };
+  totals: { calories: number; protein: number; carbs: number; fat: number; fiber: number; water: number };
   activeDays: number;
   totalDays: number;
 }
@@ -368,7 +369,7 @@ export default function AdminNutritionPage() {
           </div>
 
           {/* 統計卡片 */}
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-5">
             <StatCard
               icon="mdi:fire"
               label="總熱量"
@@ -389,10 +390,16 @@ export default function AdminNutritionPage() {
               color="bg-emerald-600/80"
             />
             <StatCard
-              icon="mdi:water-outline"
+              icon="mdi:dumbbell-outline"
               label="脂肪"
               value={`${data.totals.fat} g`}
               color="bg-amber-600/80"
+            />
+            <StatCard
+              icon="mdi:water"
+              label="飲水量"
+              value={`${data.totals.water.toLocaleString()} ml`}
+              color="bg-blue-500/80"
             />
           </div>
 

@@ -81,7 +81,8 @@
     "logout": "Log Out",
     "myProfile": "My Profile",
     "mySettings": "Settings",
-    "myAchievements": "Achievements"
+    "myAchievements": "Achievements",
+    "adminPanel": "Admin Panel"
   },
   "auth": {
     "login": {
@@ -1098,6 +1099,13 @@
     "forbidden": "Forbidden",
     "networkError": "Network connection failed",
     "backHome": "Back to Home"
+  },
+  "admin": {
+    "overview": "Overview",
+    "members": "Members",
+    "foods": "Food Database",
+    "scans": "AI Scans",
+    "nutrition": "Nutrition Analysis"
   },
   "metadata": {
     "appName": "CalorieCount",

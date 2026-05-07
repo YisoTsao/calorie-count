@@ -81,7 +81,8 @@
     "logout": "ログアウト",
     "myProfile": "プロフィール",
     "mySettings": "設定",
-    "myAchievements": "実績"
+    "myAchievements": "実績",
+    "adminPanel": "管理パネル"
   },
   "auth": {
     "login": {

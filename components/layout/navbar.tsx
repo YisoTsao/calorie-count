@@ -1,9 +1,11 @@
 'use client';
 
-import { Link } from '@/i18n/navigation';
+import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 import { signOut } from 'next-auth/react';
 import { Icon } from '@iconify/react';
+import { Link as NavigationLink } from '@/i18n/navigation';
 import { LocaleSwitcher } from '@/components/ui/LocaleSwitcher';
 import { Button } from '@/components/ui/button';
 import {
@@ -27,17 +29,22 @@ interface NavbarProps {
 }
 
 export function Navbar({ user, role, isSidebarOpen = false, onToggleSidebar }: NavbarProps) {
+  const t = useTranslations('nav');
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-white dark:border-gray-800 dark:bg-gray-900">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link href="/dashboard" className="flex items-center gap-2.5">
+          <NavigationLink href="/dashboard" className="flex items-center gap-2.5">
             <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-emerald-500 shadow-sm">
-              <Icon icon="lucide:apple" className="h-4.5 w-4.5 text-white" style={{ fontSize: '18px' }} />
+              <Icon
+                icon="lucide:apple"
+                className="h-4.5 w-4.5 text-white"
+                style={{ fontSize: '18px' }}
+              />
             </div>
             <span className="text-xl font-bold tracking-tight">CalorieCount</span>
-          </Link>
+          </NavigationLink>
 
           {/* User Menu */}
           <div className="flex items-center gap-4">
@@ -75,30 +82,30 @@ export function Navbar({ user, role, isSidebarOpen = false, onToggleSidebar }: N
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link href="/profile" className="cursor-pointer">
+                  <NavigationLink href="/profile" className="cursor-pointer">
                     <Icon icon="lucide:user" className="mr-2 h-4 w-4" />
-                    個人資料
-                  </Link>
+                    {t('myProfile')}
+                  </NavigationLink>
                 </DropdownMenuItem>
                 {/* <DropdownMenuItem asChild>
-                  <Link href="/settings" className="cursor-pointer">
+                  <NavigationLink href="/settings" className="cursor-pointer">
                     <Icon icon="lucide:settings" className="mr-2 h-4 w-4" />
                     設定
-                  </Link>
+                  </NavigationLink>
                 </DropdownMenuItem> */}
                 <DropdownMenuItem asChild>
-                  <Link href="/achievements" className="cursor-pointer">
+                  <NavigationLink href="/achievements" className="cursor-pointer">
                     <Icon icon="lucide:trophy" className="mr-2 h-4 w-4" />
-                    成就
-                  </Link>
+                    {t('myAchievements')}
+                  </NavigationLink>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 {(role === 'ADMIN' || role === 'SUPER_ADMIN') && (
                   <>
                     <DropdownMenuItem asChild>
-                      <Link href="/admin" className="cursor-pointer">
+                      <Link href="/admin" className="flex cursor-pointer items-center">
                         <Icon icon="lucide:shield" className="mr-2 h-4 w-4" />
-                        後台管理
+                        {t('adminPanel')}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
@@ -110,7 +117,7 @@ export function Navbar({ user, role, isSidebarOpen = false, onToggleSidebar }: N
                     onClick={() => signOut({ callbackUrl: '/login' })}
                   >
                     <Icon icon="lucide:log-out" className="mr-2 h-4 w-4" />
-                    登出
+                    {t('logout')}
                   </button>
                 </DropdownMenuItem>
               </DropdownMenuContent>
