@@ -76,14 +76,20 @@ export default function ScanPage() {
 
       // 將壓縮圖以 base64 存入 sessionStorage，供結果頁預覽及確認後上傳 Supabase
       try {
-        const base64 = await new Promise<string>((resolve) => {
+        const base64 = await new Promise<string>((resolve, reject) => {
           const reader = new FileReader();
-          reader.onload = (e) => resolve(e.target?.result as string);
+          reader.onload = (e) => {
+            const result = e.target?.result as string;
+            if (!result) reject(new Error('Failed to read file'));
+            else resolve(result);
+          };
+          reader.onerror = () => reject(new Error('FileReader error'));
           reader.readAsDataURL(compressedBlob);
         });
         sessionStorage.setItem(`scan-img-${recognitionId}`, base64);
-      } catch {
-        // sessionStorage 不可用時忽略（結果頁將不顯示預覽圖）
+      } catch (err) {
+        console.warn('SessionStorage error:', err);
+        // 不影響主流程，結果頁面無預覽圖也能正常工作
       }
 
       // 跳轉到結果頁面（使用 i18n-aware router 保留 locale）

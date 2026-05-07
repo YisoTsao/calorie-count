@@ -3,6 +3,24 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { createSuccessResponse, createErrorResponse } from '@/lib/api-response';
 import { z } from 'zod';
+import { deleteImage } from '@/lib/image-upload';
+
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
+
+/**
+ * 從 Supabase Storage public URL 解析出 bucket 和 path
+ * URL 格式：{SUPABASE_URL}/storage/v1/object/public/{bucket}/{path}
+ */
+function parseStorageUrl(url: string): { bucket: string; path: string } | null {
+  console.log('Parsing storage URL:', url);
+  if (!url || !SUPABASE_URL) return null;
+  const prefix = `${SUPABASE_URL}/storage/v1/object/public/`;
+  if (!url.startsWith(prefix)) return null;
+  const rest = url.slice(prefix.length);
+  const slashIdx = rest.indexOf('/');
+  if (slashIdx === -1) return null;
+  return { bucket: rest.slice(0, slashIdx), path: rest.slice(slashIdx + 1) };
+}
 
 // ==================== GET: 查詢單筆飲食記錄 ====================
 
@@ -152,6 +170,25 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
     if (!meal || meal.userId !== session.user.id) {
       return NextResponse.json(createErrorResponse('NOT_FOUND', '找不到飲食記錄'), { status: 404 });
+    }
+
+    // 若有 sourceRecognitionId，刪除 Supabase Storage 上的掃描圖片
+    if (meal.sourceRecognitionId) {
+      try {
+        const recognition = await prisma.foodRecognition.findUnique({
+          where: { id: meal.sourceRecognitionId },
+          select: { imageUrl: true },
+        });
+        if (recognition?.imageUrl) {
+          const parsed = parseStorageUrl(recognition.imageUrl);
+          if (parsed) {
+            await deleteImage(parsed.bucket, parsed.path);
+          }
+        }
+      } catch (imgErr) {
+        // 圖片刪除失敗不阻止餐點刪除，靜默記錄
+        console.warn('刪除掃描圖片失敗（不影響餐點刪除）:', imgErr);
+      }
     }
 
     await prisma.meal.delete({

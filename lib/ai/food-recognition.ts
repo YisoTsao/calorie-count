@@ -1,4 +1,4 @@
-import { openai, AI_MODEL, MAX_TOKENS, TEMPERATURE } from './openai-client';
+import { openai, AI_MODEL, MAX_TOKENS } from './openai-client';
 
 export interface RecognizedFood {
   name: string;
@@ -20,44 +20,48 @@ export interface FoodRecognitionResult {
   foods: RecognizedFood[];
   confidence: number;
   rawResponse: unknown;
+  usageStats?: {
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
+  };
 }
 
-// ── 語言指令對照表 ─────────────────────────────────────────────
-const LANGUAGE_INSTRUCTION: Record<string, string> = {
-  'zh-TW': 'You MUST respond in Traditional Chinese (繁體中文). ALL "name" and "portion" fields MUST be in Traditional Chinese. Example: "name": "炒飯". DO NOT use Simplified Chinese, Japanese, or English for these fields.',
-  'zh-CN': 'You MUST respond in Simplified Chinese (简体中文). ALL "name" and "portion" fields MUST be in Simplified Chinese. Example: "name": "炒饭". DO NOT use Traditional Chinese, Japanese, or English for these fields.',
-  'zh':    'You MUST respond in Traditional Chinese (繁體中文). ALL "name" and "portion" fields MUST be in Traditional Chinese.',
-  'en':    'You MUST respond in English. ALL "name" and "portion" fields MUST be in English. Example: "name": "Fried Rice". DO NOT use any other language for these fields.',
-  'ja':    'You MUST respond in Japanese (日本語). ALL "name" and "portion" fields MUST be in Japanese (Kanji/Kana). Example: "name": "チャーハン". DO NOT use Chinese or English for these fields.',
-  'ko':    'You MUST respond in Korean (한국어). ALL "name" and "portion" fields MUST be in Korean. Example: "name": "볶음밥". DO NOT use any other language for these fields.',
-  'fr':    'You MUST respond in French (Français). ALL "name" and "portion" fields MUST be in French. Example: "name": "Riz sauté". DO NOT use any other language for these fields.',
-  'es':    'You MUST respond in Spanish (Español). ALL "name" and "portion" fields MUST be in Spanish. Example: "name": "Arroz frito". DO NOT use any other language for these fields.',
-  'de':    'You MUST respond in German (Deutsch). ALL "name" and "portion" fields MUST be in German. Example: "name": "Gebratener Reis". DO NOT use any other language for these fields.',
+// ── 簡化的語言指令（避免重複） ────────────────────────────────────
+const LANGUAGE_CODES: Record<string, { lang: string; example: string }> = {
+  'zh-TW': { lang: 'Traditional Chinese (繁體中文)', example: '炒飯' },
+  'zh-CN': { lang: 'Simplified Chinese (简体中文)', example: '炒饭' },
+  zh: { lang: 'Traditional Chinese (繁體中文)', example: '炒飯' },
+  en: { lang: 'English', example: 'Fried Rice' },
+  ja: { lang: 'Japanese (日本語)', example: 'チャーハン' },
+  ko: { lang: 'Korean (한국어)', example: '볶음밥' },
+  fr: { lang: 'French (Français)', example: 'Riz sauté' },
+  es: { lang: 'Spanish (Español)', example: 'Arroz frito' },
+  de: { lang: 'German (Deutsch)', example: 'Gebratener Reis' },
 };
 
-// fallback：完整 locale → 語言前綴 → English
-function getLanguageInstruction(locale: string): string {
+function getLanguageInfo(locale: string): { lang: string; example: string } {
   return (
-    LANGUAGE_INSTRUCTION[locale] ??
-    LANGUAGE_INSTRUCTION[locale.split('-')[0]] ??
-    LANGUAGE_INSTRUCTION['en']
+    LANGUAGE_CODES[locale] ??
+    LANGUAGE_CODES[locale.split('-')[0]] ??
+    LANGUAGE_CODES['en']
   );
 }
 
 // ── 錯誤訊息 i18n ──────────────────────────────────────────────
-const ERROR_MESSAGES: Record<string, { failed: string; unknown: string }> = {
-  'zh-TW': { failed: '食物辨識失敗',           unknown: '食物辨識過程發生未知錯誤' },
-  'zh-CN': { failed: '食物识别失败',           unknown: '食物识别过程发生未知错误' },
-  'zh':    { failed: '食物辨識失敗',           unknown: '食物辨識過程發生未知錯誤' },
-  'en':    { failed: 'Food recognition failed', unknown: 'Unknown error during food recognition' },
-  'ja':    { failed: '食品認識に失敗しました',   unknown: '食品認識中に不明なエラーが発生しました' },
-  'ko':    { failed: '음식 인식 실패',          unknown: '음식 인식 중 알 수 없는 오류 발생' },
-  'fr':    { failed: 'Échec de la reconnaissance', unknown: 'Erreur inconnue lors de la reconnaissance' },
-  'es':    { failed: 'Error de reconocimiento', unknown: 'Error desconocido durante el reconocimiento' },
-  'de':    { failed: 'Erkennung fehlgeschlagen', unknown: 'Unbekannter Fehler bei der Erkennung' },
+const ERROR_MESSAGES: Record<string, string> = {
+  'zh-TW': '食物辨識失敗',
+  'zh-CN': '食物识别失败',
+  zh: '食物辨識失敗',
+  en: 'Food recognition failed',
+  ja: '食品認識に失敗しました',
+  ko: '음식 인식 실패',
+  fr: 'Échec de la reconnaissance',
+  es: 'Error de reconocimiento',
+  de: 'Erkennung fehlgeschlagen',
 };
 
-function getErrorMessages(locale: string) {
+function getErrorMessage(locale: string): string {
   return (
     ERROR_MESSAGES[locale] ??
     ERROR_MESSAGES[locale.split('-')[0]] ??
@@ -67,53 +71,48 @@ function getErrorMessages(locale: string) {
 
 // ── Prompt 建構 ────────────────────────────────────────────────
 function buildSystemPrompt(locale: string): string {
-  const langInstruction = getLanguageInstruction(locale);
-  return `You are a professional nutritionist and food recognition expert.
+  const info = getLanguageInfo(locale);
+  return `You are a professional food nutritionist. Return JSON only, no markdown or extra text.
 
-⚠️ ABSOLUTE REQUIREMENT: ${langInstruction}
+Respond in ${info.lang}. Example: "name": "${info.example}".
 
-This language requirement overrides everything else. You MUST follow it strictly.`;
-}
-
-function buildUserPrompt(locale: string): string {
-  const langInstruction = getLanguageInstruction(locale);
-  return `Analyze the food in this image and return nutritional information as valid JSON only.
-
-⚠️ Language reminder: ${langInstruction}
-
-JSON structure (no extra text, no markdown, valid JSON only):
+Return valid JSON matching this structure:
 {
   "foods": [
     {
-      "name": "<food name in the REQUIRED language>",
-      "nameEn": "<food name in English>",
-      "portion": "<serving description in the REQUIRED language>",
-      "portionSize": 150,
-      "portionUnit": "g",
-      "calories": 200,
-      "protein": 8.5,
-      "carbs": 30.2,
-      "fat": 5.3,
-      "fiber": 2.1,
-      "sugar": 3.5,
-      "sodium": 450,
-      "confidence": 0.85
+      "name": "<food name in ${info.lang}>",
+      "nameEn": "<English name>",
+      "portion": "<serving in ${info.lang}>",
+      "portionSize": <number>,
+      "portionUnit": "g|ml|個",
+      "calories": <number>,
+      "protein": <number>,
+      "carbs": <number>,
+      "fat": <number>,
+      "fiber": <number>,
+      "sugar": <number>,
+      "sodium": <number>,
+      "confidence": <0-1>
     }
   ],
-  "confidence": 0.85
+  "confidence": <0-1>
+}`;
 }
 
-Rules: calories (kcal), protein/carbs/fat/fiber/sugar (g), sodium (mg). Return empty foods array if no food visible.`;
+function buildUserPrompt(locale: string): string {
+  return `Analyze the food in this image. Return valid JSON only (no markdown, no explanation).\n\nRules: calories=kcal, protein/carbs/fat/fiber/sugar=g, sodium=mg. Return empty foods array if no food visible.`;
 }
 
-export async function recognizeFood(imageUrl: string, locale = 'zh-TW'): Promise<FoodRecognitionResult> {
-  const errors = getErrorMessages(locale);
+export async function recognizeFood(
+  imageUrl: string,
+  locale = 'zh-TW'
+): Promise<FoodRecognitionResult> {
+  const errorMsg = getErrorMessage(locale);
 
   try {
     const response = await openai.chat.completions.create({
       model: AI_MODEL,
-      max_tokens: MAX_TOKENS,
-      temperature: TEMPERATURE,
+      max_completion_tokens: MAX_TOKENS,
       messages: [
         {
           role: 'system',
@@ -130,7 +129,7 @@ export async function recognizeFood(imageUrl: string, locale = 'zh-TW'): Promise
               type: 'image_url',
               image_url: {
                 url: imageUrl,
-                detail: 'auto',
+                detail: 'low',
               },
             },
           ],
@@ -140,6 +139,12 @@ export async function recognizeFood(imageUrl: string, locale = 'zh-TW'): Promise
     });
 
     const content = response.choices[0]?.message?.content;
+    const finishReason = response.choices[0]?.finish_reason;
+
+    // 偵測 token 不足（回應被截斷）
+    if (finishReason === 'length') {
+      throw new Error('Response truncated: increase MAX_TOKENS');
+    }
 
     if (!content) {
       throw new Error('No response from OpenAI');
@@ -151,28 +156,37 @@ export async function recognizeFood(imageUrl: string, locale = 'zh-TW'): Promise
       throw new Error('Invalid response format: missing foods array');
     }
 
+    const usage = response.usage;
+
     return {
       foods: result.foods,
       confidence: result.confidence || 0.5,
       rawResponse: response,
+      usageStats: usage
+        ? {
+            promptTokens: usage.prompt_tokens,
+            completionTokens: usage.completion_tokens,
+            totalTokens: usage.total_tokens,
+          }
+        : undefined,
     };
   } catch (error) {
     console.error('Food recognition error:', error);
 
     if (error instanceof Error) {
-      throw new Error(`${errors.failed}: ${error.message}`);
+      throw new Error(`${errorMsg}: ${error.message}`);
     }
 
-    throw new Error(errors.unknown);
+    throw new Error(errorMsg);
   }
 }
 
 /**
- * 帶重試機制的食物辨識
+ * 帶快速失敗的重試機制
  */
 export async function recognizeFoodWithRetry(
   imageUrl: string,
-  maxRetries = 2,
+  maxRetries = 1,
   locale = 'zh-TW'
 ): Promise<FoodRecognitionResult> {
   let lastError: Error | null = null;
@@ -182,16 +196,16 @@ export async function recognizeFoodWithRetry(
       return await recognizeFood(imageUrl, locale);
     } catch (error) {
       lastError = error as Error;
+      console.warn(`[Attempt ${attempt + 1}/${maxRetries + 1}]`, lastError.message);
 
       if (attempt < maxRetries) {
-        // 等待後重試 (指數退避)
-        await new Promise((resolve) => setTimeout(resolve, Math.pow(2, attempt) * 1000));
-        continue;
+        // 指數退避但更短（1.5 秒）
+        await new Promise((resolve) => setTimeout(resolve, 1500));
       }
     }
   }
 
-  throw lastError || new Error('食物辨識失敗');
+  throw lastError || new Error('Food recognition failed after retries');
 }
 
 /**

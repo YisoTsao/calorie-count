@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { recognizeFoodWithRetry, validateRecognitionResult } from '@/lib/ai/food-recognition';
+import { logAiUsage } from '@/lib/ai/usage-logger';
 import { createSuccessResponse, createErrorResponse } from '@/lib/api-response';
+import { uploadImage } from '@/lib/image-upload';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -43,22 +45,31 @@ export async function POST(req: NextRequest) {
 
     const buffer = Buffer.from(await file.arrayBuffer());
 
-    // 轉為 base64 data URL 供 AI 分析（不上傳至 Storage，避免 AI 無法存取 localhost）
+    // 轉為 base64 data URL 供 AI 分析（避免 AI 無法存取 localhost URL）
     const mimeType = ALLOWED_TYPES.includes(file.type) ? file.type : 'image/webp';
     const imageDataUrl = `data:${mimeType};base64,${buffer.toString('base64')}`;
 
-    // 建立辨識記錄（imageUrl 留空，等使用者確認加入飲食後才上傳至 Supabase）
+    // 立刻上傳圖片至 Supabase Storage，確保 imageUrl 有值（失敗時靜默降級）
+    let imageUrl = '';
+    try {
+      const webpFile = new File([buffer], 'scan.webp', { type: 'image/webp' });
+      const { url } = await uploadImage(webpFile, `scans/${session.user.id}`);
+      if (url) imageUrl = url;
+    } catch (uploadErr) {
+      console.warn('圖片上傳至 Storage 失敗（辨識仍繼續）:', uploadErr);
+    }
+
+    // 建立辨識記錄
     const recognition = await prisma.foodRecognition.create({
       data: {
         userId: session.user.id,
-        imageUrl: '',
-
+        imageUrl,
         status: 'PROCESSING',
       },
     });
 
     // 異步處理 AI 辨識（傳入 base64 data URL，不依賴外部可存取的 URL）
-    processRecognition(recognition.id, imageDataUrl, locale).catch(console.error);
+    processRecognition(recognition.id, imageDataUrl, locale, session.user.id).catch(console.error);
 
     return NextResponse.json(
       createSuccessResponse({
@@ -79,7 +90,7 @@ export async function POST(req: NextRequest) {
 /**
  * 異步處理食物辨識（使用 base64 data URL，OpenAI 原生支援此格式）
  */
-async function processRecognition(recognitionId: string, imageDataUrl: string, locale = 'zh-TW') {
+async function processRecognition(recognitionId: string, imageDataUrl: string, locale = 'zh-TW', userId: string) {
   try {
     // 直接傳 base64 data URL 給 OpenAI，無需外部可存取的 URL
     const result = await recognizeFoodWithRetry(imageDataUrl, 2, locale);
@@ -89,13 +100,28 @@ async function processRecognition(recognitionId: string, imageDataUrl: string, l
       throw new Error('AI 回傳格式錯誤，請重試');
     }
 
+    // 記錄 AI 用量（fire-and-forget，失敗不影響辨識結果）
+    try {
+      logAiUsage({
+        userId,
+        feature: 'food_recognition',
+        promptTokens: result.usageStats?.promptTokens ?? 0,
+        completionTokens: result.usageStats?.completionTokens ?? 0,
+        totalTokens: result.usageStats?.totalTokens ?? 0,
+        locale,
+        recognitionId,
+      });
+    } catch {
+      // 不影響辨識主流程
+    }
+
     // 儲存辨識結果（foods 為空表示圖片中未偵測到食物）
     await prisma.foodRecognition.update({
       where: { id: recognitionId },
       data: {
         status: 'COMPLETED',
         confidence: result.confidence,
-        rawResult: result.rawResponse as object,
+        rawResult: undefined,
         foods: {
           create: result.foods.map((food) => ({
             name: food.name,
