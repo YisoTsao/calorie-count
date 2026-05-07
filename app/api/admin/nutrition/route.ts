@@ -50,17 +50,26 @@ export async function GET(req: NextRequest) {
     orderBy: { mealDate: 'asc' },
   });
 
+  // 查詢該區間的所有飲水記錄
+  const waterIntakes = await prisma.waterIntake.findMany({
+    where: {
+      userId,
+      createdAt: { gte: startDate, lte: endDate },
+    },
+    orderBy: { createdAt: 'asc' },
+  });
+
   // 依日期分組彙總
   const byDate = new Map<
     string,
-    { calories: number; protein: number; carbs: number; fat: number; fiber: number; meals: number }
+    { calories: number; protein: number; carbs: number; fat: number; fiber: number; meals: number; water: number }
   >();
 
   for (const meal of meals) {
     // 使用 UTC 日期字串作為 key，避免時區問題
     const dateKey = meal.mealDate.toISOString().slice(0, 10);
     if (!byDate.has(dateKey)) {
-      byDate.set(dateKey, { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0, meals: 0 });
+      byDate.set(dateKey, { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0, meals: 0, water: 0 });
     }
     const day = byDate.get(dateKey)!;
     day.meals += 1;
@@ -73,6 +82,16 @@ export async function GET(req: NextRequest) {
     }
   }
 
+  // 彙總水量數據
+  for (const water of waterIntakes) {
+    const dateKey = water.createdAt.toISOString().slice(0, 10);
+    if (!byDate.has(dateKey)) {
+      byDate.set(dateKey, { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0, meals: 0, water: 0 });
+    }
+    const day = byDate.get(dateKey)!;
+    day.water += water.amount;
+  }
+
   // 填滿區間內每一天（無資料的日子補 0）
   const daily: {
     date: string;
@@ -82,6 +101,7 @@ export async function GET(req: NextRequest) {
     fat: number;
     fiber: number;
     meals: number;
+    water: number;
   }[] = [];
 
   const cursor = new Date(startDate);
@@ -96,6 +116,7 @@ export async function GET(req: NextRequest) {
       fat: +(d?.fat ?? 0).toFixed(1),
       fiber: +(d?.fiber ?? 0).toFixed(1),
       meals: d?.meals ?? 0,
+      water: d?.water ?? 0,
     });
     cursor.setUTCDate(cursor.getUTCDate() + 1);
   }
@@ -108,8 +129,9 @@ export async function GET(req: NextRequest) {
       carbs: +(acc.carbs + d.carbs).toFixed(1),
       fat: +(acc.fat + d.fat).toFixed(1),
       fiber: +(acc.fiber + d.fiber).toFixed(1),
+      water: acc.water + d.water,
     }),
-    { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 }
+    { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0, water: 0 }
   );
 
   const activeDays = daily.filter((d) => d.meals > 0).length;
