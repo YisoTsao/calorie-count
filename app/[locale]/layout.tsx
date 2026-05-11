@@ -5,6 +5,15 @@ import { notFound } from 'next/navigation';
 import { Toaster } from 'sonner';
 import { routing } from '@/i18n/routing';
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://calo-circle.yisoapp.com';
+
+/** next-intl locale → Open Graph locale 格式 */
+const OG_LOCALE: Record<string, string> = {
+  'zh-TW': 'zh_TW',
+  en: 'en_US',
+  ja: 'ja_JP',
+};
+
 export async function generateMetadata({
   params,
 }: {
@@ -13,12 +22,44 @@ export async function generateMetadata({
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'metadata' });
 
+  const title = `${t('appName')} | ${t('tagline')}`;
+  const description = t('description');
+
   return {
+    metadataBase: new URL(BASE_URL),
     title: {
-      default: `${t('appName')} | ${t('tagline')}`,
+      default: title,
       template: `%s | ${t('appName')}`,
     },
-    description: t('description'),
+    description,
+    openGraph: {
+      type: 'website',
+      siteName: t('appName'),
+      locale: OG_LOCALE[locale] ?? locale,
+      title,
+      description,
+      // 統一 OG 圖片設定，涵蓋 Facebook、LINE、Instagram、Google 預覽
+      images: [
+        {
+          url: `/${locale}/opengraph-image`,
+          width: 1200,
+          height: 630,
+          alt: title,
+          type: 'image/png',
+        },
+      ],
+    },
+    // X (Twitter) 大圖卡片設定
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [`/${locale}/opengraph-image`],
+    },
+    // LINE / Messenger 預覽需要絕對 URL 的 og:image:secure_url（由 metadataBase 解析）
+    other: {
+      'og:image:secure_url': `${BASE_URL}/${locale}/opengraph-image`,
+    },
   };
 }
 
