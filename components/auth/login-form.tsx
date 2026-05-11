@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { useTranslations } from 'next-intl';
+import { Link } from '@/i18n/navigation';
 import { createLoginSchema, type LoginInput } from '@/lib/validations/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -169,9 +170,9 @@ export const LoginForm: React.FC = () => {
                   <FormItem>
                     <div className="flex items-center justify-between">
                       <FormLabel className="text-xs text-gray-600">{t('password')}</FormLabel>
-                      <a href="/forgot-password" className="text-xs text-primary hover:underline">
+                      <Link href="/forgot-password" className="text-xs text-primary hover:underline">
                         {t('forgotPassword')}
-                      </a>
+                      </Link>
                     </div>
                     <FormControl>
                       <Input
@@ -197,9 +198,9 @@ export const LoginForm: React.FC = () => {
 
       <p className="pt-2 text-center text-sm text-gray-500">
         {t('noAccount')}{' '}
-        <a href="/register" className="font-medium text-primary hover:underline">
+        <Link href="/register" className="font-medium text-primary hover:underline">
           {t('registerLink')}
-        </a>
+        </Link>
       </p>
     </div>
   );

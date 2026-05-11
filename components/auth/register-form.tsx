@@ -4,8 +4,9 @@ import React, { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { Link } from '@/i18n/navigation';
 import { signIn } from 'next-auth/react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { createRegisterSchema, type RegisterInput } from '@/lib/validations/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,6 +26,7 @@ export const RegisterForm: React.FC = () => {
   const searchParams = useSearchParams();
   const t = useTranslations('auth.register');
   const tv = useTranslations('validation');
+  const locale = useLocale();
   const [error, setError] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [registered, setRegistered] = useState(false);
@@ -63,7 +65,12 @@ export const RegisterForm: React.FC = () => {
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: data.name, email: data.email, password: data.password }),
+        body: JSON.stringify({
+          name: data.name,
+          email: data.email,
+          password: data.password,
+          locale,
+        }),
       });
       const result = await response.json();
       if (!response.ok) {
@@ -95,7 +102,7 @@ export const RegisterForm: React.FC = () => {
       const res = await fetch('/api/auth/resend-verification', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: registeredEmail }),
+        body: JSON.stringify({ email: registeredEmail, locale }),
       });
       const data = await res.json();
       if (res.ok) {
@@ -335,9 +342,9 @@ export const RegisterForm: React.FC = () => {
 
       <p className="text-center text-sm text-muted-foreground">
         {t('alreadyHaveAccount')}{' '}
-        <a href="/login" className="text-primary hover:underline">
+        <Link href="/login" className="text-primary hover:underline">
           {t('loginLink')}
-        </a>
+        </Link>
       </p>
     </div>
   );
