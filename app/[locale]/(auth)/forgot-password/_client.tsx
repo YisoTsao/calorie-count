@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useLocale, useTranslations } from 'next-intl';
+import { useRouter } from '@/i18n/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -20,13 +21,15 @@ import { ErrorMessage } from '@/components/ui/error-message';
 import { Icon } from '@iconify/react';
 
 const forgotPasswordSchema = z.object({
-  email: z.string().email('請輸入有效的 Email 地址'),
+  email: z.string().email(),
 });
 
 type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 
 export function ForgotPasswordClient() {
   const router = useRouter();
+  const locale = useLocale();
+  const t = useTranslations('auth.forgotPassword');
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -43,25 +46,24 @@ export function ForgotPasswordClient() {
     setIsLoading(true);
 
     try {
-      // TODO: 實作忘記密碼 API
       const response = await fetch('/api/auth/forgot-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ ...data, locale }),
       });
 
       const result = await response.json();
 
       if (!response.ok) {
-        setError(result.error?.message || '發送重設密碼郵件失敗');
+        setError(result.error?.message || t('errors.generic'));
         return;
       }
 
       setSuccess(true);
     } catch {
-      setError('發送重設密碼郵件時發生錯誤，請稍後再試');
+      setError(t('errors.generic'));
     } finally {
       setIsLoading(false);
     }
@@ -80,17 +82,13 @@ export function ForgotPasswordClient() {
                 />
               </div>
             </div>
-            <CardTitle className="text-center text-2xl font-bold">郵件已發送</CardTitle>
-            <CardDescription className="text-center">
-              我們已將重設密碼的連結發送到您的 Email
-            </CardDescription>
+            <CardTitle className="text-center text-2xl font-bold">{t('successTitle')}</CardTitle>
+            <CardDescription className="text-center">{t('successDescription')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-center text-sm text-muted-foreground">
-              請檢查您的收件匣（包括垃圾郵件資料夾），並點擊郵件中的連結來重設密碼。
-            </p>
+            <p className="text-center text-sm text-muted-foreground">{t('successHint')}</p>
             <Button onClick={() => router.push('/login')} className="w-full">
-              返回登入頁面
+              {t('backToLogin')}
             </Button>
           </CardContent>
         </Card>
@@ -102,10 +100,8 @@ export function ForgotPasswordClient() {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-12 dark:from-gray-900 dark:to-gray-800">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-center text-2xl font-bold">忘記密碼</CardTitle>
-          <CardDescription className="text-center">
-            輸入您的 Email，我們將發送重設密碼的連結
-          </CardDescription>
+          <CardTitle className="text-center text-2xl font-bold">{t('title')}</CardTitle>
+          <CardDescription className="text-center">{t('subtitle')}</CardDescription>
         </CardHeader>
         <CardContent>
           {error && <ErrorMessage message={error} type="error" className="mb-4" />}
@@ -117,7 +113,7 @@ export function ForgotPasswordClient() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>{t('email')}</FormLabel>
                     <FormControl>
                       <Input
                         type="email"
@@ -132,14 +128,14 @@ export function ForgotPasswordClient() {
               />
 
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? '發送中...' : '發送重設連結'}
+                {isLoading ? t('submitting') : t('submit')}
               </Button>
             </form>
           </Form>
 
           <div className="mt-4 text-center">
             <Button variant="link" onClick={() => router.push('/login')} className="text-sm">
-              返回登入頁面
+              {t('backToLogin')}
             </Button>
           </div>
         </CardContent>

@@ -7,6 +7,7 @@ import { z } from 'zod';
 
 const schema = z.object({
   email: z.string().email('請輸入有效的 Email'),
+  locale: z.string().optional(),
 });
 
 // 每次重新發送間隔（秒）
@@ -28,7 +29,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { email } = result.data;
+    const { email, locale } = result.data;
 
     // 確認用戶存在且尚未驗證
     const user = await prisma.user.findUnique({
@@ -70,7 +71,7 @@ export async function POST(req: NextRequest) {
       data: { identifier: email, token, expires },
     });
 
-    await sendVerificationEmail(email, token);
+    await sendVerificationEmail(email, token, locale);
 
     return NextResponse.json(createSuccessResponse({ message: '驗證信已重新發送，請查收郵件。' }), {
       status: 200,

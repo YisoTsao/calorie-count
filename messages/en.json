@@ -163,6 +163,9 @@
       "submitting": "Sending...",
       "backToLogin": "Back to Sign In",
       "success": "Reset link sent to your email",
+      "successTitle": "Email Sent",
+      "successDescription": "We've sent a password reset link to your email",
+      "successHint": "Please check your inbox (including spam folder) and click the link in the email to reset your password.",
       "errors": {
         "generic": "Failed to send. Please try again."
       }
@@ -980,8 +983,8 @@
     "pageSubtitle": "Track your water intake, exercise, and weight for comprehensive health management",
     "tipsTitle": "💡 Health Tips",
     "tips": {
-      "water": { "title": "💧 Stay Hydrated", "desc": "Aim for 2000-2500ml of water daily to support metabolism" },
-      "exercise": { "title": "🏃 Regular Exercise", "desc": "At least 150 minutes of moderate exercise per week for a healthy body" },
+      "water": { "title": "Stay Hydrated", "desc": "Aim for 2000-2500ml of water daily to support metabolism" },
+      "exercise": { "title": "Regular Exercise", "desc": "At least 150 minutes of moderate exercise per week for a healthy body" },
       "weight": { "title": "⚖️ Regular Measurement", "desc": "Measure your weight at the same time daily to track trends" }
     },
     "calories": "Calories",
@@ -1135,7 +1138,11 @@
       "features": "Features",
       "pricing": "Pricing",
       "login": "Sign In",
-      "cta": "Get Started Free"
+      "register": "Sign Up",
+      "cta": "Get Started Free",
+      "myProfile": "Profile Settings",
+      "adminPanel": "Admin Panel",
+      "logout": "Sign Out"
     },
     "hero": {
       "badge": "AI-Powered Food Tracking",

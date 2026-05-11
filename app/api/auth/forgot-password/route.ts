@@ -22,6 +22,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { email } = result.data;
+    const locale = typeof body.locale === 'string' ? body.locale : 'zh-TW';
 
     // 查找用戶（同時查出其 OAuth accounts）
     const user = await prisma.user.findUnique({
@@ -72,7 +73,7 @@ export async function POST(request: NextRequest) {
     });
 
     // 發送重置密碼郵件
-    await sendPasswordResetEmail(email, resetToken);
+    await sendPasswordResetEmail(email, resetToken, locale);
 
     return NextResponse.json(
       createSuccessResponse({
