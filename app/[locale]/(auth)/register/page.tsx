@@ -6,7 +6,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'auth.register' });
-  return { title: t('title') };
+  // localePrefix: 'always' — 所有語系均帶前綴，canonical 不能指向無前綴路徑（會 301 redirect）
+  return {
+    title: t('title'),
+    description: t('subtitle'),
+    alternates: {
+      canonical: `/${locale}/register`,
+      languages: {
+        'zh-TW': '/zh-TW/register',
+        en: '/en/register',
+        ja: '/ja/register',
+        // x-default 指向預設語系的實際 URL（非 redirect 路徑）
+        'x-default': '/zh-TW/register',
+      },
+    },
+  };
 }
 
 export default async function RegisterPage() {

@@ -117,7 +117,10 @@ export const RegisterForm: React.FC = () => {
         <div className="space-y-2 text-center">
           <div className="flex justify-center">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900">
-              <Icon icon="mdi:email-check" className="h-10 w-10 text-green-600 dark:text-green-400" />
+              <Icon
+                icon="mdi:email-check"
+                className="h-10 w-10 text-green-600 dark:text-green-400"
+              />
             </div>
           </div>
           <h1 className="text-2xl font-bold">{t('emailVerification.title')}</h1>
@@ -168,11 +171,6 @@ export const RegisterForm: React.FC = () => {
 
   return (
     <div className="w-full space-y-6">
-      <div className="space-y-2 text-center">
-        <h1 className="text-3xl font-bold">{t('title')}</h1>
-        <p className="text-muted-foreground">{t('description')}</p>
-      </div>
-
       {error && <ErrorMessage message={error} type="error" />}
 
       <Form {...form}>
@@ -184,7 +182,12 @@ export const RegisterForm: React.FC = () => {
               <FormItem>
                 <FormLabel>{t('name')}</FormLabel>
                 <FormControl>
-                  <Input type="text" placeholder={t('namePlaceholder')} disabled={isLoading} {...field} />
+                  <Input
+                    type="text"
+                    placeholder={t('namePlaceholder')}
+                    disabled={isLoading}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -198,7 +201,12 @@ export const RegisterForm: React.FC = () => {
               <FormItem>
                 <FormLabel>{t('email')}</FormLabel>
                 <FormControl>
-                  <Input type="email" placeholder="your@email.com" disabled={isLoading} {...field} />
+                  <Input
+                    type="email"
+                    placeholder="your@email.com"
+                    disabled={isLoading}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -212,7 +220,12 @@ export const RegisterForm: React.FC = () => {
               <FormItem>
                 <FormLabel>{t('password')}</FormLabel>
                 <FormControl>
-                  <Input type="password" placeholder={t('passwordPlaceholder')} disabled={isLoading} {...field} />
+                  <Input
+                    type="password"
+                    placeholder={t('passwordPlaceholder')}
+                    disabled={isLoading}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -226,7 +239,12 @@ export const RegisterForm: React.FC = () => {
               <FormItem>
                 <FormLabel>{t('confirmPassword')}</FormLabel>
                 <FormControl>
-                  <Input type="password" placeholder={t('confirmPasswordPlaceholder')} disabled={isLoading} {...field} />
+                  <Input
+                    type="password"
+                    placeholder={t('confirmPasswordPlaceholder')}
+                    disabled={isLoading}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -246,11 +264,17 @@ export const RegisterForm: React.FC = () => {
             />
             <span className="text-xs leading-relaxed text-muted-foreground">
               {t('agreeTerms')}{' '}
-              <a href="/terms" className="text-primary underline underline-offset-2 hover:no-underline">
+              <a
+                href="/terms"
+                className="text-primary underline underline-offset-2 hover:no-underline"
+              >
                 {t('termsLink')}
               </a>{' '}
               與{' '}
-              <a href="/privacy" className="text-primary underline underline-offset-2 hover:no-underline">
+              <a
+                href="/privacy"
+                className="text-primary underline underline-offset-2 hover:no-underline"
+              >
                 {t('privacyLink')}
               </a>
               {t('agreeTermsSuffix')}
@@ -264,7 +288,9 @@ export const RegisterForm: React.FC = () => {
           <span className="w-full border-t" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">{t('orContinueWithSocial')}</span>
+          <span className="bg-background px-2 text-muted-foreground">
+            {t('orContinueWithSocial')}
+          </span>
         </div>
       </div>
 
@@ -316,4 +342,3 @@ export const RegisterForm: React.FC = () => {
     </div>
   );
 };
-
