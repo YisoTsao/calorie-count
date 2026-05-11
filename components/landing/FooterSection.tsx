@@ -1,6 +1,6 @@
 import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
-import { Icon } from '@iconify/react';
+import { CaloLogo } from '@/components/ui/CaloLogo';
 
 /** FooterSection — Server Component */
 export async function FooterSection() {
@@ -13,7 +13,7 @@ export async function FooterSection() {
           {/* Logo + tagline */}
           <div className="flex items-center gap-2.5">
             <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-sm">
-              <Icon icon="lucide:apple" className="h-4 w-4 text-white" />
+              <CaloLogo size={16} className="text-white" />
             </div>
             <span className="text-lg font-bold">CalorieCount</span>
           </div>
