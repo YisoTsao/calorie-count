@@ -1,7 +1,5 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { redirect } from '@/i18n/navigation';
-import { auth } from '@/lib/auth';
 import { LandingPage } from '@/components/landing/LandingPage';
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://calo-circle.yisoapp.com';
@@ -63,12 +61,6 @@ export async function generateMetadata({
 
 export default async function Home({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
-  const session = await auth();
-
-  // 已登入 → 導向 Dashboard
-  if (session?.user) {
-    redirect({ href: '/dashboard', locale });
-  }
 
   // JSON-LD 結構化資料 — 讓 Google 以 WebApplication Rich Result 呈現
   const t = await getTranslations({ locale, namespace: 'metadata' });
