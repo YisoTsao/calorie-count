@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import Image from 'next/image';
 import { signOut } from 'next-auth/react';
 import { Icon } from '@iconify/react';
@@ -30,6 +30,7 @@ interface NavbarProps {
 
 export function Navbar({ user, role, isSidebarOpen = false, onToggleSidebar }: NavbarProps) {
   const t = useTranslations('nav');
+  const locale = useLocale();
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-white dark:border-gray-800 dark:bg-gray-900">
       <div className="container mx-auto px-4">
@@ -114,7 +115,7 @@ export function Navbar({ user, role, isSidebarOpen = false, onToggleSidebar }: N
                 <DropdownMenuItem asChild>
                   <button
                     className="flex w-full cursor-pointer items-center"
-                    onClick={() => signOut({ callbackUrl: '/login' })}
+                    onClick={() => signOut({ callbackUrl: `/${locale}/login` })}
                   >
                     <Icon icon="lucide:log-out" className="mr-2 h-4 w-4" />
                     {t('logout')}
