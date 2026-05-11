@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Activity, Plus, Trash2, ChevronDown, ChevronUp, Flame } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { Icon } from '@iconify/react';
 
 interface ExerciseRecord {
   id: string;
@@ -32,6 +33,24 @@ const EXERCISE_TYPES = {
   網球: 7.3,
   其他: 5.0,
 } as const;
+
+/** Kinetic Meridian — 各運動類型對應的 Iconify icon */
+const EXERCISE_ICONS: Record<string, string> = {
+  慢跑: 'mdi:run',
+  快跑: 'mdi:run-fast',
+  步行: 'mdi:walk',
+  游泳: 'mdi:swim',
+  騎自行車: 'mdi:bike',
+  重量訓練: 'mdi:weight-lifter',
+  瑜伽: 'mdi:yoga',
+  有氧運動: 'mdi:gymnastics',
+  爬樓梯: 'mdi:stairs',
+  跳繩: 'mdi:jump-rope',
+  籃球: 'mdi:basketball',
+  羽毛球: 'mdi:badminton',
+  網球: 'mdi:tennis',
+  其他: 'mdi:dots-horizontal',
+};
 
 export default function ExerciseLogger({ dailyCalorieGoal = 300 }: ExerciseLoggerProps) {
   const t = useTranslations('nutrition');
@@ -183,21 +202,33 @@ export default function ExerciseLogger({ dailyCalorieGoal = 300 }: ExerciseLogge
             <p className="mb-3 text-sm text-gray-600">{t('addExerciseForm')}</p>
 
             <div className="space-y-3">
-              {/* Exercise Type Selector */}
+              {/* Exercise Type Selector — icon grid */}
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">{t('exerciseTypeLabel')}</label>
-                <select
-                  value={selectedType}
-                  onChange={(e) => setSelectedType(e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  disabled={loading}
-                >
-                  {Object.keys(EXERCISE_TYPES).map((type) => (
-                    <option key={type} value={type}>
-                      {t(`exerciseTypes.${type}`)} (MET: {EXERCISE_TYPES[type as keyof typeof EXERCISE_TYPES]})
-                    </option>
-                  ))}
-                </select>
+                <label className="mb-2 block text-sm font-medium text-gray-700">{t('exerciseTypeLabel')}</label>
+                <div className="grid grid-cols-7 gap-1.5">
+                  {Object.keys(EXERCISE_TYPES).map((type) => {
+                    const icon = EXERCISE_ICONS[type] ?? 'mdi:dots-horizontal';
+                    return (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => !loading && setSelectedType(type)}
+                        disabled={loading}
+                        title={t(`exerciseTypes.${type}`)}
+                        className={`flex flex-col items-center gap-1 rounded-xl p-2 transition-all ${
+                          selectedType === type
+                            ? 'bg-orange-500 text-white shadow-sm'
+                            : 'bg-gray-100 text-gray-500 hover:bg-orange-50 hover:text-orange-600'
+                        }`}
+                      >
+                        <Icon icon={icon} className="h-5 w-5" />
+                        <span className="text-[10px] leading-tight">
+                          {t(`exerciseTypes.${type}`)}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               {/* Duration Input */}
@@ -258,7 +289,12 @@ export default function ExerciseLogger({ dailyCalorieGoal = 300 }: ExerciseLogge
                     className="flex items-center justify-between rounded-lg bg-gray-50 p-3 transition-colors hover:bg-gray-100"
                   >
                     <div className="flex items-center gap-3">
-                      <Activity size={16} className="text-orange-500" />
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-100">
+                        <Icon
+                          icon={EXERCISE_ICONS[record.type] ?? 'mdi:dots-horizontal'}
+                          className="h-4 w-4 text-orange-500"
+                        />
+                      </div>
                       <div>
                         <p className="font-medium">{record.type}</p>
                         <div className="flex gap-3 text-xs text-gray-500">
