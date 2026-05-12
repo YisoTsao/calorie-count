@@ -163,6 +163,9 @@
       "submitting": "Sending...",
       "backToLogin": "Back to Sign In",
       "success": "Reset link sent to your email",
+      "successTitle": "Email Sent",
+      "successDescription": "We've sent a password reset link to your email",
+      "successHint": "Please check your inbox (including spam folder) and click the link in the email to reset your password.",
       "errors": {
         "generic": "Failed to send. Please try again."
       }
@@ -980,8 +983,8 @@
     "pageSubtitle": "Track your water intake, exercise, and weight for comprehensive health management",
     "tipsTitle": "💡 Health Tips",
     "tips": {
-      "water": { "title": "💧 Stay Hydrated", "desc": "Aim for 2000-2500ml of water daily to support metabolism" },
-      "exercise": { "title": "🏃 Regular Exercise", "desc": "At least 150 minutes of moderate exercise per week for a healthy body" },
+      "water": { "title": "Stay Hydrated", "desc": "Aim for 2000-2500ml of water daily to support metabolism" },
+      "exercise": { "title": "Regular Exercise", "desc": "At least 150 minutes of moderate exercise per week for a healthy body" },
       "weight": { "title": "⚖️ Regular Measurement", "desc": "Measure your weight at the same time daily to track trends" }
     },
     "calories": "Calories",
@@ -1128,6 +1131,82 @@
       "login": "Sign In",
       "register": "Sign Up",
       "forgotPassword": "Forgot Password"
+    }
+  },
+  "landing": {
+    "nav": {
+      "features": "Features",
+      "pricing": "Pricing",
+      "login": "Sign In",
+      "register": "Sign Up",
+      "cta": "Get Started Free",
+      "myProfile": "Profile Settings",
+      "adminPanel": "Admin Panel",
+      "logout": "Sign Out"
+    },
+    "hero": {
+      "badge": "AI-Powered Food Tracking",
+      "title": "Let AI Help You",
+      "titleHighlight": "Manage Calories Effortlessly",
+      "subtitle": "Just take a photo and AI instantly identifies your food and calculates calories. Track meals, set goals, and build healthier habits.",
+      "ctaPrimary": "Get Started Free",
+      "ctaSecondary": "See Features"
+    },
+    "features": {
+      "title": "Powerful Features",
+      "subtitle": "All-in-one health management, from diet to exercise",
+      "items": [
+        { "title": "AI Food Recognition", "desc": "Take a photo to instantly identify food — AI automatically calculates calories and nutritional content" },
+        { "title": "Full Nutrition Tracking", "desc": "Precisely track protein, carbohydrates, fat and micronutrients" },
+        { "title": "Meal Logging", "desc": "Easily log breakfast, lunch, dinner and snacks with custom foods and serving sizes" },
+        { "title": "Exercise Tracking", "desc": "Record workout types and duration, automatically calculate calories burned" },
+        { "title": "Weight Management", "desc": "Track weight trends with visual charts to see your progress at a glance" },
+        { "title": "Trend Analytics", "desc": "Weekly and monthly deep-dive reports to master your long-term diet and body composition trends" },
+        { "title": "Goal Setting", "desc": "Intelligently calculate recommended calorie targets based on your profile for weight loss, gain, or maintenance" },
+        { "title": "Achievement System", "desc": "Unlock health milestone badges to make healthy living more fun and motivating" }
+      ]
+    },
+    "howItWorks": {
+      "title": "3 Simple Steps",
+      "subtitle": "Easy to start, instant tracking",
+      "steps": [
+        { "step": "01", "title": "Take a Photo", "desc": "Snap your meal with your phone or pick from your gallery" },
+        { "step": "02", "title": "AI Analyzes", "desc": "AI identifies the food and calculates calories and macros" },
+        { "step": "03", "title": "Track & Improve", "desc": "Add to your log instantly and view daily and weekly health data" }
+      ]
+    },
+    "stats": {
+      "title": "Numbers Don't Lie",
+      "items": [
+        { "value": 10000, "label": "Active Users", "suffix": "+" },
+        { "value": 500000, "label": "Meals Logged", "suffix": "+" },
+        { "value": 5000, "label": "Food Types", "suffix": "+" },
+        { "value": 98, "label": "User Satisfaction", "suffix": "%" }
+      ]
+    },
+    "pricing": {
+      "title": "Choose Your Plan",
+      "subtitle": "Flexible subscriptions, upgrade anytime",
+      "comingSoon": "Subscription plans coming soon",
+      "comingSoonDesc": "We're crafting the perfect subscription plans for you — launching soon!",
+      "notifyMe": "Notify Me"
+    },
+    "testimonials": {
+      "title": "What Users Say",
+      "subtitle": "Real feedback from real users",
+      "items": [
+        { "name": "Alex Chen", "role": "Fitness Enthusiast", "content": "After 3 months with CalorieCount, I lost 8 kg! The AI recognition makes logging meals incredibly simple." },
+        { "name": "Sarah Lin", "role": "Working Mom", "content": "I used to think tracking food was too much work, but the photo feature lets me log in just a few seconds each day." },
+        { "name": "David Wang", "role": "Marathon Runner", "content": "Combining exercise tracking with calorie counting helps me precisely manage nutrition during training. My performance has improved a lot." }
+      ]
+    },
+    "footer": {
+      "tagline": "AI-Powered Smart Health Management",
+      "links": {
+        "privacy": "Privacy Policy",
+        "terms": "Terms of Service"
+      },
+      "copyright": "© 2026 CalorieCount. All rights reserved."
     }
   }
 }

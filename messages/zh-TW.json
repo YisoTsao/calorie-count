@@ -163,6 +163,9 @@
       "submitting": "發送中...",
       "backToLogin": "返回登入",
       "success": "重置連結已發送至您的信箱",
+      "successTitle": "郵件已發送",
+      "successDescription": "我們已將重設密碼的連結發送到您的 Email",
+      "successHint": "請檢查您的收件匣（包括垃圾郵件資料夾），並點擊郵件中的連結來重設密碼。",
       "errors": {
         "generic": "發送失敗，請稍後再試"
       }
@@ -977,8 +980,8 @@
     "pageSubtitle": "記錄您的飲水、運動與體重，全方位管理健康狀態",
     "tipsTitle": "💡 健康小提醒",
     "tips": {
-      "water": { "title": "💧 充足飲水", "desc": "建議每日攝取 2000-2500ml 水分，幫助新陳代謝" },
-      "exercise": { "title": "🏃 規律運動", "desc": "每週至少 150 分鐘中強度運動，維持健康體態" },
+      "water": { "title": "充足飲水", "desc": "建議每日攝取 2000-2500ml 水分，幫助新陳代謝" },
+      "exercise": { "title": "規律運動", "desc": "每週至少 150 分鐘中強度運動，維持健康體態" },
       "weight": { "title": "⚖️ 定期測量", "desc": "建議每日固定時間測量體重，掌握變化趨勢" }
     },
     "calories": "熱量",
@@ -1125,6 +1128,82 @@
       "login": "登入",
       "register": "註冊",
       "forgotPassword": "忘記密碼"
+    }
+  },
+  "landing": {
+    "nav": {
+      "features": "功能",
+      "pricing": "方案",
+      "login": "登入",
+      "register": "立即註冊",
+      "cta": "立即免費開始",
+      "myProfile": "個人設定",
+      "adminPanel": "後台管理",
+      "logout": "登出"
+    },
+    "hero": {
+      "badge": "AI 驅動的飲食追蹤",
+      "title": "讓 AI 幫你",
+      "titleHighlight": "輕鬆管理卡路里",
+      "subtitle": "只需拍張照片，AI 立即辨識食物並計算卡路里。追蹤飲食、設定目標，養成更健康的生活方式。",
+      "ctaPrimary": "立即免費開始",
+      "ctaSecondary": "了解功能"
+    },
+    "features": {
+      "title": "強大功能",
+      "subtitle": "全方位健康管理，從飲食到運動一手掌握",
+      "items": [
+        { "title": "AI 食物辨識", "desc": "拍照即時辨識食物，AI 自動計算卡路里與營養成分，準確快速" },
+        { "title": "完整營養追蹤", "desc": "精確追蹤蛋白質、碳水化合物、脂肪等三大營養素與微量元素" },
+        { "title": "飲食記錄", "desc": "輕鬆記錄早午晚餐與點心，支援自訂食物與份量調整" },
+        { "title": "運動記錄", "desc": "記錄各種運動類型與時長，自動計算卡路里消耗" },
+        { "title": "體重管理", "desc": "追蹤體重變化趨勢，視覺化圖表讓進度一目了然" },
+        { "title": "趨勢分析", "desc": "週報月報深度分析健康數據，掌握飲食與體態的長期趨勢" },
+        { "title": "目標設定", "desc": "依據個人資料智能計算建議熱量目標，支援減重、增重、維持" },
+        { "title": "成就系統", "desc": "解鎖健康里程碑成就，讓健康管理更有趣、更有動力" }
+      ]
+    },
+    "howItWorks": {
+      "title": "三步驟開始",
+      "subtitle": "簡單上手，馬上追蹤",
+      "steps": [
+        { "step": "01", "title": "拍攝食物照片", "desc": "用手機拍下你的餐點，或從相簿選擇圖片" },
+        { "step": "02", "title": "AI 自動分析", "desc": "AI 辨識食物種類，計算卡路里與三大營養素" },
+        { "step": "03", "title": "記錄並追蹤", "desc": "一鍵加入飲食記錄，查看每日、每週健康數據" }
+      ]
+    },
+    "stats": {
+      "title": "數字會說話",
+      "items": [
+        { "value": 10000, "label": "活躍用戶", "suffix": "+" },
+        { "value": 500000, "label": "已記錄餐次", "suffix": "+" },
+        { "value": 5000, "label": "食物種類", "suffix": "+" },
+        { "value": 98, "label": "使用者滿意度", "suffix": "%" }
+      ]
+    },
+    "pricing": {
+      "title": "選擇適合你的方案",
+      "subtitle": "彈性訂閱，隨時升級",
+      "comingSoon": "訂閱方案即將推出，敬請期待",
+      "comingSoonDesc": "我們正在為您精心準備最適合的訂閱方案，即將上線！",
+      "notifyMe": "通知我上線"
+    },
+    "testimonials": {
+      "title": "用戶怎麼說",
+      "subtitle": "真實用戶的真實回饋",
+      "items": [
+        { "name": "陳小明", "role": "健身愛好者", "content": "使用 CalorieCount 三個月後，我成功減重 8 公斤！AI 辨識功能讓記錄飲食變得超簡單。" },
+        { "name": "林雅婷", "role": "上班族媽媽", "content": "以前覺得追蹤飲食很麻煩，但 CalorieCount 的拍照功能讓我每天只需要幾秒鐘就能完成記錄。" },
+        { "name": "王大偉", "role": "馬拉松跑者", "content": "運動記錄和卡路里追蹤整合在一起，讓我能精確掌控訓練期的營養攝取，表現提升很多。" }
+      ]
+    },
+    "footer": {
+      "tagline": "AI 驅動的智慧健康管理",
+      "links": {
+        "privacy": "隱私權政策",
+        "terms": "服務條款"
+      },
+      "copyright": "© 2026 CalorieCount. 保留所有權利。"
     }
   }
 }

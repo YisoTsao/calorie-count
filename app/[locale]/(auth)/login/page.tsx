@@ -7,7 +7,21 @@ import { LocaleSwitcher } from '@/components/ui/LocaleSwitcher';
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'auth.login' });
-  return { title: t('title') };
+  // localePrefix: 'always' — 所有語系均帶前綴，canonical 不能指向無前綴路徑（會 301 redirect）
+  return {
+    title: t('title'),
+    description: t('subtitle'),
+    alternates: {
+      canonical: `/${locale}/login`,
+      languages: {
+        'zh-TW': '/zh-TW/login',
+        en: '/en/login',
+        ja: '/ja/login',
+        // x-default 指向預設語系的實際 URL（非 redirect 路徑）
+        'x-default': '/zh-TW/login',
+      },
+    },
+  };
 }
 
 export default async function LoginPage() {

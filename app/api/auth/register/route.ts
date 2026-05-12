@@ -24,6 +24,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { email, password, name } = result.data;
+    const locale = typeof body.locale === 'string' ? body.locale : 'zh-TW';
 
     // 檢查用戶是否已存在
     const existingUser = await prisma.user.findUnique({
@@ -71,7 +72,7 @@ export async function POST(request: NextRequest) {
 
     // 發送驗證郵件（失敗不影響註冊成功，只記錄錯誤）
     try {
-      await sendVerificationEmail(email, verificationToken);
+      await sendVerificationEmail(email, verificationToken, locale);
     } catch (emailError) {
       console.error('Register: 驗證信發送失敗（用戶已建立）:', emailError);
     }

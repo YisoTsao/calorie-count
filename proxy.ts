@@ -29,6 +29,19 @@ export default auth((req) => {
     return;
   }
 
+  // localePrefix 已改為 'always'，舊的無前綴路徑需要 301 重新導向
+  const unprefixedRedirects: Record<string, string> = {
+    '/login': '/zh-TW/login',
+    '/register': '/zh-TW/register',
+    '/forgot-password': '/zh-TW/forgot-password',
+    '/complete-profile': '/zh-TW/complete-profile',
+  };
+  if (pathname in unprefixedRedirects) {
+    const url = req.nextUrl.clone();
+    url.pathname = unprefixedRedirects[pathname];
+    return Response.redirect(url, 301);
+  }
+
   return intlMiddleware(req);
 });
 
