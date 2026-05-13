@@ -39,6 +39,7 @@ export async function GET(req: NextRequest) {
         role: true,
         isActive: true,
         createdAt: true,
+        subscription: { select: { plan: true, status: true } },
       },
     }),
   ]);
