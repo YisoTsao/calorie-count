@@ -42,6 +42,15 @@ function useNavItems() {
         { href: '/exercise', label: t('exercise'), icon: 'lucide:dumbbell' },
       ],
     },
+    {
+      section: 'AI',
+      items: [
+        { href: '/ai-diary', label: t('aiDiary'), icon: 'lucide:message-square-text' },
+        { href: '/kitchen', label: t('kitchen'), icon: 'lucide:chef-hat' },
+        { href: '/my-recipes', label: t('myRecipes'), icon: 'lucide:book-open' },
+        { href: '/cooking-calendar', label: t('cookingCalendar'), icon: 'lucide:calendar-days' },
+      ],
+    },
     // {
     //   section: t('sections.settings'),
     //   items: [
