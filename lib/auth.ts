@@ -150,6 +150,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         });
       }
 
+      // 確保每位用戶都有 subscription 記錄（冪等 upsert，首次登入自動建立）
+      await prisma.userSubscription.upsert({
+        where: { userId: user.id },
+        create: {
+          userId: user.id,
+          plan: 'FREE',
+          status: 'ACTIVE',
+          currentPeriodStart: new Date(),
+          currentPeriodEnd: new Date('2099-12-31'),
+        },
+        update: {},
+      });
+
       // Log OAuth 登入資訊，確認 email 有正確取得
 
       if (account && account.provider !== 'credentials') {
