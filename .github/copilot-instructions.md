@@ -176,3 +176,106 @@
 * 可驗證（Testable outcome）
 * 符合 Next.js 架構（RSC / Data / Routing）
 
+---
+
+# 📁 專案概覽（Project Context）
+
+> AI 卡路里追蹤平台。詳見 [README.md](../README.md) 與 [docs/GETTING_STARTED.md](../docs/GETTING_STARTED.md)
+
+## 常用指令
+
+```bash
+bun dev              # 本地開發（http://localhost:3000）
+bun build            # 生產建置
+bun db:push          # 同步 schema（本地）
+bun db:migrate       # 新增 migration
+bun db:studio        # 開啟 Prisma Studio
+bun db:seed          # 初始化種子資料
+bun lint             # ESLint 檢查
+bun format           # Prettier 格式化
+```
+
+## 目錄結構
+
+```
+app/
+  (admin)/           # ADMIN role 專用頁面（layout 含 RBAC 檢查）
+  (auth)/            # 公開認證頁面（login / register / verify）
+  (dashboard)/       # 登入後主功能頁面
+  [locale]/          # i18n 根路由（zh-TW / en / ja）
+  api/               # Route Handlers（13 個資源：meals, foods, exercise...）
+components/          # 依功能分類（admin/ auth/ dashboard/ meals/ ui/...）
+lib/
+  auth.ts            # NextAuth 主設定（PrismaAdapter + providers）
+  auth.config.ts     # Edge-compatible 設定（公開路由白名單）
+  api-response.ts    # 標準回應 helpers（createSuccessResponse / createErrorResponse）
+  rbac.ts            # 角色權限控制（UserRole: USER / SUPPORT / EDITOR / ADMIN）
+  prisma.ts          # Prisma client singleton
+prisma/schema.prisma # 資料庫 schema（主要模型：User, Meal, Food, Exercise...）
+i18n/routing.ts      # 語系設定（locales: zh-TW, en, ja；prefix: always）
+messages/            # 翻譯檔（zh-TW.json / en.json / ja.json）
+types/               # 全域型別定義
+```
+
+## 命名慣例
+
+| 類型 | 格式 | 範例 |
+|------|------|------|
+| 元件檔案 | `PascalCase.tsx` | `NutritionCard.tsx` |
+| 其他檔案 | `kebab-case.ts` | `api-response.ts` |
+| 元件函式 | `PascalCase` | `function MealCard()` |
+| 工具函式 | `camelCase` | `createSuccessResponse()` |
+| import alias | `@/` | `import { auth } from '@/lib/auth'` |
+
+## API Route 模式
+
+```typescript
+// app/api/meals/route.ts 範例
+import { auth } from '@/lib/auth'
+import { createSuccessResponse, createErrorResponse } from '@/lib/api-response'
+import { prisma } from '@/lib/prisma'
+import { z } from 'zod'
+
+export async function GET(req: Request) {
+  const session = await auth()
+  if (!session?.user?.id) return createErrorResponse('Unauthorized', 401)
+
+  const data = await prisma.meal.findMany({ where: { userId: session.user.id } })
+  return createSuccessResponse(data)
+}
+```
+
+## Auth 使用模式
+
+```typescript
+// Server Component / Route Handler
+import { auth } from '@/lib/auth'
+const session = await auth()
+
+// Client Component（取得 session）
+import { useSession } from 'next-auth/react'
+const { data: session } = useSession()
+```
+
+## i18n 模式
+
+```typescript
+// Server Component
+import { getTranslations } from 'next-intl/server'
+const t = await getTranslations('namespace')
+
+// Client Component
+import { useTranslations } from 'next-intl'
+const t = useTranslations('namespace')
+
+// 新增翻譯：同時更新 messages/zh-TW.json、en.json、ja.json
+```
+
+## 參考文件
+
+- [docs/DATABASE.md](../docs/DATABASE.md) — 資料庫 schema 說明
+- [docs/ERROR_HANDLING_GUIDE.md](../docs/ERROR_HANDLING_GUIDE.md) — 錯誤處理規範
+- [docs/DEPLOYMENT_CHECKLIST.md](../docs/DEPLOYMENT_CHECKLIST.md) — 部署流程
+- [docs/QUICK_REFERENCE.md](../docs/QUICK_REFERENCE.md) — 常用指令速查
+- [openspec/project.md](../openspec/project.md) — 專案規格與架構決策
+

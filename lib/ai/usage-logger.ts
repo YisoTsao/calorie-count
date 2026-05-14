@@ -4,9 +4,10 @@ import { AI_MODEL } from './openai-client';
 // 模型定價（USD per 1K tokens）
 // 更新自：https://openai.com/pricing（2026-05-06）
 const PRICING: Record<string, { input: number; output: number }> = {
-  'gpt-4o-mini':{ input: 0.00015, output: 0.0006 },  // 推薦用於視覺識別
-  'gpt-4o':     { input: 0.0025,  output: 0.01 },
-  'gpt-4-turbo':{ input: 0.01,    output: 0.03 },
+  'gpt-4o-mini':  { input: 0.00015, output: 0.0006 },
+  'gpt-4.1-mini': { input: 0.0004,  output: 0.0016 },
+  'gpt-4o':       { input: 0.0025,  output: 0.01 },
+  'gpt-4-turbo':  { input: 0.01,    output: 0.03 },
 };
 
 function calcCost(model: string, promptTokens: number, completionTokens: number): number {
@@ -16,7 +17,7 @@ function calcCost(model: string, promptTokens: number, completionTokens: number)
 
 export interface LogAiUsageParams {
   userId: string;
-  feature: 'food_recognition' | 'nutrition_chat';
+  feature: 'food_recognition' | 'nutrition_chat' | 'conversational_diary' | 'kitchen_scan' | 'recipe_recommend' | 'kitchen_chat';
   promptTokens: number;
   completionTokens: number;
   totalTokens: number;

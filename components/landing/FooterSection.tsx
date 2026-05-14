@@ -1,6 +1,5 @@
 import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
-import { CaloLogo } from '@/components/ui/CaloLogo';
 
 /** FooterSection — Server Component */
 export async function FooterSection() {
@@ -13,7 +12,7 @@ export async function FooterSection() {
           {/* Logo + tagline */}
           <div className="flex items-center gap-2.5">
             <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-sm">
-              <CaloLogo size={16} className="text-white" />
+              <img src="/calo-logo.png" alt="Logo" className='rounded-2xl' />
             </div>
             <span className="text-lg font-bold">CalorieCount</span>
           </div>

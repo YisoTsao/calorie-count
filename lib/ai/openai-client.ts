@@ -9,4 +9,6 @@ export const openai = new OpenAI({
 });
 
 export const AI_MODEL = 'gpt-4.1-mini'; // 支援視覺識別、成本最低、最穩定
+export const AI_MODEL_CONVERSATION = 'gpt-4o'; // 對話式飲食日記 & 料理推薦
 export const MAX_TOKENS = 1500;
+export const CONVERSATION_MAX_TOKENS = 2000;

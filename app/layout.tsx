@@ -1,4 +1,6 @@
+import { Metadata } from 'next';
 import { Noto_Sans_TC } from 'next/font/google';
+
 import './globals.css';
 
 const notoSansTC = Noto_Sans_TC({
@@ -7,6 +9,12 @@ const notoSansTC = Noto_Sans_TC({
   weight: ['300', '400', '500', '700'],
   display: 'swap',
 });
+
+export const metadata: Metadata = {
+  icons: {
+    icon: '/calo-logo.png',
+  },
+};
 
 // Root layout — Next.js 16 requires <html> and <body> here.
 // app/[locale]/layout.tsx updates lang={locale} attribute for i18n routes.

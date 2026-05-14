@@ -6,7 +6,6 @@ import Image from 'next/image';
 import { signOut } from 'next-auth/react';
 import { Icon } from '@iconify/react';
 import { Link as NavigationLink } from '@/i18n/navigation';
-import { CaloLogo } from '@/components/ui/CaloLogo';
 import { LocaleSwitcher } from '@/components/ui/LocaleSwitcher';
 import { Button } from '@/components/ui/button';
 import {
@@ -38,8 +37,8 @@ export function Navbar({ user, role, isSidebarOpen = false, onToggleSidebar }: N
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <NavigationLink href="/dashboard" className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-emerald-500 shadow-sm">
-              <CaloLogo size={18} className="text-white" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-emerald-500 shadow-sm">
+              <img src="/calo-logo.png" alt="Logo" className='rounded-2xl' />
             </div>
             <span className="text-xl font-bold tracking-tight">CalorieCount</span>
           </NavigationLink>

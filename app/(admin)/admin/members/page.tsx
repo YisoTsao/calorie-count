@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import Image from 'next/image';
 import { Icon } from '@iconify/react';
+import { MemberDetailPanel } from '@/components/admin/MemberDetailPanel';
+import { QuotaInfoModal } from '@/components/admin/QuotaInfoModal';
 
 type Role = 'USER' | 'SUPPORT' | 'EDITOR' | 'ADMIN';
 
@@ -14,6 +16,7 @@ interface Member {
   role: Role;
   isActive: boolean;
   createdAt: string;
+  subscription?: { plan: string; status: string } | null;
 }
 
 const ROLE_OPTIONS: Role[] = ['USER', 'SUPPORT', 'EDITOR', 'ADMIN'];
@@ -23,6 +26,12 @@ const ROLE_COLOR: Record<Role, string> = {
   EDITOR: 'text-yellow-400 bg-yellow-500/10',
   SUPPORT: 'text-blue-400 bg-blue-500/10',
   USER: 'text-slate-400 bg-slate-800',
+};
+
+const PLAN_COLOR: Record<string, string> = {
+  FREE: 'bg-slate-700 text-slate-400',
+  PREMIUM: 'bg-blue-500/20 text-blue-400',
+  PRO: 'bg-yellow-500/20 text-yellow-400',
 };
 
 export default function AdminMembersPage() {
@@ -38,15 +47,17 @@ export default function AdminMembersPage() {
   const [deleteReason, setDeleteReason] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState('');
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [detailUserId, setDetailUserId] = useState<string | null>(null);
+  const [showQuotaInfo, setShowQuotaInfo] = useState(false);
   const LIMIT = 20;
 
   // 開啟 modal 時鎖定背景捲動
   useEffect(() => {
-    if (editing || deleting) {
+    if (editing || deleting || detailUserId || showQuotaInfo) {
       document.body.style.overflow = 'hidden';
       return () => { document.body.style.overflow = ''; };
     }
-  }, [editing, deleting]);
+  }, [editing, deleting, detailUserId, showQuotaInfo]);
 
   // Debounce search
   useEffect(() => {
@@ -113,6 +124,14 @@ export default function AdminMembersPage() {
           <h1 className="font-['Manrope',sans-serif] text-2xl font-bold text-white">會員管理</h1>
           <p className="mt-1 text-sm text-slate-400">共 {total.toLocaleString()} 位會員</p>
         </div>
+        <button
+          onClick={() => setShowQuotaInfo(true)}
+          className="flex items-center gap-1.5 rounded-xl bg-slate-800 px-3 py-2 text-sm text-slate-400 transition-colors hover:bg-slate-700 hover:text-white"
+          title="各方案額度說明"
+        >
+          <Icon icon="mdi:shield-star-outline" className="text-base" />
+          額度說明
+        </button>
       </div>
 
       {/* Search */}
@@ -153,6 +172,7 @@ export default function AdminMembersPage() {
               <tr className="border-b border-slate-800/60">
                 <th className="px-6 py-3 text-left font-medium text-slate-500">會員</th>
                 <th className="px-4 py-3 text-left font-medium text-slate-500">角色</th>
+                <th className="px-4 py-3 text-left font-medium text-slate-500">方案</th>
                 <th className="px-4 py-3 text-left font-medium text-slate-500">狀態</th>
                 <th className="px-4 py-3 text-left font-medium text-slate-500">加入日期</th>
                 <th className="px-4 py-3" />
@@ -193,6 +213,15 @@ export default function AdminMembersPage() {
                     </span>
                   </td>
                   <td className="px-4 py-3">
+                    {m.subscription ? (
+                      <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${PLAN_COLOR[m.subscription.plan] ?? 'bg-slate-700 text-slate-400'}`}>
+                        {m.subscription.plan}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-slate-600">—</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
                     <span
                       className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                         m.isActive
@@ -208,6 +237,13 @@ export default function AdminMembersPage() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-1">
+                      <button
+                        onClick={() => setDetailUserId(m.id)}
+                        className="rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-slate-700 hover:text-white"
+                        title="詳細資料 / 用量"
+                      >
+                        <Icon icon="mdi:chart-bar" className="text-base" />
+                      </button>
                       <button
                         onClick={() => setEditing({ ...m })}
                         className="rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-slate-700 hover:text-white"
@@ -413,6 +449,20 @@ export default function AdminMembersPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* 會員詳細 / 用量 panel */}
+      {detailUserId && (
+        <MemberDetailPanel
+          userId={detailUserId}
+          onClose={() => setDetailUserId(null)}
+          onSubscriptionUpdated={load}
+        />
+      )}
+
+      {/* 額度說明 popup */}
+      {showQuotaInfo && (
+        <QuotaInfoModal onClose={() => setShowQuotaInfo(false)} />
       )}
     </div>
   );

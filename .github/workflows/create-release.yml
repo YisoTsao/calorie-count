@@ -1,0 +1,308 @@
+name: 合併 Release PR 到 Master 後自動建立下一版本
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - 'master' # 對應 RELEASE_TARGET_BRANCH 常數
+      # 測試：若要監聽其他分支，改成對應的分支名（如 'release-'）
+
+jobs:
+  create-next-release:
+    # 觸發條件（需與常數 RELEASE_SOURCE_PREFIX 同步）
+    # 如修改常數 RELEASE_SOURCE_PREFIX，請同步更新此 startsWith 的第二個参數
+    if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'master')
+    runs-on: ubuntu-latest
+    # 併發控制：防止同時多個 Release PR 合併導致衝突
+    concurrency:
+      group: release-automation
+      cancel-in-progress: false
+    permissions:
+      contents: write
+      models: read
+    env:
+      # 動態設定分支名變數（從 GitHub event 上下文讀取）
+      SOURCE_BRANCH: ${{ github.event.pull_request.head.ref }} # PR 來源分支（合併來自這裡）
+      TARGET_BRANCH: ${{ github.event.pull_request.base.ref }} # PR 目的分支（合併到這裡，取決於 RELEASE_TARGET_BRANCH）
+
+    steps:
+      - name: Checkout target branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TARGET_BRANCH }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Git identity
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+
+      - name: 計算版本號
+        id: version
+        env:
+          MERGED_BRANCH: ${{ env.SOURCE_BRANCH }}
+        run: |
+          # 取得目前年月，月份不補零 (e.g. 3, 12)
+          YEAR=$(date +%Y)
+          MONTH=$(date +%-m)
+          YEAR_MONTH="${YEAR}-m${MONTH}"
+          echo "目前年月前綴: $YEAR_MONTH"
+
+          # 從合併分支名稱解析目前版本號
+          # 期望格式: release-YYYY-mM.N
+          CURRENT_VERSION=""
+          if [[ "$MERGED_BRANCH" =~ ^release-${YEAR_MONTH}\.([0-9]+)$ ]]; then
+            CURRENT_VERSION="${YEAR_MONTH}.${BASH_REMATCH[1]}"
+            echo "從分支解析到目前版本: $CURRENT_VERSION"
+          else
+            echo "合併分支 '$MERGED_BRANCH' 不符合 release-${YEAR_MONTH}.N 格式"
+          fi
+
+          # 掃描所有遠端 release 分支，找出此年月的最大版本號
+          git fetch --all --prune
+          MAX_NUM=$(git branch -r \
+            | grep -oE "origin/release-${YEAR_MONTH}\.[0-9]+" \
+            | grep -oE "[0-9]+$" \
+            | sort -n \
+            | tail -1)
+          MAX_NUM=${MAX_NUM:-0}
+
+          NEXT_NUM=$((MAX_NUM + 1))
+          NEXT_VERSION="${YEAR_MONTH}.${NEXT_NUM}"
+          NEXT_BRANCH="release-${NEXT_VERSION}"
+
+          # 判別是否為首個版本（用於 AI 生成的文案調整）
+          IS_FIRST_RELEASE="false"
+          if [[ -z "$CURRENT_VERSION" ]]; then
+            IS_FIRST_RELEASE="true"
+          fi
+
+          # 輸出供後續 steps 使用
+          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "next_version=$NEXT_VERSION"       >> $GITHUB_OUTPUT
+          echo "next_branch=$NEXT_BRANCH"         >> $GITHUB_OUTPUT
+          echo "is_first_release=$IS_FIRST_RELEASE" >> $GITHUB_OUTPUT
+
+          echo "---"
+          echo "合併分支:  $MERGED_BRANCH"
+          echo "目前版本:  ${CURRENT_VERSION:-（無法解析）}"
+          echo "最大版本號: $MAX_NUM"
+          echo "下一版本:  $NEXT_VERSION"
+          echo "下一分支:  $NEXT_BRANCH"
+
+      - name: 為剛合併的版本建立 Git Tag
+        # 只有在成功解析出目前版本號時才建立
+        if: steps.version.outputs.current_version != ''
+        run: |
+          TAG="${{ steps.version.outputs.current_version }}"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag '$TAG' 已存在，略過"
+          else
+            git tag "$TAG"
+            git push origin "$TAG"
+            echo "已建立 Tag: $TAG"
+          fi
+
+      - name: 建立下一版 Release 分支
+        run: |
+          BRANCH="${{ steps.version.outputs.next_branch }}"
+          if git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null 2>&1; then
+            echo "分支 '$BRANCH' 已存在，略過"
+          else
+            git checkout -b "$BRANCH"
+            git push origin "$BRANCH"
+            echo "已建立分支: $BRANCH"
+          fi
+
+      - name: 用 GitHub Copilot 生成 Release Notes
+        id: ai_notes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CURRENT_VERSION: ${{ steps.version.outputs.current_version }}
+          NEXT_VERSION: ${{ steps.version.outputs.next_version }}
+          IS_FIRST_RELEASE: ${{ steps.version.outputs.is_first_release }}
+          MERGED_BRANCH: ${{ github.event.pull_request.head.ref }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          # 取得 git log
+          # 使用 PR 的 base SHA，精準取得「本次 PR」實際帶入的 commit
+          # 避免拉到其他 PR 或歷史 commit，確保 Release Notes 只反映此次變更
+          GIT_LOG=$(git log "$PR_BASE_SHA"..HEAD --oneline --no-merges | head -50)
+          echo "📝 本次 PR commit 範圍：$PR_BASE_SHA..HEAD"
+          echo "   筆數：$(echo "$GIT_LOG" | grep -c . || echo 0)"
+
+          if [[ "$IS_FIRST_RELEASE" == "true" ]]; then
+            RELEASE_CONTEXT="首個版本"
+          else
+            RELEASE_CONTEXT="增量更新"
+          fi
+
+          # 若沒有 commit 紀錄，退回預設文字
+          if [[ -z "$GIT_LOG" ]]; then
+            echo "notes=本次版本無新增 commit 紀錄。" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # 呼叫 GitHub Models (Copilot) API 生成 Release Notes
+          # 文件：https://docs.github.com/en/github-models
+          # 注意：API 需要 GitHub Models Beta 存取權限，若失敗會自動使用預設文案
+          # 使用 heredoc 確保 prompt 無多餘縮排空格
+          PROMPT=$(cat <<PROMPT_EOF
+          你是一位擅長撰寫 Release Notes 的資深工程師。請根據以下 git commit 紀錄，以繁體中文撰寫一份視覺上豐富、易於閱讀的 Release Notes（Markdown 格式）。
+
+          版本號：${NEXT_VERSION}
+          發布類型：${RELEASE_CONTEXT}
+          PR：#${PR_NUMBER} — ${PR_TITLE}
+
+          ---
+
+          【格式規範】請依序輸出以下段落，不存在的段落直接省略，不要留空：
+
+          ## 🚀 ${NEXT_VERSION} Release Notes
+
+          ### 📋 概述
+          用 2-3 句話說明本版本的核心目標與主要變化方向。
+
+          ### ✨ 新功能
+          每項功能用獨立的子標題（####）呈現，並包含簡短說明：
+          #### 功能名稱
+          > 一句話說明使用場景或解決了什麼問題。
+
+          ### 🐛 Bug 修復
+          用表格顯示修復項目：
+          | 問題描述 | 影響範圍 |
+          |----------|---------|
+          | 修復 xxx | xxx 頁面 |
+
+          ### ⚡ 效能與優化
+          列出效能或架構層面的改善（若有）。
+
+          ### 🔧 其他變更
+          - 條列其他雜項，如依賴升級、設定調整等。
+
+          ### ⚠️ 升級注意事項
+          若有破壞性變更、需要手動操作或注意的事項請列出，若無則省略此段。
+
+          ---
+
+          請根據以下 Commit 紀錄填入實際內容（不要照抄 commit message，要轉化成使用者/開發者能理解的語言）。
+
+          【重要限制】
+          - 只根據提供的 commit 數量產出對應規模的內容，commit 少就寫得精簡，不要憑空補充
+          - 結尾請勿加任何感謝語、結語、頁腳文字或任何 [] 括號包起來的敘述
+          - 輸出只包含 Markdown 正文，無需額外說明
+
+          Commit 紀錄：
+          ${GIT_LOG}
+          PROMPT_EOF
+          )
+
+          # 📝 API 測試提示：若此步驟失敗，請檢查：
+          # 1. 本地測試 token：curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+          #    "https://models.inference.ai.azure.com/models" | jq .
+          # 2. GitHub 帳戶是否有 Models Beta 存取權：https://github.com/marketplace/models
+
+          # 選擇適合的模型：優先使用 gpt-4o（新一代），回退到 gpt-4o-mini
+          MODEL_NAME='gpt-4o'
+          
+          echo "📤 準備呼叫 GitHub Models API..."
+          echo "   模型：$MODEL_NAME"
+          echo "   Prompt 長度：${#PROMPT} 字元"
+          echo "   Git log 筆數：$(echo "$GIT_LOG" | wc -l)"
+
+          PAYLOAD=$(jq -n \
+            --arg model "$MODEL_NAME" \
+            --arg content "$PROMPT" \
+            '{model: $model, messages: [{role: "user", content: $content}], max_tokens: 1024}')
+
+          echo "📋 API Payload："
+          echo "$PAYLOAD" | jq '.'
+
+          RESPONSE=$(curl -s -X POST \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Content-Type: application/json" \
+            --max-time 30 \
+            "https://models.inference.ai.azure.com/chat/completions" \
+            -d "$PAYLOAD")
+
+          echo "📥 API 完整回應："
+          echo "$RESPONSE" | jq '.' || echo "$RESPONSE"
+
+          # 檢查 API 回應錯誤
+          if echo "$RESPONSE" | jq -e '.error' >/dev/null 2>&1; then
+            echo "❌ GitHub Models API 錯誤："
+            echo "$RESPONSE" | jq '.error'
+            echo "⚠️ 提示：請檢查 GitHub Models Beta 存取權及 token 有效性"
+          fi
+
+          # 解析 AI 回應內容（使用 jq 安全提取，避免特殊字元崩潰）
+          echo "🤖 解析 AI 回應..."
+          AI_NOTES=$(echo "$RESPONSE" | jq -r '.choices[0].message.content // empty')
+          USAGE=$(echo "$RESPONSE" | jq -r '.usage // {}')
+
+          echo "✨ AI 生成的 Release Notes 內容："
+          echo "==============================="
+          echo "$AI_NOTES"
+          echo "==============================="
+          echo "📊 Token 使用統計：$USAGE"
+
+          if [[ -z "$AI_NOTES" ]]; then
+            echo "⚠️ Copilot API 無回應或解析失敗，使用預設 Release Notes"
+            if [[ "$IS_FIRST_RELEASE" == "true" ]]; then
+              AI_NOTES=$(printf '## 首個版本\n\n本版本由合併 `%s` 到 master 後自動建立。' "${MERGED_BRANCH}")
+            else
+              AI_NOTES=$(printf '## 版本 %s\n\n本版本由合併 `%s` 到 master 後自動建立。' "${NEXT_VERSION}" "${MERGED_BRANCH}")
+            fi
+            echo "📝 使用預設文案："
+            echo "$AI_NOTES"
+          fi
+
+          # 將多行文字寫入 GITHUB_OUTPUT（使用 heredoc）
+          EOF_MARKER=$(openssl rand -hex 8)
+          {
+            echo "notes<<$EOF_MARKER"
+            echo "$AI_NOTES"
+            echo ""
+            echo "## 版本資訊"
+            echo "- 對應分支：\`release-${NEXT_VERSION}\`"
+            echo "- 合併 PR：#${PR_NUMBER} ${PR_TITLE}"
+            echo "$EOF_MARKER"
+          } >> $GITHUB_OUTPUT
+
+          echo "✅ AI Release Notes 已寫入 GITHUB_OUTPUT"
+          echo "   Output Key：notes"
+          echo "   總字元數：${#AI_NOTES}"
+
+      - name: 建立 GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_NOTES: ${{ steps.ai_notes.outputs.notes }}
+        run: |
+          VERSION="${{ steps.version.outputs.next_version }}"
+
+          echo "📦 準備建立 GitHub Release..."
+          echo "   版本號：$VERSION"
+          echo "   Release Notes 內容長度：${#RELEASE_NOTES} 字元"
+          echo "   預覽 Release Notes："
+          echo "==============================="
+          echo "$RELEASE_NOTES"
+          echo "==============================="
+
+          if gh release view "$VERSION" >/dev/null 2>&1; then
+            echo "Release '$VERSION' 已存在，略過"
+          else
+            # 建立正式 Release 版本
+            gh release create "$VERSION" \
+              --title "$VERSION" \
+              --notes "$RELEASE_NOTES" \
+              --target "${{ env.TARGET_BRANCH }}"
+            echo "✅ 已建立 Release 版本 $VERSION"
+            echo "📌 完成內容："
+            echo "   - Tag: $VERSION"
+            echo "   - Release 分支: release-$VERSION"
+            echo "   - 狀態：正式發布"
+          fi

@@ -49,6 +49,11 @@ model User {
   achievements  UserAchievement[] // 成就記錄
   dailyStats    DailyStats[] // 每日統計
   aiUsageLogs   AiUsageLog[] // AI 用量記錄
+  conversationSessions ConversationSession[] // 對話式飲食日記
+  kitchenInventory     KitchenInventory? // 廚房食材庫存
+  subscription         UserSubscription? // 訂閱方案
+  savedRecipes         SavedRecipe[] // 收藏料理
+  cookingScheduleEvents CookingScheduleEvent[] // 烹煮排程
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -655,4 +660,150 @@ model DeletedUserLog {
   @@index([originalId])
   @@index([deletedBy])
   @@map("deleted_user_logs")
+}
+
+// ==================== 對話式飲食日記 ====================
+
+enum ConversationStatus {
+  ACTIVE    // 對話進行中
+  CONFIRMED // 已確認並寫入飲食記錄
+  ABANDONED // 超時或放棄
+}
+
+model ConversationSession {
+  id                String             @id @default(cuid())
+  userId            String
+  status            ConversationStatus @default(ACTIVE)
+  messages          Json               // ConversationMessage[]
+  pendingFoods      Json               // ParsedFood[]（等待確認）
+  suggestedMealType MealType           @default(LUNCH)
+  mealDate          DateTime           @default(now())
+  expiresAt         DateTime           // 建立時 + 7 天
+  confirmedMealId   String?            // 確認後關聯的 Meal
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([userId, status])
+  @@index([expiresAt])
+  @@map("conversation_sessions")
+}
+
+// ==================== 廚房食材庫存 ====================
+
+model KitchenInventory {
+  id            String              @id @default(cuid())
+  userId        String              @unique // 每位用戶只有一份庫存
+  scanImages    String[]            // 掃描圖片 URL 陣列
+  lastScannedAt DateTime?
+  ingredients   KitchenIngredient[]
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("kitchen_inventories")
+}
+
+enum IngredientAddedVia {
+  SCAN   // 掃描辨識
+  CHAT   // 對話更新
+  MANUAL // 手動新增
+}
+
+model KitchenIngredient {
+  id           String            @id @default(cuid())
+  inventoryId  String
+  name         String
+  category     String            // 蛋白質/蔬菜/澱粉/調味料/乳製品/水果/其他
+  quantity     String            // 描述性：「3個」「半袋」
+  isAvailable  Boolean           @default(true)
+  aiConfidence Float?            // 掃描時的識別信心度
+  addedVia     IngredientAddedVia @default(SCAN)
+  scanImageUrl String?           // 對應掃描圖片 URL（可選）
+
+  inventory KitchenInventory @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([inventoryId])
+  @@index([inventoryId, isAvailable])
+  @@map("kitchen_ingredients")
+}
+
+// ==================== 訂閱制 ====================
+
+enum SubscriptionPlan {
+  FREE
+  PREMIUM
+  PRO
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+  TRIALING
+}
+
+model UserSubscription {
+  id                   String             @id @default(cuid())
+  userId               String             @unique
+  plan                 SubscriptionPlan   @default(FREE)
+  status               SubscriptionStatus @default(ACTIVE)
+  currentPeriodStart   DateTime           @default(now())
+  currentPeriodEnd     DateTime           // FREE 用戶設為 2099-12-31
+  cancelAtPeriodEnd    Boolean            @default(false)
+
+  // 付款整合預留欄位（Phase 3）
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  paymentProvider      String?            // 'stripe' | 'newebpay' | 'ecpay'
+  paymentMetadata      Json?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("user_subscriptions")
+}
+
+// ==================== 個人菜單 ====================
+
+model SavedRecipe {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  data      Json     // 完整 Recipe 物件（calories, steps, ingredients…）
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("saved_recipes")
+}
+
+// ==================== 烹煮排程 ====================
+
+model CookingScheduleEvent {
+  id            String    @id @default(cuid())
+  userId        String
+  savedRecipeId String?   // 可選關聯（從收藏新增時填入）
+  recipeName    String
+  scheduledDate DateTime  // 統一 UTC 00:00，只取日期部分
+  note          String?
+  createdAt     DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([scheduledDate])
+  @@map("cooking_schedule_events")
 }

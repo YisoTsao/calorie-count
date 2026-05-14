@@ -7,7 +7,6 @@ import { Icon } from '@iconify/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getTaipeiToday } from '@/lib/date';
 import { cn } from '@/lib/utils';
-import { CaloLogo } from '@/components/ui/CaloLogo';
 
 interface SidebarProps {
   isOpen?: boolean;
@@ -40,6 +39,15 @@ function useNavItems() {
         { href: '/nutrition', label: t('nutrition'), icon: 'lucide:activity' },
         { href: '/weight', label: t('weight'), icon: 'lucide:scale' },
         { href: '/exercise', label: t('exercise'), icon: 'lucide:dumbbell' },
+      ],
+    },
+    {
+      section: 'AI',
+      items: [
+        { href: '/ai-diary', label: t('aiDiary'), icon: 'lucide:message-square-text' },
+        { href: '/kitchen', label: t('kitchen'), icon: 'lucide:chef-hat' },
+        { href: '/my-recipes', label: t('myRecipes'), icon: 'lucide:book-open' },
+        { href: '/cooking-calendar', label: t('cookingCalendar'), icon: 'lucide:calendar-days' },
       ],
     },
     // {
@@ -194,7 +202,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
               <div className="flex items-center justify-between border-b px-4 py-4 dark:border-gray-800">
                 <div className="flex items-center gap-2">
                   <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-emerald-500 shadow-sm">
-                    <CaloLogo size={16} className="text-white" />
+                    <img src="/calo-logo.png" alt="Logo" className="rounded-2xl" />
                   </div>
                   <span className="text-lg font-bold">CalorieCount</span>
                 </div>
