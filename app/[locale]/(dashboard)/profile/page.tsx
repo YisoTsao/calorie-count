@@ -32,8 +32,8 @@ export default async function ProfilePage() {
 
   return (
     <div className="space-y-8 p-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-5">
+      <div className="flex flex-col md:flex-row items-center justify-between">
+        <div className="flex flex-col md:flex-row items-center gap-5">
           {/* 頭像：hover 顯示相機 icon，可直接點擊更換 */}
           <AvatarUploader currentImage={user.image} userName={user.name} size={80} />
           <div className="space-y-1">
@@ -41,7 +41,7 @@ export default async function ProfilePage() {
             <p className="text-muted-foreground">{t('subtitle')}</p>
           </div>
         </div>
-        <Link href="/profile/edit">
+        <Link href="/profile/edit" className='pt-2'>
           <Button>
             <Edit className="mr-2 h-4 w-4" />
             {t('editProfile')}

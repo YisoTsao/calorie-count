@@ -7,7 +7,6 @@ import { Icon } from '@iconify/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getTaipeiToday } from '@/lib/date';
 import { cn } from '@/lib/utils';
-import { CaloLogo } from '@/components/ui/CaloLogo';
 
 interface SidebarProps {
   isOpen?: boolean;
@@ -203,7 +202,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
               <div className="flex items-center justify-between border-b px-4 py-4 dark:border-gray-800">
                 <div className="flex items-center gap-2">
                   <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-emerald-500 shadow-sm">
-                    <CaloLogo size={16} className="text-white" />
+                    <img src="/calo-logo.png" alt="Logo" className="rounded-2xl" />
                   </div>
                   <span className="text-lg font-bold">CalorieCount</span>
                 </div>

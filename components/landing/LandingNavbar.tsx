@@ -7,7 +7,6 @@ import { useSession, signOut } from 'next-auth/react';
 import { Link } from '@/i18n/navigation';
 import { LocaleSwitcher } from '@/components/ui/LocaleSwitcher';
 import { Icon } from '@iconify/react';
-import { CaloLogo } from '@/components/ui/CaloLogo';
 
 export function LandingNavbar() {
   const t = useTranslations('landing.nav');
@@ -65,7 +64,7 @@ export function LandingNavbar() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5">
           <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-sm">
-            <CaloLogo size={18} className="text-white" />
+            <img src="/calo-logo.png" alt="Logo" className='rounded-2xl' />
           </div>
           <span className="text-xl font-bold tracking-tight">CalorieCount</span>
         </Link>
@@ -235,7 +234,7 @@ export function LandingNavbar() {
                     </span>
                   </div>
                   <Link
-                    href={`/${locale}/profile`}
+                    href={`/profile`}
                     onClick={() => setMenuOpen(false)}
                     className="flex items-center gap-2 text-base font-medium text-gray-700 dark:text-gray-300"
                   >
