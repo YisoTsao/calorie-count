@@ -7,8 +7,7 @@ import { useRouter } from 'next/navigation';
 import { Target, TrendingDown, TrendingUp, Minus, Calculator } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { SpinnerInput } from '@/components/ui/SpinnerInput';
 import {
   calculateNutritionGoals,
   calculateBMI,
@@ -308,100 +307,84 @@ export default function GoalsPage() {
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="calories">{t('calories')}</Label>
-            <Input
-              id="calories"
-              type="number"
+        <CardContent className="space-y-8">
+          {/* 卡路里 */}
+          <div className="flex justify-center">
+            <SpinnerInput
               value={dailyCalories}
-              onChange={(e) => setDailyCalories(Number(e.target.value))}
+              onChange={setDailyCalories}
               min={1000}
               max={5000}
               step={50}
+              label={t('calories')}
+              unit="kcal / 天"
+              hint={t('caloriesRange')}
+              accentClass="text-emerald-500"
             />
-            <p className="text-xs text-muted-foreground">{t('caloriesRange')}</p>
           </div>
 
           {/* 飲水目標 + 目標體重 */}
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="water">{t('water')}</Label>
-              <Input
-                id="water"
-                type="number"
-                value={waterGoal}
-                onChange={(e) => setWaterGoal(Number(e.target.value))}
-                min={0}
-                max={10000}
-                step={100}
-              />
-              <p className="text-xs text-muted-foreground">{t('waterRange')}</p>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="targetWeight">{t('targetWeight')}</Label>
-              <Input
-                id="targetWeight"
-                type="number"
-                step="0.1"
-                value={targetWeight}
-                onChange={(e) =>
-                  setTargetWeight(e.target.value === '' ? '' : parseFloat(e.target.value))
-                }
-                placeholder={profile?.weight ? String(profile.weight) : '68.0'}
-              />
-              <p className="text-xs text-muted-foreground">{t('saveToProfile')}</p>
-            </div>
+          <div className="grid grid-cols-2 gap-6 justify-items-center">
+            <SpinnerInput
+              value={waterGoal}
+              onChange={setWaterGoal}
+              min={500}
+              max={5000}
+              step={100}
+              label={t('water')}
+              unit="ml / 天"
+              hint={t('waterRange')}
+              accentClass="text-sky-500"
+            />
+            <SpinnerInput
+              value={typeof targetWeight === 'number' ? targetWeight : (profile?.weight ?? 65)}
+              onChange={(v) => setTargetWeight(v)}
+              min={30}
+              max={200}
+              step={0.5}
+              label={t('targetWeight')}
+              unit="kg"
+              hint={t('saveToProfile')}
+              accentClass="text-violet-500"
+              decimals={1}
+            />
           </div>
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <div className="space-y-2">
-              <Label htmlFor="protein">{t('protein')}</Label>
-              <Input
-                id="protein"
-                type="number"
-                value={protein}
-                onChange={(e) => setProtein(Number(e.target.value))}
-                min={0}
-                max={500}
-              />
-              <p className="text-xs text-muted-foreground">
-                {Math.round(((protein * 4) / dailyCalories) * 100)}
-                {t('caloriesPct')}
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="carbs">{t('carbs')}</Label>
-              <Input
-                id="carbs"
-                type="number"
-                value={carbs}
-                onChange={(e) => setCarbs(Number(e.target.value))}
-                min={0}
-                max={1000}
-              />
-              <p className="text-xs text-muted-foreground">
-                {Math.round(((carbs * 4) / dailyCalories) * 100)}
-                {t('caloriesPct')}
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="fat">{t('fat')}</Label>
-              <Input
-                id="fat"
-                type="number"
-                value={fat}
-                onChange={(e) => setFat(Number(e.target.value))}
-                min={0}
-                max={300}
-              />
-              <p className="text-xs text-muted-foreground">
-                {Math.round(((fat * 9) / dailyCalories) * 100)}
-                {t('caloriesPct')}
-              </p>
-            </div>
+          {/* 三大營養素 */}
+          <div className="grid grid-cols-3 gap-4 justify-items-center">
+            <SpinnerInput
+              value={protein}
+              onChange={setProtein}
+              min={0}
+              max={500}
+              step={1}
+              label={t('protein')}
+              unit="g"
+              hint={`${Math.round(((protein * 4) / dailyCalories) * 100)}${t('caloriesPct')}`}
+              accentClass="text-red-500"
+            />
+            <SpinnerInput
+              value={carbs}
+              onChange={setCarbs}
+              min={0}
+              max={1000}
+              step={1}
+              label={t('carbs')}
+              unit="g"
+              hint={`${Math.round(((carbs * 4) / dailyCalories) * 100)}${t('caloriesPct')}`}
+              accentClass="text-blue-500"
+            />
+            <SpinnerInput
+              value={fat}
+              onChange={setFat}
+              min={0}
+              max={300}
+              step={1}
+              label={t('fat')}
+              unit="g"
+              hint={`${Math.round(((fat * 9) / dailyCalories) * 100)}${t('caloriesPct')}`}
+              accentClass="text-yellow-500"
+            />
           </div>
 
           {/* 營養素比例圖 */}
