@@ -11,8 +11,9 @@ import { Icon } from '@iconify/react';
 export function LandingNavbar() {
   const t = useTranslations('landing.nav');
   const locale = useLocale();
-  const { data: session } = useSession();
-  const isAuthenticated = !!session?.user;
+  const { data: session, status } = useSession();
+  const isLoading = status === 'loading';
+  const isAuthenticated = status === 'authenticated';
   const isAdmin = (session?.user as { role?: string })?.role === 'admin';
 
   const [scrolled, setScrolled] = useState(false);
@@ -85,7 +86,10 @@ export function LandingNavbar() {
           </button>
           <LocaleSwitcher />
 
-          {isAuthenticated ? (
+          {isLoading ? (
+            /* ── 載入中：骨架 ── */
+            <div className="h-8 w-36 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700" />
+          ) : isAuthenticated ? (
             /* ── 已登入：頭像 + Dropdown ── */
             <div className="relative" ref={dropdownRef}>
               <button
@@ -125,7 +129,7 @@ export function LandingNavbar() {
                     className="absolute right-0 mt-2 w-48 overflow-hidden rounded-xl border border-gray-100 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800"
                   >
                     <Link
-                      href={`/${locale}/profile`}
+                      href={`/profile`}
                       onClick={() => setDropdownOpen(false)}
                       className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 transition-colors hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700"
                     >
@@ -134,7 +138,7 @@ export function LandingNavbar() {
                     </Link>
                     {isAdmin && (
                       <Link
-                        href={`/${locale}/admin`}
+                        href={`/admin`}
                         onClick={() => setDropdownOpen(false)}
                         className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 transition-colors hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700"
                       >
@@ -213,7 +217,12 @@ export function LandingNavbar() {
                 <LocaleSwitcher />
               </div>
 
-              {isAuthenticated ? (
+              {isLoading ? (
+                /* ── 載入中：骨架 ── */
+                <div className="border-t border-gray-100 pt-4 dark:border-gray-800">
+                  <div className="h-8 w-40 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700" />
+                </div>
+              ) : isAuthenticated ? (
                 <>
                   {/* 行動版：已登入選項 */}
                   <div className="flex items-center gap-3 border-t border-gray-100 pt-4 dark:border-gray-800">
@@ -243,7 +252,7 @@ export function LandingNavbar() {
                   </Link>
                   {isAdmin && (
                     <Link
-                      href={`/${locale}/admin`}
+                      href={`/admin`}
                       onClick={() => setMenuOpen(false)}
                       className="flex items-center gap-2 text-base font-medium text-gray-700 dark:text-gray-300"
                     >
