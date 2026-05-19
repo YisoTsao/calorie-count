@@ -263,7 +263,8 @@
       "breakfast": "Breakfast",
       "lunch": "Lunch",
       "dinner": "Dinner",
-      "snack": "Snack"
+      "snack": "Snack",
+      "other": "Other"
     },
     "date": "Date",
     "time": "Time",
@@ -1227,7 +1228,12 @@
     "recordSaved": "Meal record saved!",
     "sendError": "Failed to send, please retry",
     "confirmError": "Failed to confirm, please retry",
-    "quotaExceeded": "Monthly free quota exceeded. Upgrade to Premium to continue."
+    "quotaExceeded": "Monthly free quota exceeded. Upgrade to Premium to continue.",
+    "voice": {
+      "startRecording": "Start voice input",
+      "stopRecording": "Stop recording",
+      "listening": "Listening..."
+    }
   },
   "subscription": {
     "upgradeTitle": "Upgrade Plan",

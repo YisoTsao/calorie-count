@@ -1225,7 +1225,12 @@
     "recordSaved": "飲食記錄已儲存！",
     "sendError": "傳送失敗，請重試",
     "confirmError": "確認失敗，請重試",
-    "quotaExceeded": "已超過本月免費配額，升級 Premium 以繼續使用"
+    "quotaExceeded": "已超過本月免費配額，升級 Premium 以繼續使用",
+    "voice": {
+      "startRecording": "開始語音輸入",
+      "stopRecording": "停止錄音",
+      "listening": "聆聽中..."
+    }
   },
   "subscription": {
     "upgradeTitle": "升級方案",

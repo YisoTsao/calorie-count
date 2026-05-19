@@ -1184,7 +1184,12 @@
     "recordSaved": "食事記録を保存しました！",
     "sendError": "送信に失敗しました。再試行してください",
     "confirmError": "確認に失敗しました。再試行してください",
-    "quotaExceeded": "今月の無料枠を超えました。Premiumにアップグレードしてください。"
+    "quotaExceeded": "今月の無料枠を超えました。Premiumにアップグレードしてください。",
+    "voice": {
+      "startRecording": "音声入力を開始",
+      "stopRecording": "録音を停止",
+      "listening": "聴いています..."
+    }
   },
   "subscription": {
     "upgradeTitle": "プランアップグレード",

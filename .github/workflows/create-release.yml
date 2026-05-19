@@ -12,7 +12,7 @@ jobs:
   create-next-release:
     # 觸發條件（需與常數 RELEASE_SOURCE_PREFIX 同步）
     # 如修改常數 RELEASE_SOURCE_PREFIX，請同步更新此 startsWith 的第二個参數
-    if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'master')
+    if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'develop')
     runs-on: ubuntu-latest
     # 併發控制：防止同時多個 Release PR 合併導致衝突
     concurrency:

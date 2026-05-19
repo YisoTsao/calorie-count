@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { Send, Loader2, Check, X } from 'lucide-react';
 import { toast } from 'sonner';
@@ -9,6 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FoodConfirmCard } from './FoodConfirmCard';
 import { MealTypeSelector } from './MealTypeSelector';
+import { VoiceFloatButton } from './VoiceFloatButton';
 import type { ParsedFood } from '@/lib/ai/food-parser';
 
 type MealType = 'BREAKFAST' | 'LUNCH' | 'DINNER' | 'SNACK' | 'OTHER';
@@ -135,6 +136,57 @@ export function ConversationalDiaryPanel() {
     }
   };
 
+  // 語音辨識結果：自動填入並送出
+  const handleVoiceResult = useCallback(
+    (text: string) => {
+      if (!text.trim() || state === 'sending' || state === 'confirming') return;
+      setInput(text);
+      // 使用 requestAnimationFrame 確保 state 更新後再送出
+      requestAnimationFrame(() => {
+        setMessages((prev) => [...prev, { role: 'user', content: text }]);
+        setState('sending');
+        setInput('');
+
+        fetch('/api/ai/conversation', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: text, sessionId: sessionId ?? undefined }),
+        })
+          .then(async (res) => {
+            if (res.status === 402) {
+              toast.error(t('quotaExceeded'));
+              setState('idle');
+              return;
+            }
+            if (!res.ok) throw new Error('API 錯誤');
+            const { data } = await res.json();
+            setSessionId(data.sessionId);
+            const assistantMsg: ChatMessage = {
+              role: 'assistant',
+              content: data.assistantMessage,
+              parsedFoods: data.parsedFoods,
+              suggestedMealType: data.suggestedMealType,
+              needsClarification: data.needsClarification,
+              clarificationPrompt: data.clarificationPrompt,
+            };
+            setMessages((prev) => [...prev, assistantMsg]);
+            setPendingFoods(data.parsedFoods);
+            setSelectedMealType(data.suggestedMealType);
+            setState(
+              data.needsClarification || data.parsedFoods.length === 0
+                ? 'idle'
+                : 'awaiting_confirm'
+            );
+          })
+          .catch(() => {
+            toast.error(t('sendError'));
+            setState('idle');
+          });
+      });
+    },
+    [state, sessionId, t]
+  );
+
   return (
     <div className="mx-auto flex h-[calc(100vh-12rem)] max-w-2xl flex-col">
       {/* 對話區域 */}
@@ -212,7 +264,7 @@ export function ConversationalDiaryPanel() {
 
       {/* 輸入區域 */}
       <div className="border-t bg-background p-4">
-        <div className="flex gap-2">
+        <div className="relative flex gap-2">
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -234,6 +286,11 @@ export function ConversationalDiaryPanel() {
               <Send className="h-4 w-4" />
             )}
           </Button>
+          {/* 語音按鈕相對定位於輸入框 */}
+          <VoiceFloatButton
+            onResult={handleVoiceResult}
+            disabled={state === 'sending' || state === 'confirming'}
+          />
         </div>
       </div>
     </div>
