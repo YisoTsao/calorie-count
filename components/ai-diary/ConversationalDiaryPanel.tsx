@@ -264,7 +264,7 @@ export function ConversationalDiaryPanel() {
 
       {/* 輸入區域 */}
       <div className="border-t bg-background p-4">
-        <div className="flex gap-2">
+        <div className="relative flex gap-2">
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -286,14 +286,13 @@ export function ConversationalDiaryPanel() {
               <Send className="h-4 w-4" />
             )}
           </Button>
+          {/* 語音按鈕相對定位於輸入框 */}
+          <VoiceFloatButton
+            onResult={handleVoiceResult}
+            disabled={state === 'sending' || state === 'confirming'}
+          />
         </div>
       </div>
-
-      {/* 浮動語音輸入按鈕 */}
-      <VoiceFloatButton
-        onResult={handleVoiceResult}
-        disabled={state === 'sending' || state === 'confirming'}
-      />
     </div>
   );
 }

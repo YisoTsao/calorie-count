@@ -263,7 +263,8 @@
       "breakfast": "Breakfast",
       "lunch": "Lunch",
       "dinner": "Dinner",
-      "snack": "Snack"
+      "snack": "Snack",
+      "other": "Other"
     },
     "date": "Date",
     "time": "Time",

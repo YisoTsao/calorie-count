@@ -134,7 +134,7 @@ export function VoiceFloatButton({ onResult, disabled }: VoiceFloatButtonProps) 
   if (!isSupported) return null;
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2">
+    <div className="absolute -top-16 left-0 z-40 flex flex-col items-start gap-2">
       {/* 即時辨識文字氣泡 */}
       <AnimatePresence>
         {interimText && (
@@ -164,13 +164,13 @@ export function VoiceFloatButton({ onResult, disabled }: VoiceFloatButtonProps) 
         )}
       </AnimatePresence>
 
-      {/* 浮動麥克風按鈕 */}
+      {/* 麥克風按鈕（改為相對位置，在輸入框左上方） */}
       <motion.button
         onClick={toggleRecording}
         disabled={disabled}
         aria-label={isRecording ? t('stopRecording') : t('startRecording')}
         whileTap={{ scale: 0.92 }}
-        className={`relative flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all disabled:opacity-50 ${
+        className={`relative flex h-9 w-9 items-center justify-center rounded-full shadow-md transition-all disabled:opacity-50 sm:h-10 sm:w-10 ${
           isRecording
             ? 'bg-red-500 text-white hover:bg-red-600'
             : 'bg-emerald-500 text-white hover:bg-emerald-600'
@@ -183,7 +183,7 @@ export function VoiceFloatButton({ onResult, disabled }: VoiceFloatButtonProps) 
             <span className="absolute inset-0 animate-pulse rounded-full bg-red-400 opacity-20" />
           </>
         )}
-        <Icon icon={isRecording ? 'lucide:mic-off' : 'lucide:mic'} className="relative h-6 w-6" />
+        <Icon icon={isRecording ? 'lucide:mic-off' : 'lucide:mic'} className="relative h-4 w-4 sm:h-5 sm:w-5" />
       </motion.button>
     </div>
   );
